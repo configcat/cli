@@ -24,10 +24,10 @@ jobs:
       run: dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o publish/win
 
     - name: Publish Linux
-      run: dotnet publish -c Release -r linux-x64 --self-contained true -p:PublishSingleFile=true -p:PublishReadyToRun=true -o publish/linux
+      run: dotnet publish -c Release -r linux-x64 --self-contained true -p:PublishSingleFile=true -o publish/linux
 
     - name: Publish macOS
-      run: dotnet publish -c Release -r osx-x64 --self-contained true -p:PublishSingleFile=true -p:PublishReadyToRun=true -o publish/mac
+      run: dotnet publish -c Release -r osx-x64 --self-contained true -p:PublishSingleFile=true -o publish/mac
 
     - name: Archive executables
       uses: actions/upload-artifact@v2
