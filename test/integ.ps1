@@ -4,7 +4,7 @@ function Invoke-ConfigCat {
 		[string[]]$invokeArgs
 	)
 
-	return (./configcat $invokeArgs 2>&1) -join "`r`n"
+	return (./configcat $invokeArgs 2>&1) -join "`n"
 }
 
 BeforeAll {
