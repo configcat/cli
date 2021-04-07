@@ -18,8 +18,12 @@ jobs:
     - name: Setup dotnet
       uses: actions/setup-dotnet@v1.7.2
       with:
-        dotnet-version: '5.0.x'
+        dotnet-version: '3.1.x'
         
+    - name: Restore packages
+      run: |
+        dotnet restore
+
     - name: Publish Windows
       run: |
         dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o publish/win
