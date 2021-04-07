@@ -12,32 +12,30 @@ on:
   
 jobs:
   produce-executables:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
     - name: Setup dotnet
       uses: actions/setup-dotnet@v1.7.2
       with:
-        dotnet-version: '3.1.x'
+        dotnet-version: '5.0.x'
         
-    - name: Restore packages
-      run: |
-        dotnet restore
-
     - name: Publish Windows
       run: |
         dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o publish/win
-        copy test/integ.ps1 publish/win/integ.ps1
+        cp test/integ.ps1 publish/win/integ.ps1
 
     - name: Publish Linux
       run: |
         dotnet publish -c Release -r linux-x64 --self-contained true -p:PublishSingleFile=true -o publish/linux
-        copy test/integ.ps1 publish/linux/integ.ps1
+        chmod +x publish/linux/configcat
+        cp test/integ.ps1 publish/linux/integ.ps1
 
     - name: Publish macOS
       run: |
         dotnet publish -c Release -r osx-x64 --self-contained true -p:PublishSingleFile=true -o publish/mac
-        copy test/integ.ps1 publish/mac/integ.ps1
+        chmod +x publish/mac/configcat
+        cp test/integ.ps1 publish/mac/integ.ps1
 
     - name: Archive executables
       uses: actions/upload-artifact@v2
