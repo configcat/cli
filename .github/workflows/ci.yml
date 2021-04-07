@@ -28,13 +28,11 @@ jobs:
     - name: Publish Linux
       run: |
         dotnet publish -c Release -r linux-x64 --self-contained true -p:PublishSingleFile=true -o publish/linux
-        chmod +x publish/linux/configcat
         cp test/integ.ps1 publish/linux/integ.ps1
 
     - name: Publish macOS
       run: |
         dotnet publish -c Release -r osx-x64 --self-contained true -p:PublishSingleFile=true -o publish/mac
-        chmod +x publish/mac/configcat
         cp test/integ.ps1 publish/mac/integ.ps1
 
     - name: Archive executables
@@ -57,6 +55,7 @@ jobs:
       shell: pwsh
       run: |
         cd linux
+        chmod +x ./configcat
         ./configcat -?
       env:
         CONFIGCAT_API_HOST: ${{ secrets.CONFIGCAT_API_HOST }}
@@ -97,6 +96,7 @@ jobs:
       shell: pwsh
       run: |
         cd mac
+        chmod +x ./configcat
         ./configcat -?
       env:
         CONFIGCAT_API_HOST: ${{ secrets.CONFIGCAT_API_HOST }}
