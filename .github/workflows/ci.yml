@@ -32,7 +32,7 @@ jobs:
     - name: Archive executables
       uses: actions/upload-artifact@v2
       with:
-        name: exes
+        name: executables
         path: publish
       
   linux-tests:
@@ -43,10 +43,17 @@ jobs:
     - name: Download executables
       uses: actions/download-artifact@v2
       with:
-        name: exes
+        name: executables
 
-    - name: List folder
-      run: ls
+    - name: Execute tests
+      shell: pwsh
+      run: |
+        cd linux
+        Invoke-Pester integ.ps1
+      env:
+        CONFIGCAT_API_HOST: ${{ secrets.CONFIGCAT_API_HOST }}
+        CONFIGCAT_API_USER: ${{ secrets.CONFIGCAT_API_USER }}
+        CONFIGCAT_API_PASS: ${{ secrets.CONFIGCAT_API_PASS }}
 
   win-tests:
     needs: produce-executables
@@ -56,10 +63,17 @@ jobs:
     - name: Download executables
       uses: actions/download-artifact@v2
       with:
-        name: exes
+        name: executables
 
-    - name: List folder
-      run: dir
+    - name: Execute tests
+      shell: pwsh
+      run: |
+        cd win
+        Invoke-Pester integ.ps1
+      env:
+        CONFIGCAT_API_HOST: ${{ secrets.CONFIGCAT_API_HOST }}
+        CONFIGCAT_API_USER: ${{ secrets.CONFIGCAT_API_USER }}
+        CONFIGCAT_API_PASS: ${{ secrets.CONFIGCAT_API_PASS }}
 
   mac-tests:
     needs: produce-executables
@@ -69,7 +83,14 @@ jobs:
     - name: Download executables
       uses: actions/download-artifact@v2
       with:
-        name: exes
+        name: executables
 
-    - name: List folder
-      run: ls
+    - name: Execute tests
+      shell: pwsh
+      run: |
+        cd mac
+        Invoke-Pester integ.ps1
+      env:
+        CONFIGCAT_API_HOST: ${{ secrets.CONFIGCAT_API_HOST }}
+        CONFIGCAT_API_USER: ${{ secrets.CONFIGCAT_API_USER }}
+        CONFIGCAT_API_PASS: ${{ secrets.CONFIGCAT_API_PASS }}
