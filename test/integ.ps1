@@ -4,7 +4,13 @@ function Invoke-ConfigCat {
 		[string[]]$invokeArgs
 	)
 
-	return (./configcat $invokeArgs 2>&1) -join "`n"
+    if($PSVersionTable.Platform -eq "Unix") {
+        $output = sh -c "./configcat $invokeArgs 2>&1"
+    } else {
+        $output = cmd /c .\configcat $invokeArgs '2>&1'
+    }
+
+	return $output -join "`n"
 }
 
 BeforeAll {
@@ -13,11 +19,11 @@ BeforeAll {
     $productId = Invoke-ConfigCat "product", "create", $organizationId, "-n", $productName
     Invoke-ConfigCat "product", "ls" | Should -Match $productName
 
-    $configName = "CLI IntegTest Config"
+    $configName = "CLI-IntegTest-Config"
     $configId = Invoke-ConfigCat "config", "create", $productId, "-n", $configName
     Invoke-ConfigCat "config", "ls" | Should -Match $configName
 
-    $environmentName = "CLI IntegTest Env"
+    $environmentName = "CLI-IntegTest-Env"
     $environmentId = Invoke-ConfigCat "environment", "create", $productId, "-n", $environmentName
     Invoke-ConfigCat "environment", "ls" | Should -Match $environmentName
 }
@@ -41,13 +47,13 @@ Describe "Product / Config / Environment Tests" {
     }
 
     It "Rename Config" {
-        $newConfigName = "CLI IntegTest Config Updated"
+        $newConfigName = "CLI-IntegTest-Config-Updated"
         Invoke-ConfigCat "config", "update", $configId, "-n", $newConfigName
         Invoke-ConfigCat "config", "ls" | Should -Match $newConfigName
     }
 
     It "Rename Environment" {
-        $newEnvironmentName = "CLI IntegTest Env Updated"
+        $newEnvironmentName = "CLI-IntegTest-Env-Updated"
         Invoke-ConfigCat "environment", "update", $environmentId, "-n", $newEnvironmentName
         Invoke-ConfigCat "environment", "ls" | Should -Match $newEnvironmentName
     }
@@ -68,9 +74,9 @@ Describe "Tag / Flag Tests" {
         $tag2Id = Invoke-ConfigCat "tag", "create", $productId, "-n", "tag2", "-c", "whale"
         Invoke-ConfigCat "tag", "ls", "-p", $productId | Should -Match "tag2"    
 
-        $flagId = Invoke-ConfigCat "flag", "create", $configId, "-n", "Bool Flag", "-k", "bool_flag", "-i", "hint", "-t", "boolean", "-g", $tag1Id
+        $flagId = Invoke-ConfigCat "flag", "create", $configId, "-n", "Bool-Flag", "-k", "bool_flag", "-i", "hint", "-t", "boolean", "-g", $tag1Id
         $flagResult = Invoke-ConfigCat "flag", "ls", "-c", $configId
-        $flagResult | Should -Match "Bool Flag"
+        $flagResult | Should -Match "Bool-Flag"
         $flagResult | Should -Match "bool_flag"
         $flagResult | Should -Match "hint"
         $flagResult | Should -Match "boolean"
@@ -99,11 +105,11 @@ Describe "Tag / Flag Tests" {
     }
     
     It "Update Flag" {
-        Invoke-ConfigCat "flag", "update", $flagId, "-n", "Bool Flag Updated", "-i", "hint updated", "-g", $tag2Id
+        Invoke-ConfigCat "flag", "update", $flagId, "-n", "Bool-Flag-Updated", "-i", "hint-updated", "-g", $tag2Id
         $updateResult = Invoke-ConfigCat "flag", "ls", "-c", $configId
-        $updateResult | Should -Match "Bool Flag Updated"
+        $updateResult | Should -Match "Bool-Flag-Updated"
         $updateResult | Should -Match "bool_flag"
-        $updateResult | Should -Match "hint updated"
+        $updateResult | Should -Match "hint-updated"
         $updateResult | Should -Match "boolean"
         $updateResult | Should -Match $tag2Id        
         $updateResult | Should -Not -Match $tag1Id
@@ -126,7 +132,7 @@ Describe "Tag / Flag Tests" {
 
 Describe "Flag value / Rule Tests" {
     BeforeAll {
-        $flagId = Invoke-ConfigCat "flag", "create", $configId, "-n", "Bool Flag", "-k", "bool_flag", "-i", "hint", "-t", "boolean"
+        $flagId = Invoke-ConfigCat "flag", "create", $configId, "-n", "Bool-Flag", "-k", "bool_flag", "-i", "hint", "-t", "boolean"
     }
 
     AfterAll {
