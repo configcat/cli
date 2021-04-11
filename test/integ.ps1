@@ -1,3 +1,5 @@
+$cliPath = $args[0]
+
 function Invoke-ConfigCat {
 	param(
 		[Parameter(Mandatory)]
@@ -5,9 +7,9 @@ function Invoke-ConfigCat {
 	)
 
     if($PSVersionTable.Platform -eq "Unix") {
-        $output = sh -c "./configcat $invokeArgs 2>&1"
+        $output = sh -c "$cliPath $invokeArgs 2>&1"
     } else {
-        $output = cmd /c .\configcat $invokeArgs '2>&1'
+        $output = cmd /c $cliPath $invokeArgs '2>&1'
     }
 
 	return $output -join "`n"
