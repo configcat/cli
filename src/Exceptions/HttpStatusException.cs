@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Net;
 
-namespace ConfigCat.Cli.Api
+namespace ConfigCat.Cli.Exceptions
 {
     class HttpStatusException : Exception
     {

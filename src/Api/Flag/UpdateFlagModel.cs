@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace ConfigCat.Cli.Api.Flag
 {
@@ -8,6 +9,7 @@ namespace ConfigCat.Cli.Api.Flag
 
         public string Hint { get; set; }
 
-        public IEnumerable<int> Tags { get; set; }
+        [JsonPropertyName("tags")]
+        public IEnumerable<int> TagIds { get; set; }
     }
 }

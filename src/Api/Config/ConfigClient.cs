@@ -1,5 +1,4 @@
-﻿using ConfigCat.Cli.Configuration;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,11 +21,10 @@ namespace ConfigCat.Cli.Api.Config
 
     class ConfigClient : ApiClient, IConfigClient
     {
-        public ConfigClient(IConfigurationReader configurationReader,
-            IExecutionContextAccessor accessor,
+        public ConfigClient(IExecutionContextAccessor accessor,
             IBotPolicy<HttpResponseMessage> botPolicy,
             HttpClient httpClient)
-            : base(configurationReader, accessor, botPolicy, httpClient)
+            : base(accessor, botPolicy, httpClient)
         { }
 
         public Task<IEnumerable<ConfigModel>> GetConfigsAsync(string productId, CancellationToken token) =>

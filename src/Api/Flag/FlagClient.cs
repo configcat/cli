@@ -1,5 +1,4 @@
-﻿using ConfigCat.Cli.Configuration;
-using ConfigCat.Cli.Utils;
+﻿using ConfigCat.Cli.Utils;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
@@ -23,11 +22,10 @@ namespace ConfigCat.Cli.Api.Flag
 
     class FlagClient : ApiClient, IFlagClient
     {
-        public FlagClient(IConfigurationReader configurationReader,
-            IExecutionContextAccessor accessor,
+        public FlagClient(IExecutionContextAccessor accessor,
             IBotPolicy<HttpResponseMessage> botPolicy,
             HttpClient httpClient)
-            : base(configurationReader, accessor, botPolicy, httpClient)
+            : base(accessor, botPolicy, httpClient)
         { }
 
         public Task<IEnumerable<FlagModel>> GetFlagsAsync(string configId, CancellationToken token) =>

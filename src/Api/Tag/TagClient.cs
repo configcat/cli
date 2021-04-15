@@ -1,5 +1,4 @@
-﻿using ConfigCat.Cli.Configuration;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,6 +10,8 @@ namespace ConfigCat.Cli.Api.Tag
     {
         Task<IEnumerable<TagModel>> GetTagsAsync(string productId, CancellationToken token);
 
+        Task<TagModel> GetTagAsync(int tagId, CancellationToken token);
+
         Task<TagModel> CreateTagAsync(string productId, string name, string color, CancellationToken token);
 
         Task UpdateTagAsync(int tagId, string name, string color, CancellationToken token);
@@ -20,15 +21,17 @@ namespace ConfigCat.Cli.Api.Tag
 
     class TagClient : ApiClient, ITagClient
     {
-        public TagClient(IConfigurationReader configurationReader,
-            IExecutionContextAccessor accessor,
+        public TagClient(IExecutionContextAccessor accessor,
             IBotPolicy<HttpResponseMessage> botPolicy,
             HttpClient httpClient) 
-            : base(configurationReader, accessor, botPolicy, httpClient)
+            : base(accessor, botPolicy, httpClient)
         { }
 
         public Task<IEnumerable<TagModel>> GetTagsAsync(string productId, CancellationToken token) =>
             this.GetAsync<IEnumerable<TagModel>>(HttpMethod.Get, $"v1/products/{productId}/tags", token);
+
+        public Task<TagModel> GetTagAsync(int tagId, CancellationToken token) =>
+            this.GetAsync<TagModel>(HttpMethod.Get, $"v1/tags/{tagId}", token);
 
         public Task<TagModel> CreateTagAsync(string productId, string name, string color, CancellationToken token) =>
             this.SendAsync<TagModel>(HttpMethod.Post, $"v1/products/{productId}/tags", new { Name = name, Color = color }, token);

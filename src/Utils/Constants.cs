@@ -51,8 +51,6 @@ namespace ConfigCat.Cli.Utils
 
         public static Option VerboseOption = new VerboseOption();
 
-        public const string Backspace = "\b \b";
-
         public static JsonSerializerOptions CamelCaseOptions = new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase

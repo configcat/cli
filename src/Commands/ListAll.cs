@@ -2,6 +2,7 @@
 using ConfigCat.Cli.Api.Environment;
 using ConfigCat.Cli.Api.Product;
 using ConfigCat.Cli.Utils;
+using System;
 using System.Collections.Generic;
 using System.CommandLine.Rendering;
 using System.CommandLine.Rendering.Views;
@@ -52,13 +53,12 @@ namespace ConfigCat.Cli.Commands
             }
 
             var table = new TableView<ConfigEnvironment>() { Items = items };
+            table.AddColumn(p => $"{p.Config.Product.Organization.OrganizationId} ({p.Config.Product.Organization.Name})", "ORGANIZATION");
             table.AddColumn(p => $"{p.Config.Product.ProductId} ({p.Config.Product.Name})", "PRODUCT");
             table.AddColumn(p => $"{p.Config.ConfigId} ({p.Config.Name})", "CONFIG");
             table.AddColumn(p => $"{p.Environment.EnvironmentId} ({p.Environment.Name})", "ENVIRONMENT");
 
-            var console = this.accessor.ExecutionContext.Output.Console;
-            var renderer = new ConsoleRenderer(console, resetAfterRender: true);
-            table.RenderFitToContent(renderer, console);
+            this.accessor.ExecutionContext.Output.RenderView(table);
 
             return Constants.ExitCodes.Ok;
         }

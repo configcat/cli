@@ -36,6 +36,8 @@ namespace ConfigCat.Cli.Commands
 
         public string Description => "List sdk keys";
 
+        public IEnumerable<string> Aliases => new[] { "k" };
+
         public async Task<int> InvokeAsync(CancellationToken token)
         {
             var items = new List<SdkKeyTableItem>();
@@ -62,9 +64,7 @@ namespace ConfigCat.Cli.Commands
             table.AddColumn(k => k.Config.Name, "CONFIG");
             table.AddColumn(k => k.Config.Product.Name, "PRODUCT");
 
-            var console = this.accessor.ExecutionContext.Output.Console;
-            var renderer = new ConsoleRenderer(console, resetAfterRender: true);
-            table.RenderFitToContent(renderer, console);
+            this.accessor.ExecutionContext.Output.RenderView(table);
 
             return Constants.ExitCodes.Ok;
         }

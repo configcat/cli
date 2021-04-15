@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using System.Threading.Tasks;
 
 namespace System.Net.Http
@@ -24,7 +23,7 @@ namespace System.Net.Http
 
         public static async Task<HttpContent> CloneAsync(this HttpContent content)
         {
-            if (content == null) return null;
+            if (content is null) return null;
 
             var stream = new MemoryStream();
             await content.CopyToAsync(stream);

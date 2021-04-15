@@ -27,6 +27,8 @@ namespace ConfigCat.Cli.Commands
 
         public IEnumerable<Argument> Arguments { get; set; } = Enumerable.Empty<Argument>();
 
+        public IEnumerable<string> Aliases { get; set; } = Enumerable.Empty<string>();
+
         public ICommandHandler Handler { get; set; }
     }
 
@@ -39,6 +41,8 @@ namespace ConfigCat.Cli.Commands
         IEnumerable<Option> Options => Enumerable.Empty<Option>();
 
         IEnumerable<Argument> Arguments => Enumerable.Empty<Argument>();
+
+        IEnumerable<string> Aliases => Enumerable.Empty<string>();
 
         public IEnumerable<SubCommandDescriptor> InlineSubCommands => Enumerable.Empty<SubCommandDescriptor>();
 

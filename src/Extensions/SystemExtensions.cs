@@ -42,6 +42,9 @@ namespace System
         public static bool IsEmpty(this string value) =>
             string.IsNullOrWhiteSpace(value);
 
+        public static bool IsEmptyOrEquals(this string value, string other) =>
+            string.IsNullOrWhiteSpace(value) || value.Equals(other);
+
         public static bool TryParseFlagValue(this string value, string settingType, out object parsed)
         {
             parsed = null;

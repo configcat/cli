@@ -25,12 +25,13 @@ namespace ConfigCat.Cli.Utils
 
         public Spinner(CancellationToken token, IConsole console, bool isVerboseEnabled)
         {
-            if(isVerboseEnabled)
+            if (isVerboseEnabled)
                 return;
 
-            this.terminal = console.GetTerminal();
-            if (terminal == null)
+            if (console is not ITerminal terminal)
                 return;
+
+            this.terminal = terminal;
 
             this.top = terminal.CursorTop;
             this.left = terminal.CursorLeft;
@@ -43,14 +44,13 @@ namespace ConfigCat.Cli.Utils
                 var counter = 0;
                 while (!this.combinedToken.IsCancellationRequested)
                 {
+                    var spinnerFragment = SpinnerFragments[counter++ % SpinnerFragments.Length];
+
+                    this.terminal.SetCursorPosition(this.left, this.top);
+                    this.terminal.Out.Write(spinnerFragment);
                     try
                     {
-                        var spinnerFragment = SpinnerFragments[counter++ % SpinnerFragments.Length];
-
-                        this.terminal.SetCursorPosition(this.left, this.top);
-                        this.terminal.Out.Write(spinnerFragment);
-
-                        await Task.Delay(70, this.combinedToken.Token);
+                        await Task.Delay(TimeSpan.FromMilliseconds(70), this.combinedToken.Token);
                     }
                     catch (OperationCanceledException)
                     { }
@@ -61,14 +61,14 @@ namespace ConfigCat.Cli.Utils
 
         public void Stop()
         {
-            if (terminal == null || isVerboseEnabled)
+            if (terminal is null || isVerboseEnabled)
                 return;
 
             this.combinedToken.Cancel();
 
             var fragmentSize = SpinnerFragments[0].Length;
             this.terminal.SetCursorPosition(this.left + fragmentSize, this.top);
-            this.terminal.Out.Write(string.Concat(Enumerable.Repeat(Constants.Backspace, fragmentSize)));
+            this.terminal.Out.Write(string.Concat(Enumerable.Repeat("\b \b", fragmentSize)));
             this.terminal.SetCursorPosition(this.left, this.top);
             this.terminal.ShowCursor();
         }

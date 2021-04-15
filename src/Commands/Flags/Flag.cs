@@ -1,11 +1,12 @@
 ﻿using ConfigCat.Cli.Api.Config;
 using ConfigCat.Cli.Api.Flag;
 using ConfigCat.Cli.Api.Product;
+using ConfigCat.Cli.Configuration;
+using ConfigCat.Cli.Exceptions;
 using ConfigCat.Cli.Utils;
 using System;
 using System.Collections.Generic;
 using System.CommandLine;
-using System.CommandLine.Rendering;
 using System.CommandLine.Rendering.Views;
 using System.Linq;
 using System.Threading;
@@ -18,25 +19,30 @@ namespace ConfigCat.Cli.Commands
         private readonly IFlagClient flagClient;
         private readonly IConfigClient configClient;
         private readonly IProductClient productClient;
+        private readonly IWorkspaceManager workspaceManager;
         private readonly IPrompt prompt;
         private readonly IExecutionContextAccessor accessor;
 
         public Flag(IFlagClient flagClient,
             IConfigClient configClient,
             IProductClient productClient,
+            IWorkspaceManager workspaceManager,
             IPrompt prompt,
             IExecutionContextAccessor accessor)
         {
             this.flagClient = flagClient;
             this.configClient = configClient;
             this.productClient = productClient;
+            this.workspaceManager = workspaceManager;
             this.prompt = prompt;
             this.accessor = accessor;
         }
 
         public string Name => "flag";
 
-        public string Description => "Manage flags";
+        public string Description => "Manage flags & settings";
+
+        public IEnumerable<string> Aliases => new[] { "setting", "f", "s" };
 
         public IEnumerable<ICommandDescriptor> SubCommands { get; set; }
 
@@ -49,32 +55,29 @@ namespace ConfigCat.Cli.Commands
                 Handler = this.CreateHandler(nameof(Flag.ListAllFlagsAsync)),
                 Options = new Option[]
                 {
-                    new Option<string>(new[] { "--config-id", "-c" }) { Description = "Show only a config's flags" },
-                    new Option<string>(new[] { "--tag-name", "-n" }) { Description = "Filter by a tag's name" },
-                    new Option<int>(new[] { "--tag-id", "-t" }) { Description = "Filter by a tag's ID" },
-                }
+                    new Option<string>(new[] { "--config-id", "-c" }, "Show only a config's flags"),
+                    new Option<string>(new[] { "--tag-name", "-n" }, "Filter by a tag's name"),
+                    new Option<int>(new[] { "--tag-id", "-t" }, "Filter by a tag's ID"),
+                },
             },
             new SubCommandDescriptor
             {
                 Name = "create",
+                Aliases = new[] { "cr" },
                 Description = "Create flag",
                 Handler = this.CreateHandler(nameof(Flag.CreateFlagAsync)),
-                Arguments = new[]
-                {
-                    new Argument<string>("config-id") { Description = "ID of the config where the flag must be created" },
-                },
                 Options = new Option[]
                 {
-                    new Option<string>(new[] { "--name", "-n" }){ Description = "Name of the new flag" },
-                    new Option<string>(new[] { "--key", "-k" }) { Description = "Key of the new flag" },
-                    new Option<string>(new[] { "--hint", "-i" }) { Description = "Hint of the new flag" },
-                    new Option<string>(new[] { "--type", "-t" })
+                    new Option<string>(new[] { "--config-id", "-c" }, "ID of the config where the flag must be created"),
+                    new Option<string>(new[] { "--name", "-n" }, "Name of the new flag"),
+                    new Option<string>(new[] { "--key", "-k" }, "Key of the new flag"),
+                    new Option<string>(new[] { "--hint", "-d" }, "Hint of the new flag"),
+                    new Option<string>(new[] { "--type", "-t" }, "Type of the new flag")
                     {
                         Argument = new Argument<string>()
-                            .FromAmong(Constants.SettingTypes.Collection),
-                        Description = "Type of the new flag"
+                            .AddSuggestions(Constants.SettingTypes.Collection),
                     },
-                    new Option<int[]>(new[] { "--tags", "-g" }) { Description = "Tags to attach" },
+                    new Option<int[]>(new[] { "--tag-ids", "-g" }, "Tags to attach"),
                 },
             },
             new SubCommandDescriptor
@@ -82,47 +85,59 @@ namespace ConfigCat.Cli.Commands
                 Name = "rm",
                 Description = "Delete flag",
                 Handler = this.CreateHandler(nameof(Flag.DeleteFlagAsync)),
-                Arguments = new[]
+                Options = new Option[]
                 {
-                     new Argument<int>("flag-id") { Description = "ID of the flag to delete" },
+                    new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the flag or setting to delete")
+                    {
+                        Name = "flag-id"
+                    },
                 },
             },
             new SubCommandDescriptor
             {
                 Name = "update",
+                Aliases = new[] { "up" },
                 Description = "Update flag",
                 Handler = this.CreateHandler(nameof(Flag.UpdateFlagAsync)),
-                Arguments = new[]
-                {
-                     new Argument<int>("flag-id") { Description = "ID of the flag to update" },
-                },
                 Options = new Option[]
                 {
-                    new Option<string>(new[] { "--name", "-n" }) { Description = "The updated name" },
-                    new Option<string>(new[] { "--hint", "-i" }) { Description = "The updated hint" },
-                    new Option<int[]>(new[] { "--tags", "-g" }) { Description = "The updated tag list" },
-                }
+                    new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the flag or setting to update")
+                    {
+                        Name = "flag-id"
+                    },
+                    new Option<string>(new[] { "--name", "-n" }, "The updated name"),
+                    new Option<string>(new[] { "--hint", "-d" }, "The updated hint"),
+                    new Option<int[]>(new[] { "--tag-ids", "-g" }, "The updated tag list"),
+                },
             },
             new SubCommandDescriptor
             {
                 Name = "attach",
+                Aliases = new[] { "at" },
                 Description = "Attach tag(s) to a flag",
-                Handler = this.CreateHandler(nameof(Flag.AttachTagAsync)),
-                Arguments = new Argument[]
+                Handler = this.CreateHandler(nameof(Flag.AttachTagsAsync)),
+                Options = new Option[]
                 {
-                    new Argument<int>("flag-id") { Description = "ID of the flag to attach tags" },
-                    new Argument<int[]>("tag-ids"){ Description = "Tag IDs to attach" },
+                    new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the flag or setting to attach tags")
+                    {
+                        Name = "flag-id"
+                    },
+                    new Option<int[]>(new[] { "--tag-ids", "-g" }, "Tag IDs to attach"),
                 },
             },
             new SubCommandDescriptor
             {
                 Name = "detach",
+                Aliases = new[] { "dt" },
                 Description = "Detach tag(s) from a flag",
-                Handler = this.CreateHandler(nameof(Flag.DetachTagAsync)),
-                Arguments = new Argument[]
+                Handler = this.CreateHandler(nameof(Flag.DetachTagsAsync)),
+                Options = new Option[]
                 {
-                    new Argument<int>("flag-id") { Description = "ID of the flag to detach tags" },
-                    new Argument<int[]>("tag-ids") { Description = "Tag IDs to detach" },
+                    new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the flag or setting to detach tags")
+                    {
+                        Name = "flag-id"
+                    },
+                    new Option<int[]>(new[] { "--tag-ids", "-g" }, "Tag IDs to detach"),
                 },
             },
         };
@@ -143,7 +158,7 @@ namespace ConfigCat.Cli.Commands
                 }
             }
 
-            if (!tagName.IsEmpty() || tagId != null)
+            if (!tagName.IsEmpty() || tagId is not null)
             {
                 flags = flags.Where(f =>
                 {
@@ -151,7 +166,7 @@ namespace ConfigCat.Cli.Commands
                     if (!tagName.IsEmpty())
                         result = result && f.Tags.Any(t => t.Name == tagName);
 
-                    if (tagId != null)
+                    if (tagId is not null)
                         result = result && f.Tags.Any(t => t.TagId == tagId);
 
                     return result;
@@ -168,33 +183,36 @@ namespace ConfigCat.Cli.Commands
             table.AddColumn(f => $"{f.OwnerUserFullName} [{f.OwnerUserEmail}]", "OWNER");
             table.AddColumn(f => $"{f.ConfigName} [{f.ConfigId}]", "CONFIG");
 
-            var console = this.accessor.ExecutionContext.Output.Console;
-            var renderer = new ConsoleRenderer(console, resetAfterRender: true);
-            table.RenderFitToContent(renderer, console);
+            this.accessor.ExecutionContext.Output.RenderView(table);
 
             return Constants.ExitCodes.Ok;
         }
 
         public async Task<int> CreateFlagAsync(string configId, CreateFlagModel createConfigModel, CancellationToken token)
         {
-            if (!token.IsCancellationRequested && string.IsNullOrWhiteSpace(createConfigModel.Name))
-                createConfigModel.Name = this.prompt.GetString("Name");
+            var shouldPromptTags = configId.IsEmpty();
 
-            if (!token.IsCancellationRequested && string.IsNullOrWhiteSpace(createConfigModel.Hint))
-                createConfigModel.Hint = this.prompt.GetString("Hint");
+            if (configId.IsEmpty())
+                configId = (await this.workspaceManager.LoadConfigAsync(token)).ConfigId;
 
-            if (!token.IsCancellationRequested && string.IsNullOrWhiteSpace(createConfigModel.Key))
-                createConfigModel.Key = this.prompt.GetString("Key");
+            if (createConfigModel.Name.IsEmpty())
+                createConfigModel.Name = await this.prompt.GetStringAsync("Name", token);
 
-            if (!token.IsCancellationRequested && string.IsNullOrWhiteSpace(createConfigModel.Type))
-                createConfigModel.Type = this.prompt.GetString($"Type <{string.Join('|', Constants.SettingTypes.Collection)}>", Constants.SettingTypes.Collection[0]);
+            if (createConfigModel.Hint.IsEmpty())
+                createConfigModel.Hint = await this.prompt.GetStringAsync("Hint", token);
 
-            if (!token.IsCancellationRequested && !Constants.SettingTypes.Collection.ToList()
+            if (createConfigModel.Key.IsEmpty())
+                createConfigModel.Key = await this.prompt.GetStringAsync("Key", token);
+
+            if (createConfigModel.Type.IsEmpty())
+                createConfigModel.Type = await this.prompt.ChooseFromListAsync("Choose type", Constants.SettingTypes.Collection.ToList(), t => t, token);
+
+            if (shouldPromptTags && (createConfigModel.TagIds is null || !createConfigModel.TagIds.Any()))
+                createConfigModel.TagIds = (await this.workspaceManager.LoadTagsAsync(token, configId)).Select(t => t.TagId);
+
+            if (!Constants.SettingTypes.Collection.ToList()
                     .Contains(createConfigModel.Type, StringComparer.OrdinalIgnoreCase))
-            {
-                this.accessor.ExecutionContext.Output.WriteError($"Type must be one of the following: {string.Join('|', Constants.SettingTypes.Collection)}");
-                return Constants.ExitCodes.Error;
-            }
+                throw new ShowHelpException($"Type must be one of the following: {string.Join('|', Constants.SettingTypes.Collection)}");
 
             var result = await this.flagClient.CreateFlagAsync(configId, createConfigModel, token);
             this.accessor.ExecutionContext.Output.Write(result.SettingId.ToString());
@@ -202,35 +220,65 @@ namespace ConfigCat.Cli.Commands
             return Constants.ExitCodes.Ok;
         }
 
-        public async Task<int> DeleteFlagAsync(int flagId, CancellationToken token)
+        public async Task<int> DeleteFlagAsync(int? flagId, CancellationToken token)
         {
-            await this.flagClient.DeleteFlagAsync(flagId, token);
+            if (flagId is null)
+                flagId = (await this.workspaceManager.LoadFlagAsync(token)).SettingId;
+
+            await this.flagClient.DeleteFlagAsync(flagId.Value, token);
             return Constants.ExitCodes.Ok;
         }
 
-        public async Task<int> UpdateFlagAsync(int flagId, UpdateFlagModel updateFlagModel, CancellationToken token)
+        public async Task<int> UpdateFlagAsync(int? flagId, UpdateFlagModel updateFlagModel, CancellationToken token)
         {
-            if (string.IsNullOrEmpty(updateFlagModel.Hint) &&
-                string.IsNullOrEmpty(updateFlagModel.Name) &&
-                (updateFlagModel.Tags == null || !updateFlagModel.Tags.Any()))
+            var flag = flagId is null
+                ? await this.workspaceManager.LoadFlagAsync(token)
+                : await this.flagClient.GetFlagAsync(flagId.Value, token);
+
+            if (flagId is null)
             {
-                this.accessor.ExecutionContext.Output.Write($"No changes detected... ");
-                this.accessor.ExecutionContext.Output.WriteYellow("Skipped.");
+                if (updateFlagModel.Name.IsEmpty())
+                    updateFlagModel.Name = await this.prompt.GetStringAsync("Name", token, flag.Name);
+
+                if (updateFlagModel.Hint.IsEmpty())
+                    updateFlagModel.Hint = await this.prompt.GetStringAsync("Hint", token, flag.Hint);
+
+                if (updateFlagModel.TagIds is null || !updateFlagModel.TagIds.Any())
+                    updateFlagModel.TagIds = (await this.workspaceManager.LoadTagsAsync(token, flag.ConfigId, flag.Tags)).Select(t => t.TagId);
+            }
+
+            if (updateFlagModel.Hint.IsEmptyOrEquals(flag.Hint) &&
+                updateFlagModel.Name.IsEmptyOrEquals(flag.Name) &&
+                (updateFlagModel.TagIds is null || 
+                !updateFlagModel.TagIds.Any() || 
+                Enumerable.SequenceEqual(updateFlagModel.TagIds, flag.Tags.Select(t => t.TagId))))
+            {
+                this.accessor.ExecutionContext.Output.WriteNoChange();
                 return Constants.ExitCodes.Ok;
             }
 
-            var flag = await this.flagClient.GetFlagAsync(flagId, token);
             var patchDocument = JsonPatch.GenerateDocument(flag.ToUpdateModel(), updateFlagModel);
-            await this.flagClient.UpdateFlagAsync(flagId, patchDocument.Operations, token);
+            await this.flagClient.UpdateFlagAsync(flag.SettingId, patchDocument.Operations, token);
             return Constants.ExitCodes.Ok;
         }
 
-        public async Task<int> AttachTagAsync(int flagId, IEnumerable<int> tagIds, CancellationToken token)
+        public async Task<int> AttachTagsAsync(int? flagId, IEnumerable<int> tagIds, CancellationToken token)
         {
-            if (tagIds == null || !tagIds.Any())
+            var flag = flagId is null
+                ? await this.workspaceManager.LoadFlagAsync(token)
+                : await this.flagClient.GetFlagAsync(flagId.Value, token);
+
+            var flagTagIds = flag.Tags.Select(t => t.TagId).ToList();
+
+            if (flagId is null && tagIds is null || !tagIds.Any())
+                tagIds = (await this.workspaceManager.LoadTagsAsync(token, flag.ConfigId, flag.Tags)).Select(t => t.TagId);
+
+            if (tagIds is null || 
+                !tagIds.Any() || 
+                Enumerable.SequenceEqual(tagIds, flagTagIds) ||
+                !tagIds.Except(flagTagIds).Any())
             {
-                this.accessor.ExecutionContext.Output.Write($"No change detected... ");
-                this.accessor.ExecutionContext.Output.WriteYellow("Skipped.");
+                this.accessor.ExecutionContext.Output.WriteNoChange();
                 return Constants.ExitCodes.Ok;
             }
 
@@ -238,19 +286,25 @@ namespace ConfigCat.Cli.Commands
             foreach (var tagId in tagIds)
                 patchDocument.Add("/tags/-", tagId);
 
-            await this.flagClient.UpdateFlagAsync(flagId, patchDocument.Operations, token);
+            await this.flagClient.UpdateFlagAsync(flag.SettingId, patchDocument.Operations, token);
             return Constants.ExitCodes.Ok;
         }
 
-        public async Task<int> DetachTagAsync(int flagId, IEnumerable<int> tagIds, CancellationToken token)
+        public async Task<int> DetachTagsAsync(int? flagId, IEnumerable<int> tagIds, CancellationToken token)
         {
-            var flag = await this.flagClient.GetFlagAsync(flagId, token);
+            var flag = flagId is null
+                ? await this.workspaceManager.LoadFlagAsync(token)
+                : await this.flagClient.GetFlagAsync(flagId.Value, token);
+
             var tagsCopy = flag.Tags.ToList();
+
+            if (flagId is null && tagIds is null || !tagIds.Any())
+                tagIds = (await this.prompt.ChooseMultipleFromListAsync("Choose tags to detach", tagsCopy, t => t.Name, token)).Select(t => t.TagId);
+
             var relevantTags = tagsCopy.Where(t => tagIds.Contains(t.TagId)).ToList();
             if (relevantTags.Count == 0)
             {
-                this.accessor.ExecutionContext.Output.Write($"Tag(s) not found to detach... ");
-                this.accessor.ExecutionContext.Output.WriteYellow("Skipped.");
+                this.accessor.ExecutionContext.Output.WriteNoChange();
                 return Constants.ExitCodes.Ok;
             }
 
@@ -267,7 +321,7 @@ namespace ConfigCat.Cli.Commands
             foreach (var tagIndex in tagIndexes)
                 patchDocument.Remove($"/tags/{tagIndex}");
 
-            await this.flagClient.UpdateFlagAsync(flagId, patchDocument.Operations, token);
+            await this.flagClient.UpdateFlagAsync(flag.SettingId, patchDocument.Operations, token);
             return Constants.ExitCodes.Ok;
         }
     }

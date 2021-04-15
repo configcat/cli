@@ -1,4 +1,4 @@
-﻿using ConfigCat.Cli.Configuration;
+﻿using ConfigCat.Cli.Utils;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
@@ -11,6 +11,8 @@ namespace ConfigCat.Cli.Api.Product
     {
         Task<IEnumerable<ProductModel>> GetProductsAsync(CancellationToken token);
 
+        Task<ProductModel> GetProductAsync(string productId, CancellationToken token);
+
         Task<ProductModel> CreateProductAsync(string organizationId, string name, CancellationToken token);
 
         Task UpdateProductAsync(string productId, string name, CancellationToken token);
@@ -20,14 +22,16 @@ namespace ConfigCat.Cli.Api.Product
 
     class ProductClient : ApiClient, IProductClient
     {
-        public ProductClient(IConfigurationReader configurationReader,
-            IExecutionContextAccessor accessor,
+        public ProductClient(IExecutionContextAccessor accessor,
             IBotPolicy<HttpResponseMessage> botPolicy,
-            HttpClient httpClient) : base(configurationReader, accessor, botPolicy, httpClient)
+            HttpClient httpClient) : base(accessor, botPolicy, httpClient)
         { }
 
         public Task<IEnumerable<ProductModel>> GetProductsAsync(CancellationToken token) =>
             this.GetAsync<IEnumerable<ProductModel>>(HttpMethod.Get, "v1/products", token);
+
+        public Task<ProductModel> GetProductAsync(string productId, CancellationToken token) =>
+            this.GetAsync<ProductModel>(HttpMethod.Get, $"v1/products/{productId}", token);
 
         public Task<ProductModel> CreateProductAsync(string organizationId, string name, CancellationToken token) =>
             this.SendAsync<ProductModel>(HttpMethod.Post, $"v1/organizations/{organizationId}/products", new { Name = name }, token);

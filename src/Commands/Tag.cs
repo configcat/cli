@@ -1,5 +1,6 @@
 ﻿using ConfigCat.Cli.Api.Product;
 using ConfigCat.Cli.Api.Tag;
+using ConfigCat.Cli.Configuration;
 using ConfigCat.Cli.Utils;
 using System;
 using System.Collections.Generic;
@@ -15,20 +16,31 @@ namespace ConfigCat.Cli.Commands
     {
         private readonly ITagClient tagClient;
         private readonly IProductClient productClient;
+        private readonly IWorkspaceManager workspaceManager;
         private readonly IPrompt prompt;
         private readonly IExecutionContextAccessor accessor;
+        private readonly IConfigurationProvider configurationProvider;
 
-        public Tag(ITagClient tagClient, IProductClient productClient, IPrompt prompt, IExecutionContextAccessor accessor)
+        public Tag(ITagClient tagClient, 
+            IProductClient productClient,
+            IWorkspaceManager workspaceManager,
+            IPrompt prompt, 
+            IExecutionContextAccessor accessor, 
+            IConfigurationProvider configurationProvider)
         {
             this.tagClient = tagClient;
             this.productClient = productClient;
+            this.workspaceManager = workspaceManager;
             this.prompt = prompt;
             this.accessor = accessor;
+            this.configurationProvider = configurationProvider;
         }
 
         public string Name => "tag";
 
         public string Description => "Manage tags";
+
+        public IEnumerable<string> Aliases => new[] { "t" };
 
         public IEnumerable<SubCommandDescriptor> InlineSubCommands => new[]
         {
@@ -39,22 +51,20 @@ namespace ConfigCat.Cli.Commands
                 Handler = this.CreateHandler(nameof(Tag.ListAllTagsAsync)),
                 Options = new[]
                 {
-                    new Option<string>(new[] { "--product-id", "-p" }) { Description = $"Show only a product's tags" },
+                    new Option<string>(new[] { "--product-id", "-p" }, "Show only a product's tags"),
                 }
             },
             new SubCommandDescriptor
             {
                 Name = "create",
+                Aliases = new[] { "cr" },
                 Description = "Create Tag",
                 Handler = this.CreateHandler(nameof(Tag.CreateTagAsync)),
-                Arguments = new[]
-                {
-                    new Argument<string>("product-id") { Description = $"ID of the product where the tag must be created" },
-                },
                 Options = new[]
                 {
-                    new Option<string>(new[] { "--name", "-n" }) { Description = $"The name of the new tag" },
-                    new Option<string>(new[] { "--color", "-c" }) { Description = $"The color of the new tag" },
+                    new Option<string>(new[] { "--product-id", "-p" }, "ID of the product where the tag must be created"),
+                    new Option<string>(new[] { "--name", "-n" }, "The name of the new tag"),
+                    new Option<string>(new[] { "--color", "-c" }, "The color of the new tag"),
                 },
             },
             new SubCommandDescriptor
@@ -62,24 +72,24 @@ namespace ConfigCat.Cli.Commands
                 Name = "rm",
                 Description = "Delete Tag",
                 Handler = this.CreateHandler(nameof(Tag.DeleteTagAsync)),
-                Arguments = new[]
+                Options = new Option[]
                 {
-                     new Argument<int>("tag-id") { Description = $"ID of the tag to delete" },
-                },
+                    new Option<int>(new[] { "--tag-id", "-i" }, "ID of the tag to delete"),
+                    new Option<string>(new[] { "--name", "-n" }, "The updated name"),
+                    new Option<string>(new[] { "--color", "-c" }, "The updated color"),
+                }
             },
             new SubCommandDescriptor
             {
                 Name = "update",
+                Aliases = new[] { "up" },
                 Description = "Update Tag",
                 Handler = this.CreateHandler(nameof(Tag.UpdateTagAsync)),
-                Arguments = new[]
+                Options = new Option[]
                 {
-                     new Argument<int>("tag-id") { Description = $"ID of the tag to update" },
-                },
-                Options = new[]
-                {
-                    new Option<string>(new[] { "--name", "-n" }) { Description = $"The updated name" },
-                    new Option<string>(new[] { "--color", "-c" }) { Description = $"The updated color" },
+                    new Option<int>(new[] { "--tag-id", "-i" }, "ID of the tag to update"),
+                    new Option<string>(new[] { "--name", "-n" }, "The updated name"),
+                    new Option<string>(new[] { "--color", "-c" }, "The updated color"),
                 }
             },
         };
@@ -102,20 +112,21 @@ namespace ConfigCat.Cli.Commands
             table.AddColumn(p => p.Color, "COLOR");
             table.AddColumn(p => $"{p.Product.Name} [{p.Product.ProductId}]", "PRODUCT");
 
-            var console = this.accessor.ExecutionContext.Output.Console;
-            var renderer = new ConsoleRenderer(console, resetAfterRender: true);
-            table.RenderFitToContent(renderer, console);
+            this.accessor.ExecutionContext.Output.RenderView(table);
 
             return Constants.ExitCodes.Ok;
         }
 
         public async Task<int> CreateTagAsync(string productId, string name, string color, CancellationToken token)
         {
-            if (!token.IsCancellationRequested && name.IsEmpty())
-                name = this.prompt.GetString("Tag name");
+            if (productId.IsEmpty())
+                productId = (await this.workspaceManager.LoadProductAsync(token)).ProductId;
 
-            if (!token.IsCancellationRequested && color.IsEmpty())
-                color = this.prompt.GetString("Tag color");
+            if (name.IsEmpty())
+                name = await this.prompt.GetStringAsync("Name", token);
+
+            if (color.IsEmpty())
+                color = await this.prompt.GetStringAsync("Color", token);
 
             var result = await this.tagClient.CreateTagAsync(productId, name, color, token);
             this.accessor.ExecutionContext.Output.Write(result.TagId.ToString());
@@ -123,22 +134,37 @@ namespace ConfigCat.Cli.Commands
             return Constants.ExitCodes.Ok;
         }
 
-        public async Task<int> DeleteTagAsync(int tagId, CancellationToken token)
+        public async Task<int> DeleteTagAsync(int? tagId, CancellationToken token)
         {
-            await this.tagClient.DeleteTagAsync(tagId, token);
+            if (tagId is null)
+                tagId = (await this.workspaceManager.LoadTagAsync(token)).TagId;
+
+            await this.tagClient.DeleteTagAsync(tagId.Value, token);
             return Constants.ExitCodes.Ok;
         }
 
-        public async Task<int> UpdateTagAsync(int tagId, string name, string color, CancellationToken token)
+        public async Task<int> UpdateTagAsync(int? tagId, string name, string color, CancellationToken token)
         {
-            if (string.IsNullOrEmpty(name) && string.IsNullOrEmpty(color))
+            var tag = tagId is null 
+                ? await this.workspaceManager.LoadTagAsync(token)
+                : await this.tagClient.GetTagAsync(tagId.Value, token);
+
+            if (tagId is null)
+            { 
+                if (name.IsEmpty())
+                    name = await this.prompt.GetStringAsync("Name", token, tag.Name);
+
+                if (color.IsEmpty())
+                    color = await this.prompt.GetStringAsync("Color", token, tag.Color);
+            }
+
+            if (name.IsEmptyOrEquals(tag.Name) && color.IsEmptyOrEquals(tag.Color))
             {
-                this.accessor.ExecutionContext.Output.Write($"No changes detected... ");
-                this.accessor.ExecutionContext.Output.WriteYellow("Skipped.");
+                this.accessor.ExecutionContext.Output.WriteNoChange();
                 return Constants.ExitCodes.Ok;
             }
 
-            await this.tagClient.UpdateTagAsync(tagId, name, color, token);
+            await this.tagClient.UpdateTagAsync(tag.TagId, name, color, token);
             return Constants.ExitCodes.Ok;
         }
     }

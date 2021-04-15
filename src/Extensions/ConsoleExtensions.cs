@@ -7,11 +7,22 @@ namespace System.CommandLine
     {
         public static void WriteError(this IConsole console, string value)
         {
-            var terminal = console.GetTerminal();
-            if (terminal != null)
-            { 
+            if (console is ITerminal terminal)
+            {
                 terminal.Render(value.Color(ForegroundColorSpan.LightRed()));
-                console.Out.WriteLine();
+                terminal.Out.WriteLine();
+            }
+            else
+                console.Error.WriteLine(value);
+        }
+
+        public static void WriteErrorOnTerminal(this IConsole console, string value)
+        {
+            var terminal = console.GetTerminal();
+            if (terminal is not null)
+            {
+                terminal.Render(value.Color(ForegroundColorSpan.LightRed()));
+                terminal.Out.WriteLine();
             }
             else
                 console.Error.WriteLine(value);
@@ -19,8 +30,7 @@ namespace System.CommandLine
 
         public static void WriteStyle(this IConsole console, TextSpan span, string original)
         {
-            var terminal = console.GetTerminal();
-            if (terminal != null)
+            if (console is ITerminal terminal)
                 terminal.Render(span);
             else
                 console.Out.Write(original);

@@ -31,7 +31,7 @@ namespace ConfigCat.Cli.Api.Flag
             {
                 Name = this.Name,
                 Hint = this.Hint,
-                Tags = this.Tags.Select(t => t.TagId)
+                TagIds = this.Tags.Select(t => t.TagId)
             };
     }
 }

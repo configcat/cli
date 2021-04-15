@@ -1,4 +1,5 @@
 ﻿using ConfigCat.Cli.Utils;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -16,6 +17,8 @@ namespace ConfigCat.Cli.Commands
         public string Name => "whoisthebestcat";
 
         public string Description => "Well, who?";
+
+        public IEnumerable<string> Aliases => new[] { "cat" };
 
         public Task<int> InvokeAsync(CancellationToken token)
         {

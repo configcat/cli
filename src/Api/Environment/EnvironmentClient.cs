@@ -1,5 +1,4 @@
-﻿using ConfigCat.Cli.Configuration;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,6 +10,8 @@ namespace ConfigCat.Cli.Api.Environment
     {
         Task<IEnumerable<EnvironmentModel>> GetEnvironmentsAsync(string productId, CancellationToken token);
 
+        Task<EnvironmentModel> GetEnvironmentAsync(string environmentId, CancellationToken token);
+
         Task<EnvironmentModel> CreateEnvironmentAsync(string productId, string name, CancellationToken token);
 
         Task UpdateEnvironmentAsync(string environmentId, string name, CancellationToken token);
@@ -20,15 +21,17 @@ namespace ConfigCat.Cli.Api.Environment
 
     class EnvironmentClient : ApiClient, IEnvironmentClient
     {
-        public EnvironmentClient(IConfigurationReader configurationReader,
-            IExecutionContextAccessor accessor,
+        public EnvironmentClient(IExecutionContextAccessor accessor,
             IBotPolicy<HttpResponseMessage> botPolicy,
             HttpClient httpClient)
-            : base(configurationReader, accessor, botPolicy, httpClient)
+            : base(accessor, botPolicy, httpClient)
         { }
 
         public Task<IEnumerable<EnvironmentModel>> GetEnvironmentsAsync(string productId, CancellationToken token) =>
             this.GetAsync<IEnumerable<EnvironmentModel>>(HttpMethod.Get, $"v1/products/{productId}/environments", token);
+
+        public Task<EnvironmentModel> GetEnvironmentAsync(string environmentId, CancellationToken token) =>
+            this.GetAsync<EnvironmentModel>(HttpMethod.Get, $"v1/environments/{environmentId}", token);
 
         public Task<EnvironmentModel> CreateEnvironmentAsync(string productId, string name, CancellationToken token) =>
             this.SendAsync<EnvironmentModel>(HttpMethod.Post, $"v1/products/{productId}/environments", new { Name = name }, token);

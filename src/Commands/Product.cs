@@ -1,5 +1,6 @@
 ﻿using ConfigCat.Cli.Api.Product;
 using ConfigCat.Cli.Utils;
+using ConfigCat.Cli.Configuration;
 using System;
 using System.Collections.Generic;
 using System.CommandLine;
@@ -14,14 +15,17 @@ namespace ConfigCat.Cli.Commands
     class Product : ICommandDescriptor
     {
         private readonly IProductClient productClient;
+        private readonly IWorkspaceManager workspaceManager;
         private readonly IPrompt prompt;
         private readonly IExecutionContextAccessor accessor;
 
         public Product(IProductClient productClient,
+            IWorkspaceManager workspaceManager,
             IPrompt prompt,
             IExecutionContextAccessor accessor)
         {
             this.productClient = productClient;
+            this.workspaceManager = workspaceManager;
             this.prompt = prompt;
             this.accessor = accessor;
         }
@@ -29,6 +33,8 @@ namespace ConfigCat.Cli.Commands
         public string Name => "product";
 
         public string Description => "Manage products";
+
+        public IEnumerable<string> Aliases => new[] { "p" };
 
         public IEnumerable<SubCommandDescriptor> InlineSubCommands => new [] 
         { 
@@ -41,15 +47,13 @@ namespace ConfigCat.Cli.Commands
             new SubCommandDescriptor
             {
                 Name = "create",
+                Aliases = new[] { "cr" },
                 Description = "Create product",
                 Handler = this.CreateHandler(nameof(Product.CreateProductAsync)),
-                Arguments = new[]
-                {
-                    new Argument<string>("organization-id") { Description = $"The organization's ID where the product must be created" },
-                },
                 Options = new[]
                 {
-                    new Option<string>(new[] { "--name", "-n" }) { Description = "Name of the new product" },
+                    new Option<string>(new[] { "--organization-id", "-o" }, "The organization's ID where the product must be created"),
+                    new Option<string>(new[] { "--name", "-n" }, "Name of the new product"),
                 }
             },
             new SubCommandDescriptor
@@ -57,23 +61,21 @@ namespace ConfigCat.Cli.Commands
                 Name = "rm",
                 Description = "Delete product",
                 Handler = this.CreateHandler(nameof(Product.DeleteProductAsync)),
-                Arguments = new[]
+                Options = new[]
                 {
-                     new Argument<string>("product-id") { Description = "ID of the product to delete" },
-                },
+                    new Option<string>(new[] { "--product-id", "-i" }, "ID of the product to delete"),
+                }
             },
             new SubCommandDescriptor
             {
                 Name = "update",
+                Aliases = new[] { "up" },
                 Description = "Update product",
                 Handler = this.CreateHandler(nameof(Product.UpdateProductAsync)),
-                Arguments = new[]
-                {
-                     new Argument<string>("product-id") { Description = "ID of the product to update" },
-                },
                 Options = new[]
                 {
-                    new Option<string>(new[] { "--name", "-n" }) { Description = "The updated name" },
+                    new Option<string>(new[] { "--product-id", "-i" }, "ID of the product to update"),
+                    new Option<string>(new[] { "--name", "-n" }, "The updated name"),
                 }
             },
         };
@@ -87,17 +89,18 @@ namespace ConfigCat.Cli.Commands
             table.AddColumn(p => p.Name, "NAME");
             table.AddColumn(p => $"{p.Organization.Name} [{p.Organization.OrganizationId}]", "ORGANIZATION");
 
-            var console = this.accessor.ExecutionContext.Output.Console;
-            var renderer = new ConsoleRenderer(console, resetAfterRender: true);
-            table.RenderFitToContent(renderer, console);
+            this.accessor.ExecutionContext.Output.RenderView(table);
 
             return Constants.ExitCodes.Ok;
         }
 
         public async Task<int> CreateProductAsync(string organizationId, string name, CancellationToken token)
         {
-            if (!token.IsCancellationRequested && name.IsEmpty())
-                name = this.prompt.GetString("Product name");
+            if (organizationId.IsEmpty())
+                organizationId = (await this.workspaceManager.LoadOrganizationAsync(token)).OrganizationId;
+
+            if (name.IsEmpty())
+                name = await this.prompt.GetStringAsync("Name", token);
 
             var result = await this.productClient.CreateProductAsync(organizationId, name, token);
             this.accessor.ExecutionContext.Output.Write(result.ProductId);
@@ -107,17 +110,29 @@ namespace ConfigCat.Cli.Commands
 
         public async Task<int> DeleteProductAsync(string productId, CancellationToken token)
         {
+            if (productId.IsEmpty())
+                productId = (await this.workspaceManager.LoadProductAsync(token)).ProductId;
+
             await this.productClient.DeleteProductAsync(productId, token);
             return Constants.ExitCodes.Ok;
         }
 
         public async Task<int> UpdateProductAsync(string productId, string name, CancellationToken token)
         {
-            if (!token.IsCancellationRequested && name.IsEmpty())
-                name = this.prompt.GetString("Product name");
+            var product = productId.IsEmpty()
+                ? await this.workspaceManager.LoadProductAsync(token)
+                : await this.productClient.GetProductAsync(productId, token);
+
+            if (name.IsEmpty())
+                name = await this.prompt.GetStringAsync("Name", token, product.Name);
+
+            if (name.IsEmptyOrEquals(product.Name))
+            {
+                this.accessor.ExecutionContext.Output.WriteNoChange();
+                return Constants.ExitCodes.Ok;
+            }
 
             await this.productClient.UpdateProductAsync(productId, name, token);
-
             return Constants.ExitCodes.Ok;
         }
     }

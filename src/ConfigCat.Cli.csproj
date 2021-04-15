@@ -12,6 +12,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Include="..\test\integ.ps1" Link="integ.ps1">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <TrimmerRootAssembly Include="System.ComponentModel.TypeConverter" />
   </ItemGroup>
   

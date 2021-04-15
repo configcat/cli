@@ -3,6 +3,8 @@ using ConfigCat.Cli.Api.Environment;
 using ConfigCat.Cli.Api.Flag;
 using ConfigCat.Cli.Api.Flag.Value;
 using ConfigCat.Cli.Api.Product;
+using ConfigCat.Cli.Configuration;
+using ConfigCat.Cli.Exceptions;
 using ConfigCat.Cli.Utils;
 using System;
 using System.Collections.Generic;
@@ -20,6 +22,7 @@ namespace ConfigCat.Cli.Commands
         private readonly IConfigClient configClient;
         private readonly IProductClient productClient;
         private readonly IEnvironmentClient environmentClient;
+        private readonly IWorkspaceManager workspaceManager;
         private readonly IPrompt prompt;
         private readonly IExecutionContextAccessor accessor;
 
@@ -28,6 +31,7 @@ namespace ConfigCat.Cli.Commands
             IConfigClient configClient,
             IProductClient productClient,
             IEnvironmentClient environmentClient,
+            IWorkspaceManager workspaceManager,
             IPrompt prompt,
             IExecutionContextAccessor accessor)
         {
@@ -36,6 +40,7 @@ namespace ConfigCat.Cli.Commands
             this.configClient = configClient;
             this.productClient = productClient;
             this.environmentClient = environmentClient;
+            this.workspaceManager = workspaceManager;
             this.prompt = prompt;
             this.accessor = accessor;
         }
@@ -44,16 +49,22 @@ namespace ConfigCat.Cli.Commands
 
         public string Description => "Show, and update flag values in different environments";
 
+        public IEnumerable<string> Aliases => new[] { "v" };
+
         public IEnumerable<SubCommandDescriptor> InlineSubCommands => new[]
         {
             new SubCommandDescriptor
             {
-                Name = "print",
-                Description = "Print flag values, targeting, and percentage rules for each environment",
+                Name = "show",
+                Description = "Show flag values, targeting, and percentage rules for each environment",
                 Handler = this.CreateHandler(nameof(FlagValue.ListAllAsync)),
-                Arguments = new []
+                Aliases = new[] { "sh", "pr", "print" },
+                Options = new Option[]
                 {
-                    new Argument<int>("flag-id") { Description = "The ID of the flag" }
+                    new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the flag or setting") 
+                    { 
+                        Name = "flag-id"
+                    },
                 },
             },
             new SubCommandDescriptor
@@ -61,22 +72,26 @@ namespace ConfigCat.Cli.Commands
                 Name = "update",
                 Description = "Update the flag's value",
                 Handler = this.CreateHandler(nameof(FlagValue.UpdateFlagValueAsync)),
-                Arguments = new Argument[]
+                Aliases = new[] { "up" },
+                Options = new Option[]
                 {
-                    new Argument<int>("flag-id") { Description = "ID of the flag" },
-                    new Argument<string>("environment-id") { Description = "ID of the environment where the update must be applied" },
-                },
-                Options = new[]
-                {
-                    new Option<string>(new[] { "--flag-value", "-f" }) { Description = "The value to serve, it must respect the setting type" },
+                    new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the flag or setting")
+                    {
+                        Name = "flag-id"
+                    },
+                    new Option<string>(new[] { "--environment-id", "-e" }, "ID of the environment where the update must be applied"),
+                    new Option<string>(new[] { "--flag-value", "-f" }, "The value to serve, it must respect the setting type"),
                 },
             },
         };
 
-        public async Task<int> ListAllAsync(int flagId, CancellationToken token)
+        public async Task<int> ListAllAsync(int? flagId, CancellationToken token)
         {
+            var flag = flagId is null
+                ? await this.workspaceManager.LoadFlagAsync(token)
+                : await this.flagClient.GetFlagAsync(flagId.Value, token);
+
             var output = this.accessor.ExecutionContext.Output;
-            var flag = await this.flagClient.GetFlagAsync(flagId, token);
             var config = await this.configClient.GetConfigAsync(flag.ConfigId, token);
             var environments = await this.environmentClient.GetEnvironmentsAsync(config.Product.ProductId, token);
             var separatorLength = flag.Name.Length + flag.Key.Length + flag.SettingId.ToString().Length + 9;
@@ -84,7 +99,7 @@ namespace ConfigCat.Cli.Commands
             output.WriteColored(new string('-', separatorLength), ForegroundColorSpan.DarkGray());
             output.WriteLine();
             output.Write(" ");
-            output.WriteColoredWithBackground($" {flag.Name} ", ForegroundColorSpan.Rgb(255,255,255), BackgroundColorSpan.Green());
+            output.WriteColoredWithBackground($" {flag.Name} ", ForegroundColorSpan.Rgb(255, 255, 255), BackgroundColorSpan.Green());
             output.WriteStandout($" ({flag.Key}) ");
             output.WriteColored($"[{flag.SettingId}]", ForegroundColorSpan.DarkGray());
             output.WriteLine();
@@ -93,7 +108,7 @@ namespace ConfigCat.Cli.Commands
 
             foreach (var environment in environments)
             {
-                var value = await this.flagValueClient.GetValueAsync(flagId, environment.EnvironmentId, token);
+                var value = await this.flagValueClient.GetValueAsync(flag.SettingId, environment.EnvironmentId, token);
 
                 output.WriteColored($"| ", ForegroundColorSpan.DarkGray());
                 output.WriteUnderline(environment.Name);
@@ -150,23 +165,27 @@ namespace ConfigCat.Cli.Commands
             return Constants.ExitCodes.Ok;
         }
 
-        public async Task<int> UpdateFlagValueAsync(int flagId, string environmentId, string flagValue, CancellationToken token)
+        public async Task<int> UpdateFlagValueAsync(int? flagId, string environmentId, string flagValue, CancellationToken token)
         {
-            var value = await this.flagValueClient.GetValueAsync(flagId, environmentId, token);
+            var flag = flagId is null
+                ? await this.workspaceManager.LoadFlagAsync(token)
+                : await this.flagClient.GetFlagAsync(flagId.Value, token);
 
-            if (!token.IsCancellationRequested && flagValue.IsEmpty())
-                flagValue = this.prompt.GetString($"Value", value.Value.ToString());
+            if (environmentId.IsEmpty())
+                environmentId = (await this.workspaceManager.LoadEnvironmentAsync(token, flag.ConfigId)).EnvironmentId;
+
+            var value = await this.flagValueClient.GetValueAsync(flag.SettingId, environmentId, token);
+
+            if (flagValue.IsEmpty())
+                flagValue = await this.prompt.GetStringAsync($"Value", token, value.Value.ToString());
 
             if (!flagValue.TryParseFlagValue(value.Setting.SettingType, out var parsed))
-            {
-                this.accessor.ExecutionContext.Output.WriteError($"Flag value '{flagValue}' must respect the type '{value.Setting.SettingType}'");
-                return Constants.ExitCodes.Error;
-            }
+                throw new ShowHelpException($"Flag value '{flagValue}' must respect the type '{value.Setting.SettingType}'.");
 
             var jsonPatchDocument = new JsonPatchDocument();
             jsonPatchDocument.Replace($"/value", parsed);
 
-            await this.flagValueClient.UpdateValueAsync(flagId, environmentId, jsonPatchDocument.Operations, token);
+            await this.flagValueClient.UpdateValueAsync(flag.SettingId, environmentId, jsonPatchDocument.Operations, token);
             return Constants.ExitCodes.Ok;
         }
     }

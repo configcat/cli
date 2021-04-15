@@ -1,4 +1,7 @@
-﻿using ConfigCat.Cli.Api.Flag.Value;
+﻿using ConfigCat.Cli.Api.Flag;
+using ConfigCat.Cli.Api.Flag.Value;
+using ConfigCat.Cli.Configuration;
+using ConfigCat.Cli.Exceptions;
 using ConfigCat.Cli.Options;
 using ConfigCat.Cli.Utils;
 using System;
@@ -12,12 +15,18 @@ namespace ConfigCat.Cli.Commands
     class FlagPercentage : ICommandDescriptor
     {
         private readonly IFlagValueClient flagValueClient;
+        private readonly IFlagClient flagClient;
+        private readonly IWorkspaceManager workspaceManager;
         private readonly IExecutionContextAccessor accessor;
 
         public FlagPercentage(IFlagValueClient flagValueClient,
+            IFlagClient flagClient,
+            IWorkspaceManager workspaceManager,
             IExecutionContextAccessor accessor)
         {
             this.flagValueClient = flagValueClient;
+            this.flagClient = flagClient;
+            this.workspaceManager = workspaceManager;
             this.accessor = accessor;
         }
 
@@ -25,58 +34,71 @@ namespace ConfigCat.Cli.Commands
 
         public string Description => "Manage percentage rules";
 
+        public IEnumerable<string> Aliases => new[] { "%" };
+
         public IEnumerable<SubCommandDescriptor> InlineSubCommands => new[]
         {
             new SubCommandDescriptor
             {
                 Name = "update",
+                Aliases = new[] { "up" },
                 Description = "Update percentage rules",
                 Handler = this.CreateHandler(nameof(FlagPercentage.UpdatePercentageRulesAsync)),
                 Arguments = new Argument[]
                 {
-                    new Argument<int>("flag-id") { Description = "ID of the flag" },
-                    new Argument<string>("environment-id") { Description = "ID of the environment where the update must be applied" },
                     new PercentageRuleArgument()
                 },
+                Options = new Option[]
+                {
+                    new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the flag or setting")
+                    {
+                        Name = "flag-id"
+                    },
+                    new Option<string>(new[] { "--environment-id", "-e" }, "ID of the environment where the update must be applied"),
+                }
             },
             new SubCommandDescriptor
             {
                 Name = "clear",
+                Aliases = new[] { "clr" },
                 Description = "Delete all percentage rules",
                 Handler = this.CreateHandler(nameof(FlagPercentage.DeletePercentageRulesAsync)),
-                Arguments = new Argument[]
+                Options = new Option[]
                 {
-                    new Argument<int>("flag-id") { Description = "ID of the flag" },
-                    new Argument<string>("environment-id") { Description = "ID of the environment from where the rules must be deleted" },
-                },
+                    new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the flag or setting")
+                    {
+                        Name = "flag-id"
+                    },
+                    new Option<string>(new[] { "--environment-id", "-e" }, "ID of the environment from where the rules must be deleted"),
+                }
             },
         };
 
-        public async Task<int> UpdatePercentageRulesAsync(int flagId, string environmentId, UpdatePercentageModel[] rules, CancellationToken token)
+        public async Task<int> UpdatePercentageRulesAsync(int? flagId, string environmentId, UpdatePercentageModel[] rules, CancellationToken token)
         {
             if (rules.Length == 0)
             {
-                this.accessor.ExecutionContext.Output.Write($"No changes detected... ");
-                this.accessor.ExecutionContext.Output.WriteYellow("Skipped.");
+                this.accessor.ExecutionContext.Output.WriteNoChange();
                 return Constants.ExitCodes.Ok;
             }
 
-            var value = await this.flagValueClient.GetValueAsync(flagId, environmentId, token);
+            var flag = flagId is null 
+                ? await this.workspaceManager.LoadFlagAsync(token)
+                : await this.flagClient.GetFlagAsync(flagId.Value, token);
+
+            if (environmentId.IsEmpty())
+                environmentId = (await this.workspaceManager.LoadEnvironmentAsync(token, flag.ConfigId)).EnvironmentId;
+
+            var value = await this.flagValueClient.GetValueAsync(flag.SettingId, environmentId, token);
 
             if (value.Setting.SettingType == Constants.SettingTypes.Boolean && rules.Length != 2)
-            {
-                this.accessor.ExecutionContext.Output.WriteError($"Boolean type can only have 2 percentage rules.");
-                return Constants.ExitCodes.Error;
-            }
+                throw new ShowHelpException($"Boolean type can only have 2 percentage rules.");
 
             var result = new List<PercentageModel>();
             foreach (var percentageRule in rules)
             {
                 if (!percentageRule.Value.TryParseFlagValue(value.Setting.SettingType, out var parsed))
-                {
-                    this.accessor.ExecutionContext.Output.WriteError($"Flag value '{percentageRule.Value}' must respect the type '{value.Setting.SettingType}'");
-                    return Constants.ExitCodes.Error;
-                }
+                    throw new ShowHelpException($"Flag value '{percentageRule.Value}' must respect the type '{value.Setting.SettingType}'.");
 
                 result.Add(new PercentageModel { Percentage = percentageRule.Percentage, Value = parsed });
             }
@@ -84,22 +106,26 @@ namespace ConfigCat.Cli.Commands
             if (value.Setting.SettingType == Constants.SettingTypes.Boolean &&
                 ((bool)result[0].Value && (bool)result[1].Value ||
                 !(bool)result[0].Value && !(bool)result[1].Value))
-            {
-                this.accessor.ExecutionContext.Output.WriteError($"Boolean percentage rules cannot have the same value.");
-                return Constants.ExitCodes.Error;
-            }
+                throw new ShowHelpException($"Boolean percentage rules cannot have the same value.");
 
             value.PercentageRules = result;
-            await this.flagValueClient.ReplaceValueAsync(flagId, environmentId, value, token);
+            await this.flagValueClient.ReplaceValueAsync(flag.SettingId, environmentId, value, token);
 
             return Constants.ExitCodes.Ok;
         }
 
-        public async Task<int> DeletePercentageRulesAsync(int flagId, string environmentId, CancellationToken token)
+        public async Task<int> DeletePercentageRulesAsync(int? flagId, string environmentId, CancellationToken token)
         {
-            var value = await this.flagValueClient.GetValueAsync(flagId, environmentId, token);
+            var flag = flagId is null
+                ? await this.workspaceManager.LoadFlagAsync(token)
+                : await this.flagClient.GetFlagAsync(flagId.Value, token);
+
+            if (environmentId.IsEmpty())
+                environmentId = (await this.workspaceManager.LoadEnvironmentAsync(token, flag.ConfigId)).EnvironmentId;
+
+            var value = await this.flagValueClient.GetValueAsync(flag.SettingId, environmentId, token);
             value.PercentageRules = new List<PercentageModel>();
-            await this.flagValueClient.ReplaceValueAsync(flagId, environmentId, value, token);
+            await this.flagValueClient.ReplaceValueAsync(flag.SettingId, environmentId, value, token);
 
             return Constants.ExitCodes.Ok;
         }

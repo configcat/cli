@@ -14,6 +14,7 @@ namespace ConfigCat.Cli.Api.Flag
         [JsonPropertyName("settingType")]
         public string Type { get; set; }
 
-        public IEnumerable<int> Tags { get; set; }
+        [JsonPropertyName("tags")]
+        public IEnumerable<int> TagIds { get; set; }
     }
 }

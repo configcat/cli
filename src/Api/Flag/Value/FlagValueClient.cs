@@ -1,5 +1,4 @@
-﻿using ConfigCat.Cli.Configuration;
-using ConfigCat.Cli.Utils;
+﻿using ConfigCat.Cli.Utils;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
@@ -19,11 +18,10 @@ namespace ConfigCat.Cli.Api.Flag.Value
 
     class FlagValueClient : ApiClient, IFlagValueClient
     {
-        public FlagValueClient(IConfigurationReader configurationReader,
-            IExecutionContextAccessor accessor,
+        public FlagValueClient(IExecutionContextAccessor accessor,
             IBotPolicy<HttpResponseMessage> botPolicy,
             HttpClient httpClient)
-            : base(configurationReader, accessor, botPolicy, httpClient)
+            : base(accessor, botPolicy, httpClient)
         { }
 
         public Task<FlagValueModel> GetValueAsync(int settingId, string environmentId, CancellationToken token) =>

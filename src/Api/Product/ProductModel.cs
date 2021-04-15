@@ -1,4 +1,6 @@
-﻿namespace ConfigCat.Cli.Api.Product
+﻿using ConfigCat.Cli.Api.Organization;
+
+namespace ConfigCat.Cli.Api.Product
 {
     class ProductModel
     {

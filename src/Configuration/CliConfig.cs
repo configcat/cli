@@ -1,16 +1,9 @@
-﻿using System.Text.Json.Serialization;
-
 namespace ConfigCat.Cli.Configuration
 {
     class CliConfig
     {
-        [JsonPropertyName("user")]
-        public string UserName { get; set; }
+        public Auth Auth { get; set; }
 
-        [JsonPropertyName("pass")]
-        public string Password { get; set; }
-
-        [JsonPropertyName("host")]
-        public string ApiHost { get; set; }
+        public Workspace Workspace { get; set; }
     }
 }

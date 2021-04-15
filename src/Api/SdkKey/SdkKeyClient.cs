@@ -1,5 +1,4 @@
-﻿using ConfigCat.Cli.Configuration;
-using System.Net.Http;
+﻿using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Trybot;
@@ -13,11 +12,10 @@ namespace ConfigCat.Cli.Api.SdkKey
 
     class SdkKeyClient : ApiClient, ISdkKeyClient
     {
-        public SdkKeyClient(IConfigurationReader configurationReader,
-            IExecutionContextAccessor accessor,
+        public SdkKeyClient(IExecutionContextAccessor accessor,
             IBotPolicy<HttpResponseMessage> botPolicy,
             HttpClient httpClient) 
-            : base(configurationReader, accessor, botPolicy, httpClient)
+            : base(accessor, botPolicy, httpClient)
         { }
 
         public Task<SdkKeyModel> GetSdkKeyAsync(string configId, string environmentId, CancellationToken token) =>

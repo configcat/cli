@@ -1,5 +1,6 @@
 ﻿using ConfigCat.Cli.Api.Config;
 using ConfigCat.Cli.Api.Product;
+using ConfigCat.Cli.Configuration;
 using ConfigCat.Cli.Utils;
 using System;
 using System.Collections.Generic;
@@ -14,16 +15,19 @@ namespace ConfigCat.Cli.Commands
     class Config : ICommandDescriptor
     {
         private readonly IConfigClient configClient;
+        private readonly IWorkspaceManager workspaceManager;
         private readonly IProductClient productClient;
         private readonly IPrompt prompt;
         private readonly IExecutionContextAccessor accessor;
 
-        public Config(IConfigClient configClient, 
+        public Config(IConfigClient configClient,
+            IWorkspaceManager workspaceManager,
             IProductClient productClient, 
             IPrompt prompt, 
             IExecutionContextAccessor accessor)
         {
             this.configClient = configClient;
+            this.workspaceManager = workspaceManager;
             this.productClient = productClient;
             this.prompt = prompt;
             this.accessor = accessor;
@@ -32,6 +36,8 @@ namespace ConfigCat.Cli.Commands
         public string Name => "config";
 
         public string Description => "Manage configs";
+
+        public IEnumerable<string> Aliases => new[] { "c" };
 
         public IEnumerable<SubCommandDescriptor> InlineSubCommands => new[]
         {
@@ -42,21 +48,19 @@ namespace ConfigCat.Cli.Commands
                 Handler = this.CreateHandler(nameof(Config.ListAllConfigsAsync)),
                 Options = new[]
                 {
-                    new Option<string>(new string[] { "--product-id", "-p" }) { Description = "Show only a product's configs" },
+                    new Option<string>(new string[] { "--product-id", "-p" }, "Show only a product's configs"),
                 }
             },
             new SubCommandDescriptor
             {
                 Name = "create",
+                Aliases = new[] { "cr" },
                 Description = "Create config",
                 Handler = this.CreateHandler(nameof(Config.CreateConfigAsync)),
-                Arguments = new[]
-                {
-                    new Argument<string>("product-id") { Description = "ID of the product where the config must be created" },
-                },
                 Options = new[]
                 {
-                    new Option<string>(new[] { "--name", "-n" }) { Description = "Name of the new config" },
+                    new Option<string>(new[] { "--product-id", "-p" }, "ID of the product where the config must be created"),
+                    new Option<string>(new[] { "--name", "-n" }, "Name of the new config"),
                 }
             },
             new SubCommandDescriptor
@@ -64,23 +68,21 @@ namespace ConfigCat.Cli.Commands
                 Name = "rm",
                 Description = "Delete config",
                 Handler = this.CreateHandler(nameof(Config.DeleteConfigAsync)),
-                Arguments = new[]
+                Options = new[]
                 {
-                     new Argument<string>("config-id") { Description = $"ID of the config to delete" },
-                },
+                    new Option<string>(new[] { "--config-id", "-i" }, "ID of the config to delete"),
+                }
             },
             new SubCommandDescriptor
             {
                 Name = "update",
+                Aliases = new[] { "up" },
                 Description = "Update Config",
                 Handler = this.CreateHandler(nameof(Config.UpdateConfigAsync)),
-                Arguments = new[]
-                {
-                     new Argument<string>("config-id") { Description = "ID of the config to update" },
-                },
                 Options = new[]
                 {
-                    new Option<string>(new[] { "--name", "-n" }) { Description = "The updated name" },
+                    new Option<string>(new[] { "--config-id", "-i" }, "ID of the config to update"),
+                    new Option<string>(new[] { "--name", "-n" }, "The updated name"),
                 }
             },
         };
@@ -102,17 +104,18 @@ namespace ConfigCat.Cli.Commands
             table.AddColumn(c => c.Name, "NAME");
             table.AddColumn(c => $"{c.Product.Name} [{c.Product.ProductId}]", "PRODUCT");
 
-            var console = this.accessor.ExecutionContext.Output.Console;
-            var renderer = new ConsoleRenderer(console, resetAfterRender: true);
-            table.RenderFitToContent(renderer, console);
+            this.accessor.ExecutionContext.Output.RenderView(table);
 
             return Constants.ExitCodes.Ok;
         }
 
         public async Task<int> CreateConfigAsync(string productId, string name, CancellationToken token)
         {
-            if (!token.IsCancellationRequested && name.IsEmpty())
-                name = this.prompt.GetString("Config name");
+            if (productId.IsEmpty())
+                productId = (await this.workspaceManager.LoadProductAsync(token)).ProductId;
+
+            if (name.IsEmpty())
+                name = await this.prompt.GetStringAsync("Name", token);
 
             var result = await this.configClient.CreateConfigAsync(productId, name, token);
             this.accessor.ExecutionContext.Output.Write(result.ConfigId);
@@ -121,14 +124,27 @@ namespace ConfigCat.Cli.Commands
 
         public async Task<int> DeleteConfigAsync(string configId, CancellationToken token)
         {
+            if (configId.IsEmpty())
+                configId = (await this.workspaceManager.LoadConfigAsync(token)).ConfigId;
+
             await this.configClient.DeleteConfigAsync(configId, token);
             return Constants.ExitCodes.Ok;
         }
 
         public async Task<int> UpdateConfigAsync(string configId, string name, CancellationToken token)
         {
-            if (!token.IsCancellationRequested && name.IsEmpty())
-                name = this.prompt.GetString("Config name");
+            var config = configId.IsEmpty() 
+                ? await this.workspaceManager.LoadConfigAsync(token)
+                : await this.configClient.GetConfigAsync(configId, token);
+
+            if (name.IsEmpty())
+                name = await this.prompt.GetStringAsync("Name", token, config.Name);
+
+            if (name.IsEmptyOrEquals(config.Name))
+            {
+                this.accessor.ExecutionContext.Output.WriteNoChange();
+                return Constants.ExitCodes.Ok;
+            }
 
             await this.configClient.UpdateConfigAsync(configId, name, token);
             return Constants.ExitCodes.Ok;

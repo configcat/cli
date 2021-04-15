@@ -1,6 +1,7 @@
 ﻿using ConfigCat.Cli.Api.Me;
 using ConfigCat.Cli.Configuration;
 using ConfigCat.Cli.Utils;
+using System;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.Threading;
@@ -10,14 +11,14 @@ namespace ConfigCat.Cli.Commands
 {
     class Setup : IExecutableCommand<SetupArgs>
     {
-        private readonly IConfigurationWriter configurationWriter;
+        private readonly IConfigurationProvider configurationProvider;
         private readonly IPrompt prompt;
         private readonly IMeClient meClient;
         private readonly IExecutionContextAccessor accessor;
 
-        public Setup(IConfigurationWriter configurationWriter, IPrompt prompt, IMeClient meClient, IExecutionContextAccessor accessor)
+        public Setup(IConfigurationProvider configurationProvider, IPrompt prompt, IMeClient meClient, IExecutionContextAccessor accessor)
         {
-            this.configurationWriter = configurationWriter;
+            this.configurationProvider = configurationProvider;
             this.prompt = prompt;
             this.meClient = meClient;
             this.accessor = accessor;
@@ -30,42 +31,32 @@ namespace ConfigCat.Cli.Commands
 
         public IEnumerable<Option> Options => new[]
         {
-            new Option<string>(new[] { "--api-host", "-s" })
-            {
-                Description = $"The Management API host, also used from {Constants.ApiHostEnvironmentVariableName}. (default '{Constants.DefaultApiHost}')"
-            },
-
-            new Option<string>(new[] { "--username", "-u" })
-            {
-                Description = $"The Management API basic authentication username, also used from {Constants.ApiUserNameEnvironmentVariableName}"
-            },
-
-            new Option<string>(new[] { "--password", "-p" })
-            {
-                Description = $"The Management API basic authentication password, also used from {Constants.ApiPasswordEnvironmentVariableName}"
-            },
+            new Option<string>(new[] { "--api-host", "-s" }, $"The Management API host, also used from {Constants.ApiHostEnvironmentVariableName}. (default '{Constants.DefaultApiHost}')"),
+            new Option<string>(new[] { "--username", "-u" }, $"The Management API basic authentication username, also used from {Constants.ApiUserNameEnvironmentVariableName}"),
+            new Option<string>(new[] { "--password", "-p" }, $"The Management API basic authentication password, also used from {Constants.ApiPasswordEnvironmentVariableName}"),
         };
 
         public async Task<int> InvokeAsync(SetupArgs arguments, CancellationToken token)
         {
-            if (!token.IsCancellationRequested && string.IsNullOrWhiteSpace(arguments.ApiHost))
-                arguments.ApiHost = this.prompt.GetString("API Host", Constants.DefaultApiHost);
+            if (arguments.ApiHost.IsEmpty())
+                arguments.ApiHost = await this.prompt.GetStringAsync("API Host", token, Constants.DefaultApiHost);
 
-            if (!token.IsCancellationRequested && string.IsNullOrWhiteSpace(arguments.UserName))
-                arguments.UserName = this.prompt.GetString("Username");
+            if (arguments.UserName.IsEmpty())
+                arguments.UserName = await this.prompt.GetStringAsync("Username", token);
 
-            if (!token.IsCancellationRequested && string.IsNullOrWhiteSpace(arguments.Password))
-                arguments.Password = this.prompt.GetMaskedString("Password", token);
+            if (arguments.Password.IsEmpty())
+                arguments.Password = await this.prompt.GetMaskedStringAsync("Password", token);
 
             var output = this.accessor.ExecutionContext.Output;
             output.WriteLine();
             output.Write($"Saving the configuration to '{Constants.ConfigFilePath}'... ");
-            await this.configurationWriter.WriteConfigurationAsync(new CliConfig
+            this.accessor.ExecutionContext.Config.Auth = new Auth
             {
                 ApiHost = arguments.ApiHost,
                 UserName = arguments.UserName,
                 Password = arguments.Password
-            }, token);
+            };
+            await this.configurationProvider.SaveConfigAsync(this.accessor.ExecutionContext.Config, token);
 
             output.WriteGreen("Ok.");
             output.WriteLine();

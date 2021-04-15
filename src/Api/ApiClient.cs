@@ -1,4 +1,4 @@
-﻿using ConfigCat.Cli.Configuration;
+﻿using ConfigCat.Cli.Exceptions;
 using ConfigCat.Cli.Utils;
 using System;
 using System.Collections.Generic;
@@ -19,17 +19,13 @@ namespace ConfigCat.Cli.Api
 
         protected IExecutionContextAccessor Accessor { get; }
 
-        private readonly IConfigurationReader configurationReader;
         private readonly IBotPolicy<HttpResponseMessage> botPolicy;
         private readonly HttpClient httpClient;
 
-        protected ApiClient(
-            IConfigurationReader configurationReader,
-            IExecutionContextAccessor accessor,
+        protected ApiClient(IExecutionContextAccessor accessor,
             IBotPolicy<HttpResponseMessage> botPolicy,
             HttpClient httpClient)
         {
-            this.configurationReader = configurationReader;
             this.Accessor = accessor;
             this.botPolicy = botPolicy;
             this.httpClient = httpClient;
@@ -58,7 +54,7 @@ namespace ConfigCat.Cli.Api
 
         protected async Task<TResult> GetAsync<TResult>(HttpMethod method, string path, CancellationToken token)
         {
-            using var request = await this.CreateRequest(method, path, token);
+            using var request = this.CreateRequest(method, path, token);
 
             this.Accessor.ExecutionContext.Output.Verbose($"Initiating HTTP request: {method.Method} {path}");
             using var response = await this.SendRequest(request, token);
@@ -75,10 +71,10 @@ namespace ConfigCat.Cli.Api
 
         protected async Task SendAsync(HttpMethod method, string path, object body, CancellationToken token)
         {
-            using var request = await this.CreateRequest(method, path, token);
+            using var request = this.CreateRequest(method, path, token);
             this.Accessor.ExecutionContext.Output.Verbose($"Initiating Http request: {method.Method} {path}");
 
-            if (body != null)
+            if (body is not null)
             {
                 var jsonBody = JsonSerializer.Serialize(body, Constants.CamelCaseOptions);
                 this.Accessor.ExecutionContext.Output.Verbose($"Request body: {jsonBody}");
@@ -97,10 +93,10 @@ namespace ConfigCat.Cli.Api
 
         protected async Task<TResult> SendAsync<TResult>(HttpMethod method, string path, object body, CancellationToken token)
         {
-            using var request = await this.CreateRequest(method, path, token);
+            using var request = this.CreateRequest(method, path, token);
             this.Accessor.ExecutionContext.Output.Verbose($"Initiating HTTP request: {method.Method} {path}");
 
-            if (body != null)
+            if (body is not null)
             {
                 var jsonBody = JsonSerializer.Serialize(body, Constants.CamelCaseOptions);
                 this.Accessor.ExecutionContext.Output.Verbose($"Request body: {jsonBody}");
@@ -130,9 +126,9 @@ namespace ConfigCat.Cli.Api
             }, token);                
         }
 
-        private async Task<HttpRequestMessage> CreateRequest(HttpMethod method, string path, CancellationToken token)
+        private HttpRequestMessage CreateRequest(HttpMethod method, string path, CancellationToken token)
         {
-            var config = await this.configurationReader.ReadConfigurationAsync(token);
+            var config = this.Accessor.ExecutionContext.Config.Auth;
             var request = new HttpRequestMessage(method, new Uri(new Uri($"https://{config.ApiHost}"), path));
             request.Headers.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes($"{config.UserName}:{config.Password}")));
             return request;
@@ -141,7 +137,7 @@ namespace ConfigCat.Cli.Api
         private void LogRetry(HttpResponseMessage result, Exception exception, AttemptContext context)
         {
             context.ExecutionContext.GenericData.TryAdd(RetryingIdentifier, 1);
-            var message = result != null
+            var message = result is not null
                 ? $"Status code does not indicate success: {(int)result.StatusCode} {result.ReasonPhrase}"
                 : $"Error occured: {exception?.Message}";
             this.Accessor.ExecutionContext.Output.Verbose($"{message}, retrying... [{context.CurrentAttempt}. attempt, waiting {context.CurrentDelay}]");
