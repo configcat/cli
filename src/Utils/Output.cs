@@ -33,11 +33,12 @@ namespace ConfigCat.Cli.Utils
         void MoveCursorUp(int left);
         void MoveCursorDown(int left);
         void SetCursorPosition(int left, int top);
-        (int left, int top) GetCursorPosition();
         void ClearBack(int charCount);
         void ClearCurrentLine();
         void HideCursor();
         void ShowCursor();
+        int CursorTop { get; }
+        int CursorLeft { get; }
 
         bool IsOutputRedirected { get; }
 
@@ -51,6 +52,8 @@ namespace ConfigCat.Cli.Utils
     class Output : IOutput
     {
         public bool IsOutputRedirected { get; } = Console.IsOutputRedirected;
+        public int CursorTop => Console.CursorTop;
+        public int CursorLeft => Console.CursorLeft;
 
         private readonly IConsole console;
 

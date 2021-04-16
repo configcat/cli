@@ -1,6 +1,6 @@
-﻿using ConfigCat.Cli.Api.Flag;
+﻿using ConfigCat.Cli.Api;
+using ConfigCat.Cli.Api.Flag;
 using ConfigCat.Cli.Api.Flag.Value;
-using ConfigCat.Cli.Configuration;
 using ConfigCat.Cli.Exceptions;
 using ConfigCat.Cli.Options;
 using ConfigCat.Cli.Utils;
@@ -16,17 +16,17 @@ namespace ConfigCat.Cli.Commands
     {
         private readonly IFlagValueClient flagValueClient;
         private readonly IFlagClient flagClient;
-        private readonly IWorkspaceManager workspaceManager;
+        private readonly IWorkspaceLoader workspaceLoader;
         private readonly IExecutionContextAccessor accessor;
 
         public FlagPercentage(IFlagValueClient flagValueClient,
             IFlagClient flagClient,
-            IWorkspaceManager workspaceManager,
+            IWorkspaceLoader workspaceLoader,
             IExecutionContextAccessor accessor)
         {
             this.flagValueClient = flagValueClient;
             this.flagClient = flagClient;
-            this.workspaceManager = workspaceManager;
+            this.workspaceLoader = workspaceLoader;
             this.accessor = accessor;
         }
 
@@ -83,11 +83,11 @@ namespace ConfigCat.Cli.Commands
             }
 
             var flag = flagId is null 
-                ? await this.workspaceManager.LoadFlagAsync(token)
+                ? await this.workspaceLoader.LoadFlagAsync(token)
                 : await this.flagClient.GetFlagAsync(flagId.Value, token);
 
             if (environmentId.IsEmpty())
-                environmentId = (await this.workspaceManager.LoadEnvironmentAsync(token, flag.ConfigId)).EnvironmentId;
+                environmentId = (await this.workspaceLoader.LoadEnvironmentAsync(token, flag.ConfigId)).EnvironmentId;
 
             var value = await this.flagValueClient.GetValueAsync(flag.SettingId, environmentId, token);
 
@@ -117,11 +117,11 @@ namespace ConfigCat.Cli.Commands
         public async Task<int> DeletePercentageRulesAsync(int? flagId, string environmentId, CancellationToken token)
         {
             var flag = flagId is null
-                ? await this.workspaceManager.LoadFlagAsync(token)
+                ? await this.workspaceLoader.LoadFlagAsync(token)
                 : await this.flagClient.GetFlagAsync(flagId.Value, token);
 
             if (environmentId.IsEmpty())
-                environmentId = (await this.workspaceManager.LoadEnvironmentAsync(token, flag.ConfigId)).EnvironmentId;
+                environmentId = (await this.workspaceLoader.LoadEnvironmentAsync(token, flag.ConfigId)).EnvironmentId;
 
             var value = await this.flagValueClient.GetValueAsync(flag.SettingId, environmentId, token);
             value.PercentageRules = new List<PercentageModel>();

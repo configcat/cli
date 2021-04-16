@@ -33,16 +33,17 @@ namespace ConfigCat.Cli
         static async Task<int> Main(string[] args)
         {
             using var container = new StashboxContainer(c => c.WithDefaultLifetime(Lifetimes.Singleton))
-                .Register<ICommandDescriptor, Root>(c => c.WithName("root").WithDependencyBinding(nameof(ICommandDescriptor.SubCommands)))
+                .Register<ICommandDescriptor, Root>(c => c.WithName("root")
+                    .WithDependencyBinding(nameof(ICommandDescriptor.SubCommands)))
                     .Register<ICommandDescriptor, Setup>(c => c.WhenDependantIs<Root>())
-                    .Register<ICommandDescriptor, Commands.Workspace>(c => c.WhenDependantIs<Root>())
                     .Register<ICommandDescriptor, ListAll>(c => c.WhenDependantIs<Root>())
                     .Register<ICommandDescriptor, Product>(c => c.WhenDependantIs<Root>())
                     .Register<ICommandDescriptor, Config>(c => c.WhenDependantIs<Root>())
                     .Register<ICommandDescriptor, Commands.Environment>(c => c.WhenDependantIs<Root>())
                     .Register<ICommandDescriptor, Tag>(c => c.WhenDependantIs<Root>())
 
-                    .Register<ICommandDescriptor, Flag>(c => c.WhenDependantIs<Root>().WithDependencyBinding(nameof(ICommandDescriptor.SubCommands)))
+                    .Register<ICommandDescriptor, Flag>(c => c.WhenDependantIs<Root>()
+                        .WithDependencyBinding(nameof(ICommandDescriptor.SubCommands)))
                         .Register<ICommandDescriptor, FlagValue>(c => c.WhenDependantIs<Flag>())
                         .Register<ICommandDescriptor, FlagTargeting>(c => c.WhenDependantIs<Flag>())
                         .Register<ICommandDescriptor, FlagPercentage>(c => c.WhenDependantIs<Flag>())
@@ -52,7 +53,7 @@ namespace ConfigCat.Cli
 
             container.Register<IConfigurationProvider, ConfigurationProvider>();
             container.Register<IConfigurationStorage, ConfigurationFileStorage>();
-            container.Register<IWorkspaceManager, WorkspaceManager>();
+            container.Register<IWorkspaceLoader, WorkspaceLoader>();
             container.Register<IMeClient, MeClient>();
             container.Register<IProductClient, ProductClient>();
             container.Register<IConfigClient, ConfigClient>();
@@ -87,7 +88,6 @@ namespace ConfigCat.Cli
                     var configurationProvider = container.Resolve<IConfigurationProvider>();
                     var config = await configurationProvider.GetConfigAsync(context.GetCancellationToken());
                     executionContext.Config.Auth = config.Auth;
-                    executionContext.Config.Workspace = config.Workspace;
                     await next(context);
                 })
                 .UseVersionOption()

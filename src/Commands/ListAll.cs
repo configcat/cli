@@ -2,9 +2,7 @@
 using ConfigCat.Cli.Api.Environment;
 using ConfigCat.Cli.Api.Product;
 using ConfigCat.Cli.Utils;
-using System;
 using System.Collections.Generic;
-using System.CommandLine.Rendering;
 using System.CommandLine.Rendering.Views;
 using System.Threading;
 using System.Threading.Tasks;

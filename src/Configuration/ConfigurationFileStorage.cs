@@ -6,6 +6,13 @@ using System.Threading.Tasks;
 
 namespace ConfigCat.Cli.Configuration
 {
+    interface IConfigurationStorage
+    {
+        Task<CliConfig> ReadConfigOrDefaultAsync(CancellationToken cancellationToken);
+
+        Task WriteConfigAsync(CliConfig configuration, CancellationToken cancellationToken);
+    }
+
     class ConfigurationFileStorage : IConfigurationStorage
     {
         private static readonly JsonSerializerOptions Options = new JsonSerializerOptions

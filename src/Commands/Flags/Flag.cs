@@ -1,7 +1,7 @@
-﻿using ConfigCat.Cli.Api.Config;
+﻿using ConfigCat.Cli.Api;
+using ConfigCat.Cli.Api.Config;
 using ConfigCat.Cli.Api.Flag;
 using ConfigCat.Cli.Api.Product;
-using ConfigCat.Cli.Configuration;
 using ConfigCat.Cli.Exceptions;
 using ConfigCat.Cli.Utils;
 using System;
@@ -19,21 +19,21 @@ namespace ConfigCat.Cli.Commands
         private readonly IFlagClient flagClient;
         private readonly IConfigClient configClient;
         private readonly IProductClient productClient;
-        private readonly IWorkspaceManager workspaceManager;
+        private readonly IWorkspaceLoader workspaceLoader;
         private readonly IPrompt prompt;
         private readonly IExecutionContextAccessor accessor;
 
         public Flag(IFlagClient flagClient,
             IConfigClient configClient,
             IProductClient productClient,
-            IWorkspaceManager workspaceManager,
+            IWorkspaceLoader workspaceLoader,
             IPrompt prompt,
             IExecutionContextAccessor accessor)
         {
             this.flagClient = flagClient;
             this.configClient = configClient;
             this.productClient = productClient;
-            this.workspaceManager = workspaceManager;
+            this.workspaceLoader = workspaceLoader;
             this.prompt = prompt;
             this.accessor = accessor;
         }
@@ -177,7 +177,7 @@ namespace ConfigCat.Cli.Commands
             table.AddColumn(f => f.SettingId, "ID");
             table.AddColumn(f => f.Name, "NAME");
             table.AddColumn(f => f.Key, "KEY");
-            table.AddColumn(f => f.Hint, "HINT");
+            table.AddColumn(f => f.Hint.Length > 30 ? $"\"{f.Hint[0..28]}...\"" : $"\"{f.Hint}\"", "HINT");
             table.AddColumn(f => f.SettingType, "TYPE");
             table.AddColumn(f => $"[{string.Join(", ", f.Tags.Select(t => $"{t.Name} ({t.TagId})"))}]", "TAGS");
             table.AddColumn(f => $"{f.OwnerUserFullName} [{f.OwnerUserEmail}]", "OWNER");
@@ -193,7 +193,7 @@ namespace ConfigCat.Cli.Commands
             var shouldPromptTags = configId.IsEmpty();
 
             if (configId.IsEmpty())
-                configId = (await this.workspaceManager.LoadConfigAsync(token)).ConfigId;
+                configId = (await this.workspaceLoader.LoadConfigAsync(token)).ConfigId;
 
             if (createConfigModel.Name.IsEmpty())
                 createConfigModel.Name = await this.prompt.GetStringAsync("Name", token);
@@ -208,7 +208,7 @@ namespace ConfigCat.Cli.Commands
                 createConfigModel.Type = await this.prompt.ChooseFromListAsync("Choose type", Constants.SettingTypes.Collection.ToList(), t => t, token);
 
             if (shouldPromptTags && (createConfigModel.TagIds is null || !createConfigModel.TagIds.Any()))
-                createConfigModel.TagIds = (await this.workspaceManager.LoadTagsAsync(token, configId)).Select(t => t.TagId);
+                createConfigModel.TagIds = (await this.workspaceLoader.LoadTagsAsync(token, configId)).Select(t => t.TagId);
 
             if (!Constants.SettingTypes.Collection.ToList()
                     .Contains(createConfigModel.Type, StringComparer.OrdinalIgnoreCase))
@@ -223,7 +223,7 @@ namespace ConfigCat.Cli.Commands
         public async Task<int> DeleteFlagAsync(int? flagId, CancellationToken token)
         {
             if (flagId is null)
-                flagId = (await this.workspaceManager.LoadFlagAsync(token)).SettingId;
+                flagId = (await this.workspaceLoader.LoadFlagAsync(token)).SettingId;
 
             await this.flagClient.DeleteFlagAsync(flagId.Value, token);
             return Constants.ExitCodes.Ok;
@@ -232,7 +232,7 @@ namespace ConfigCat.Cli.Commands
         public async Task<int> UpdateFlagAsync(int? flagId, UpdateFlagModel updateFlagModel, CancellationToken token)
         {
             var flag = flagId is null
-                ? await this.workspaceManager.LoadFlagAsync(token)
+                ? await this.workspaceLoader.LoadFlagAsync(token)
                 : await this.flagClient.GetFlagAsync(flagId.Value, token);
 
             if (flagId is null)
@@ -244,7 +244,7 @@ namespace ConfigCat.Cli.Commands
                     updateFlagModel.Hint = await this.prompt.GetStringAsync("Hint", token, flag.Hint);
 
                 if (updateFlagModel.TagIds is null || !updateFlagModel.TagIds.Any())
-                    updateFlagModel.TagIds = (await this.workspaceManager.LoadTagsAsync(token, flag.ConfigId, flag.Tags)).Select(t => t.TagId);
+                    updateFlagModel.TagIds = (await this.workspaceLoader.LoadTagsAsync(token, flag.ConfigId, flag.Tags)).Select(t => t.TagId);
             }
 
             if (updateFlagModel.Hint.IsEmptyOrEquals(flag.Hint) &&
@@ -265,13 +265,13 @@ namespace ConfigCat.Cli.Commands
         public async Task<int> AttachTagsAsync(int? flagId, IEnumerable<int> tagIds, CancellationToken token)
         {
             var flag = flagId is null
-                ? await this.workspaceManager.LoadFlagAsync(token)
+                ? await this.workspaceLoader.LoadFlagAsync(token)
                 : await this.flagClient.GetFlagAsync(flagId.Value, token);
 
             var flagTagIds = flag.Tags.Select(t => t.TagId).ToList();
 
             if (flagId is null && tagIds is null || !tagIds.Any())
-                tagIds = (await this.workspaceManager.LoadTagsAsync(token, flag.ConfigId, flag.Tags)).Select(t => t.TagId);
+                tagIds = (await this.workspaceLoader.LoadTagsAsync(token, flag.ConfigId, flag.Tags)).Select(t => t.TagId);
 
             if (tagIds is null || 
                 !tagIds.Any() || 
@@ -293,7 +293,7 @@ namespace ConfigCat.Cli.Commands
         public async Task<int> DetachTagsAsync(int? flagId, IEnumerable<int> tagIds, CancellationToken token)
         {
             var flag = flagId is null
-                ? await this.workspaceManager.LoadFlagAsync(token)
+                ? await this.workspaceLoader.LoadFlagAsync(token)
                 : await this.flagClient.GetFlagAsync(flagId.Value, token);
 
             var tagsCopy = flag.Tags.ToList();

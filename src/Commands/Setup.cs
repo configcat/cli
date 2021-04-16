@@ -11,14 +11,12 @@ namespace ConfigCat.Cli.Commands
 {
     class Setup : IExecutableCommand<SetupArgs>
     {
-        private readonly IConfigurationProvider configurationProvider;
         private readonly IPrompt prompt;
         private readonly IMeClient meClient;
         private readonly IExecutionContextAccessor accessor;
 
-        public Setup(IConfigurationProvider configurationProvider, IPrompt prompt, IMeClient meClient, IExecutionContextAccessor accessor)
+        public Setup(IPrompt prompt, IMeClient meClient, IExecutionContextAccessor accessor)
         {
-            this.configurationProvider = configurationProvider;
             this.prompt = prompt;
             this.meClient = meClient;
             this.accessor = accessor;
@@ -56,15 +54,15 @@ namespace ConfigCat.Cli.Commands
                 UserName = arguments.UserName,
                 Password = arguments.Password
             };
-            await this.configurationProvider.SaveConfigAsync(this.accessor.ExecutionContext.Config, token);
+            await this.accessor.ExecutionContext.SaveConfigAsync(token);
 
-            output.WriteGreen("Ok.");
+            output.WriteGreen(Constants.SuccessMessage);
             output.WriteLine();
             output.Write($"Verifying your credentials against '{arguments.ApiHost}'... ");
 
             var me = await this.meClient.GetMeAsync(token);
 
-            output.WriteGreen("Ok.");
+            output.WriteGreen(Constants.SuccessMessage);
             output.Write($" Welcome, {me.FullName}.");
             output.WriteLine();
             output.WriteLine();

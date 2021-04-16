@@ -22,6 +22,8 @@ namespace ConfigCat.Cli.Utils
 
         public const string PercentageRuleJsonName = "rolloutPercentageItems";
 
+        public const string SuccessMessage = "Ok.";
+
         public static string ConfigFilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
             ".configcat", "cli.json");
 

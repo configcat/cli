@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using ConfigCat.Cli.Utils;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -40,7 +41,7 @@ namespace ConfigCat.Cli.Api.Environment
         {
             this.Accessor.ExecutionContext.Output.Write($"Deleting Environment... ");
             await this.SendAsync(HttpMethod.Delete, $"v1/environments/{environmentId}", null, token);
-            this.Accessor.ExecutionContext.Output.WriteGreen("Ok.");
+            this.Accessor.ExecutionContext.Output.WriteGreen(Constants.SuccessMessage);
             this.Accessor.ExecutionContext.Output.WriteLine();
         }
 
@@ -48,7 +49,7 @@ namespace ConfigCat.Cli.Api.Environment
         {
             this.Accessor.ExecutionContext.Output.Write($"Updating Environment... ");
             await this.SendAsync(HttpMethod.Put, $"v1/environments/{environmentId}", new { Name = name }, token);
-            this.Accessor.ExecutionContext.Output.WriteGreen("Ok.");
+            this.Accessor.ExecutionContext.Output.WriteGreen(Constants.SuccessMessage);
             this.Accessor.ExecutionContext.Output.WriteLine();
         }
     }

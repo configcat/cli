@@ -1,10 +1,9 @@
-﻿using ConfigCat.Cli.Api.Product;
+﻿using ConfigCat.Cli.Api;
+using ConfigCat.Cli.Api.Product;
 using ConfigCat.Cli.Utils;
-using ConfigCat.Cli.Configuration;
 using System;
 using System.Collections.Generic;
 using System.CommandLine;
-using System.CommandLine.Rendering;
 using System.CommandLine.Rendering.Views;
 using System.Linq;
 using System.Threading;
@@ -15,17 +14,17 @@ namespace ConfigCat.Cli.Commands
     class Product : ICommandDescriptor
     {
         private readonly IProductClient productClient;
-        private readonly IWorkspaceManager workspaceManager;
+        private readonly IWorkspaceLoader workspaceLoader;
         private readonly IPrompt prompt;
         private readonly IExecutionContextAccessor accessor;
 
         public Product(IProductClient productClient,
-            IWorkspaceManager workspaceManager,
+            IWorkspaceLoader workspaceLoader,
             IPrompt prompt,
             IExecutionContextAccessor accessor)
         {
             this.productClient = productClient;
-            this.workspaceManager = workspaceManager;
+            this.workspaceLoader = workspaceLoader;
             this.prompt = prompt;
             this.accessor = accessor;
         }
@@ -97,7 +96,7 @@ namespace ConfigCat.Cli.Commands
         public async Task<int> CreateProductAsync(string organizationId, string name, CancellationToken token)
         {
             if (organizationId.IsEmpty())
-                organizationId = (await this.workspaceManager.LoadOrganizationAsync(token)).OrganizationId;
+                organizationId = (await this.workspaceLoader.LoadOrganizationAsync(token)).OrganizationId;
 
             if (name.IsEmpty())
                 name = await this.prompt.GetStringAsync("Name", token);
@@ -111,7 +110,7 @@ namespace ConfigCat.Cli.Commands
         public async Task<int> DeleteProductAsync(string productId, CancellationToken token)
         {
             if (productId.IsEmpty())
-                productId = (await this.workspaceManager.LoadProductAsync(token)).ProductId;
+                productId = (await this.workspaceLoader.LoadProductAsync(token)).ProductId;
 
             await this.productClient.DeleteProductAsync(productId, token);
             return Constants.ExitCodes.Ok;
@@ -120,7 +119,7 @@ namespace ConfigCat.Cli.Commands
         public async Task<int> UpdateProductAsync(string productId, string name, CancellationToken token)
         {
             var product = productId.IsEmpty()
-                ? await this.workspaceManager.LoadProductAsync(token)
+                ? await this.workspaceLoader.LoadProductAsync(token)
                 : await this.productClient.GetProductAsync(productId, token);
 
             if (name.IsEmpty())
@@ -132,7 +131,7 @@ namespace ConfigCat.Cli.Commands
                 return Constants.ExitCodes.Ok;
             }
 
-            await this.productClient.UpdateProductAsync(productId, name, token);
+            await this.productClient.UpdateProductAsync(product.ProductId, name, token);
             return Constants.ExitCodes.Ok;
         }
     }

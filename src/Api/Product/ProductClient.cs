@@ -40,7 +40,7 @@ namespace ConfigCat.Cli.Api.Product
         {
             this.Accessor.ExecutionContext.Output.Write($"Deleting Product... ");
             await this.SendAsync(HttpMethod.Delete, $"v1/products/{productId}", null, token);
-            this.Accessor.ExecutionContext.Output.WriteGreen("Ok.");
+            this.Accessor.ExecutionContext.Output.WriteGreen(Constants.SuccessMessage);
             this.Accessor.ExecutionContext.Output.WriteLine();
         }
 
@@ -48,7 +48,7 @@ namespace ConfigCat.Cli.Api.Product
         {
             this.Accessor.ExecutionContext.Output.Write($"Updating Product... ");
             await this.SendAsync(HttpMethod.Put, $"v1/products/{productId}", new { Name = name }, token);
-            this.Accessor.ExecutionContext.Output.WriteGreen("Ok.");
+            this.Accessor.ExecutionContext.Output.WriteGreen(Constants.SuccessMessage);
             this.Accessor.ExecutionContext.Output.WriteLine();
         }
     }

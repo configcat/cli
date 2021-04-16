@@ -1,11 +1,10 @@
-﻿using ConfigCat.Cli.Api.Config;
+﻿using ConfigCat.Cli.Api;
+using ConfigCat.Cli.Api.Config;
 using ConfigCat.Cli.Api.Product;
-using ConfigCat.Cli.Configuration;
 using ConfigCat.Cli.Utils;
 using System;
 using System.Collections.Generic;
 using System.CommandLine;
-using System.CommandLine.Rendering;
 using System.CommandLine.Rendering.Views;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,19 +14,19 @@ namespace ConfigCat.Cli.Commands
     class Config : ICommandDescriptor
     {
         private readonly IConfigClient configClient;
-        private readonly IWorkspaceManager workspaceManager;
+        private readonly IWorkspaceLoader workspaceLoader;
         private readonly IProductClient productClient;
         private readonly IPrompt prompt;
         private readonly IExecutionContextAccessor accessor;
 
         public Config(IConfigClient configClient,
-            IWorkspaceManager workspaceManager,
+            IWorkspaceLoader workspaceLoader,
             IProductClient productClient, 
             IPrompt prompt, 
             IExecutionContextAccessor accessor)
         {
             this.configClient = configClient;
-            this.workspaceManager = workspaceManager;
+            this.workspaceLoader = workspaceLoader;
             this.productClient = productClient;
             this.prompt = prompt;
             this.accessor = accessor;
@@ -112,7 +111,7 @@ namespace ConfigCat.Cli.Commands
         public async Task<int> CreateConfigAsync(string productId, string name, CancellationToken token)
         {
             if (productId.IsEmpty())
-                productId = (await this.workspaceManager.LoadProductAsync(token)).ProductId;
+                productId = (await this.workspaceLoader.LoadProductAsync(token)).ProductId;
 
             if (name.IsEmpty())
                 name = await this.prompt.GetStringAsync("Name", token);
@@ -125,7 +124,7 @@ namespace ConfigCat.Cli.Commands
         public async Task<int> DeleteConfigAsync(string configId, CancellationToken token)
         {
             if (configId.IsEmpty())
-                configId = (await this.workspaceManager.LoadConfigAsync(token)).ConfigId;
+                configId = (await this.workspaceLoader.LoadConfigAsync(token)).ConfigId;
 
             await this.configClient.DeleteConfigAsync(configId, token);
             return Constants.ExitCodes.Ok;
@@ -134,7 +133,7 @@ namespace ConfigCat.Cli.Commands
         public async Task<int> UpdateConfigAsync(string configId, string name, CancellationToken token)
         {
             var config = configId.IsEmpty() 
-                ? await this.workspaceManager.LoadConfigAsync(token)
+                ? await this.workspaceLoader.LoadConfigAsync(token)
                 : await this.configClient.GetConfigAsync(configId, token);
 
             if (name.IsEmpty())
@@ -146,7 +145,7 @@ namespace ConfigCat.Cli.Commands
                 return Constants.ExitCodes.Ok;
             }
 
-            await this.configClient.UpdateConfigAsync(configId, name, token);
+            await this.configClient.UpdateConfigAsync(config.ConfigId, name, token);
             return Constants.ExitCodes.Ok;
         }
     }

@@ -31,7 +31,7 @@ namespace ConfigCat.Cli.Api.Flag.Value
         {
             this.Accessor.ExecutionContext.Output.Write($"Updating Flag Value... ");
             await this.SendAsync(HttpMethod.Put, $"v1/environments/{environmentId}/settings/{settingId}/value", model, token);
-            this.Accessor.ExecutionContext.Output.WriteGreen("Ok.");
+            this.Accessor.ExecutionContext.Output.WriteGreen(Constants.SuccessMessage);
             this.Accessor.ExecutionContext.Output.WriteLine();
         }
 
@@ -39,7 +39,7 @@ namespace ConfigCat.Cli.Api.Flag.Value
         {
             this.Accessor.ExecutionContext.Output.Write($"Updating Flag Value... ");
             await this.SendAsync(HttpMethod.Patch, $"v1/environments/{environmentId}/settings/{settingId}/value", operations, token);
-            this.Accessor.ExecutionContext.Output.WriteGreen("Ok.");
+            this.Accessor.ExecutionContext.Output.WriteGreen(Constants.SuccessMessage);
             this.Accessor.ExecutionContext.Output.WriteLine();
         }
     }

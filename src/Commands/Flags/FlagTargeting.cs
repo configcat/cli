@@ -1,6 +1,6 @@
-﻿using ConfigCat.Cli.Api.Flag;
+﻿using ConfigCat.Cli.Api;
+using ConfigCat.Cli.Api.Flag;
 using ConfigCat.Cli.Api.Flag.Value;
-using ConfigCat.Cli.Configuration;
 using ConfigCat.Cli.Exceptions;
 using ConfigCat.Cli.Utils;
 using System;
@@ -16,19 +16,19 @@ namespace ConfigCat.Cli.Commands
     {
         private readonly IFlagValueClient flagValueClient;
         private readonly IFlagClient flagClient;
-        private readonly IWorkspaceManager workspaceManager;
+        private readonly IWorkspaceLoader workspaceLoader;
         private readonly IPrompt prompt;
         private readonly IExecutionContextAccessor accessor;
 
         public FlagTargeting(IFlagValueClient flagValueClient,
             IFlagClient flagClient,
-            IWorkspaceManager workspaceManager,
+            IWorkspaceLoader workspaceLoader,
             IPrompt prompt,
             IExecutionContextAccessor accessor)
         {
             this.flagValueClient = flagValueClient;
             this.flagClient = flagClient;
-            this.workspaceManager = workspaceManager;
+            this.workspaceLoader = workspaceLoader;
             this.prompt = prompt;
             this.accessor = accessor;
         }
@@ -134,11 +134,11 @@ namespace ConfigCat.Cli.Commands
         public async Task<int> AddTargetinRuleAsync(int? flagId, string environmentId, AddTargetinRuleModel addTargetinRuleModel, CancellationToken token)
         {
             var flag = flagId is null
-                ? await this.workspaceManager.LoadFlagAsync(token)
+                ? await this.workspaceLoader.LoadFlagAsync(token)
                 : await this.flagClient.GetFlagAsync(flagId.Value, token);
 
             if (environmentId.IsEmpty())
-                environmentId = (await this.workspaceManager.LoadEnvironmentAsync(token, flag.ConfigId)).EnvironmentId;
+                environmentId = (await this.workspaceLoader.LoadEnvironmentAsync(token, flag.ConfigId)).EnvironmentId;
 
             await this.ValidateAddModel(addTargetinRuleModel, token);
 
@@ -161,11 +161,11 @@ namespace ConfigCat.Cli.Commands
         public async Task<int> UpdateTargetinRuleAsync(int? flagId, string environmentId, int position, AddTargetinRuleModel addTargetinRuleModel, CancellationToken token)
         {
             var flag = flagId is null
-                ? await this.workspaceManager.LoadFlagAsync(token)
+                ? await this.workspaceLoader.LoadFlagAsync(token)
                 : await this.flagClient.GetFlagAsync(flagId.Value, token);
 
             if (environmentId.IsEmpty())
-                environmentId = (await this.workspaceManager.LoadEnvironmentAsync(token, flag.ConfigId)).EnvironmentId;
+                environmentId = (await this.workspaceLoader.LoadEnvironmentAsync(token, flag.ConfigId)).EnvironmentId;
 
             var value = await this.flagValueClient.GetValueAsync(flag.SettingId, environmentId, token);
             var existing = value.TargetingRules.ElementAtOrDefault(position - 1);
@@ -194,11 +194,11 @@ namespace ConfigCat.Cli.Commands
         public async Task<int> DeleteTargetinRuleAsync(int? flagId, string environmentId, int position, CancellationToken token)
         {
             var flag = flagId is null
-                ? await this.workspaceManager.LoadFlagAsync(token)
+                ? await this.workspaceLoader.LoadFlagAsync(token)
                 : await this.flagClient.GetFlagAsync(flagId.Value, token);
 
             if (environmentId.IsEmpty())
-                environmentId = (await this.workspaceManager.LoadEnvironmentAsync(token, flag.ConfigId)).EnvironmentId;
+                environmentId = (await this.workspaceLoader.LoadEnvironmentAsync(token, flag.ConfigId)).EnvironmentId;
 
             var jsonPatchDocument = new JsonPatchDocument();
             jsonPatchDocument.Remove($"/{Constants.TargetingRuleJsonName}/{position - 1}");
@@ -210,11 +210,11 @@ namespace ConfigCat.Cli.Commands
         public async Task<int> MoveTargetinRuleAsync(int? flagId, string environmentId, int from, int to, CancellationToken token)
         {
             var flag = flagId is null
-                ? await this.workspaceManager.LoadFlagAsync(token)
+                ? await this.workspaceLoader.LoadFlagAsync(token)
                 : await this.flagClient.GetFlagAsync(flagId.Value, token);
 
             if (environmentId.IsEmpty())
-                environmentId = (await this.workspaceManager.LoadEnvironmentAsync(token, flag.ConfigId)).EnvironmentId;
+                environmentId = (await this.workspaceLoader.LoadEnvironmentAsync(token, flag.ConfigId)).EnvironmentId;
 
             var jsonPatchDocument = new JsonPatchDocument();
             jsonPatchDocument.Move($"/{Constants.TargetingRuleJsonName}/{from - 1}", $"/{Constants.TargetingRuleJsonName}/{to - 1}");

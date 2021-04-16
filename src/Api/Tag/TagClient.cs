@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using ConfigCat.Cli.Utils;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -40,7 +41,7 @@ namespace ConfigCat.Cli.Api.Tag
         {
             this.Accessor.ExecutionContext.Output.Write($"Deleting Tag... ");
             await this.SendAsync(HttpMethod.Delete, $"v1/tags/{tagId}", null, token);
-            this.Accessor.ExecutionContext.Output.WriteGreen("Ok.");
+            this.Accessor.ExecutionContext.Output.WriteGreen(Constants.SuccessMessage);
             this.Accessor.ExecutionContext.Output.WriteLine();
         }
 
@@ -48,7 +49,7 @@ namespace ConfigCat.Cli.Api.Tag
         {
             this.Accessor.ExecutionContext.Output.Write($"Updating Tag... ");
             await this.SendAsync(HttpMethod.Put, $"v1/tags/{tagId}", new { Name = name, Color = color }, token);
-            this.Accessor.ExecutionContext.Output.WriteGreen("Ok.");
+            this.Accessor.ExecutionContext.Output.WriteGreen(Constants.SuccessMessage);
             this.Accessor.ExecutionContext.Output.WriteLine();
         }
     }

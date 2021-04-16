@@ -1,11 +1,10 @@
-﻿using ConfigCat.Cli.Api.Environment;
+﻿using ConfigCat.Cli.Api;
+using ConfigCat.Cli.Api.Environment;
 using ConfigCat.Cli.Api.Product;
-using ConfigCat.Cli.Configuration;
 using ConfigCat.Cli.Utils;
 using System;
 using System.Collections.Generic;
 using System.CommandLine;
-using System.CommandLine.Rendering;
 using System.CommandLine.Rendering.Views;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,19 +14,19 @@ namespace ConfigCat.Cli.Commands
     class Environment : ICommandDescriptor
     {
         private readonly IEnvironmentClient environmentClient;
-        private readonly IWorkspaceManager workspaceManager;
+        private readonly IWorkspaceLoader workspaceLoader;
         private readonly IProductClient productClient;
         private readonly IPrompt prompt;
         private readonly IExecutionContextAccessor accessor;
 
         public Environment(IEnvironmentClient environmentClient,
-            IWorkspaceManager workspaceManager,
+            IWorkspaceLoader workspaceLoader,
             IProductClient productClient,
             IPrompt prompt,
             IExecutionContextAccessor accessor)
         {
             this.environmentClient = environmentClient;
-            this.workspaceManager = workspaceManager;
+            this.workspaceLoader = workspaceLoader;
             this.productClient = productClient;
             this.prompt = prompt;
             this.accessor = accessor;
@@ -112,7 +111,7 @@ namespace ConfigCat.Cli.Commands
         public async Task<int> CreateEnvironmentAsync(string productId, string name, CancellationToken token)
         {
             if (productId.IsEmpty())
-                productId = (await this.workspaceManager.LoadProductAsync(token)).ProductId;
+                productId = (await this.workspaceLoader.LoadProductAsync(token)).ProductId;
 
             if (name.IsEmpty())
                 name = await this.prompt.GetStringAsync("Name", token);
@@ -126,7 +125,7 @@ namespace ConfigCat.Cli.Commands
         public async Task<int> DeleteEnvironmentAsync(string environmentId, CancellationToken token)
         {
             if (environmentId.IsEmpty())
-                environmentId = (await this.workspaceManager.LoadEnvironmentAsync(token)).EnvironmentId;
+                environmentId = (await this.workspaceLoader.LoadEnvironmentAsync(token)).EnvironmentId;
 
             await this.environmentClient.DeleteEnvironmentAsync(environmentId, token);
             return Constants.ExitCodes.Ok;
@@ -135,7 +134,7 @@ namespace ConfigCat.Cli.Commands
         public async Task<int> UpdateEnvironmentAsync(string environmentId, string name, CancellationToken token)
         {
             var environment = environmentId.IsEmpty()
-                ? await this.workspaceManager.LoadEnvironmentAsync(token)
+                ? await this.workspaceLoader.LoadEnvironmentAsync(token)
                 : await this.environmentClient.GetEnvironmentAsync(environmentId, token);
 
             if (name.IsEmpty())
@@ -147,7 +146,7 @@ namespace ConfigCat.Cli.Commands
                 return Constants.ExitCodes.Ok;
             }
 
-            await this.environmentClient.UpdateEnvironmentAsync(environmentId, name, token);
+            await this.environmentClient.UpdateEnvironmentAsync(environment.EnvironmentId, name, token);
             return Constants.ExitCodes.Ok;
         }
     }

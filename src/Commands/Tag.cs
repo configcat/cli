@@ -1,11 +1,11 @@
-﻿using ConfigCat.Cli.Api.Product;
+﻿using ConfigCat.Cli.Api;
+using ConfigCat.Cli.Api.Product;
 using ConfigCat.Cli.Api.Tag;
 using ConfigCat.Cli.Configuration;
 using ConfigCat.Cli.Utils;
 using System;
 using System.Collections.Generic;
 using System.CommandLine;
-using System.CommandLine.Rendering;
 using System.CommandLine.Rendering.Views;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,21 +16,21 @@ namespace ConfigCat.Cli.Commands
     {
         private readonly ITagClient tagClient;
         private readonly IProductClient productClient;
-        private readonly IWorkspaceManager workspaceManager;
+        private readonly IWorkspaceLoader workspaceLoader;
         private readonly IPrompt prompt;
         private readonly IExecutionContextAccessor accessor;
         private readonly IConfigurationProvider configurationProvider;
 
         public Tag(ITagClient tagClient, 
             IProductClient productClient,
-            IWorkspaceManager workspaceManager,
+            IWorkspaceLoader workspaceLoader,
             IPrompt prompt, 
             IExecutionContextAccessor accessor, 
             IConfigurationProvider configurationProvider)
         {
             this.tagClient = tagClient;
             this.productClient = productClient;
-            this.workspaceManager = workspaceManager;
+            this.workspaceLoader = workspaceLoader;
             this.prompt = prompt;
             this.accessor = accessor;
             this.configurationProvider = configurationProvider;
@@ -120,7 +120,7 @@ namespace ConfigCat.Cli.Commands
         public async Task<int> CreateTagAsync(string productId, string name, string color, CancellationToken token)
         {
             if (productId.IsEmpty())
-                productId = (await this.workspaceManager.LoadProductAsync(token)).ProductId;
+                productId = (await this.workspaceLoader.LoadProductAsync(token)).ProductId;
 
             if (name.IsEmpty())
                 name = await this.prompt.GetStringAsync("Name", token);
@@ -137,7 +137,7 @@ namespace ConfigCat.Cli.Commands
         public async Task<int> DeleteTagAsync(int? tagId, CancellationToken token)
         {
             if (tagId is null)
-                tagId = (await this.workspaceManager.LoadTagAsync(token)).TagId;
+                tagId = (await this.workspaceLoader.LoadTagAsync(token)).TagId;
 
             await this.tagClient.DeleteTagAsync(tagId.Value, token);
             return Constants.ExitCodes.Ok;
@@ -146,7 +146,7 @@ namespace ConfigCat.Cli.Commands
         public async Task<int> UpdateTagAsync(int? tagId, string name, string color, CancellationToken token)
         {
             var tag = tagId is null 
-                ? await this.workspaceManager.LoadTagAsync(token)
+                ? await this.workspaceLoader.LoadTagAsync(token)
                 : await this.tagClient.GetTagAsync(tagId.Value, token);
 
             if (tagId is null)

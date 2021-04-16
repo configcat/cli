@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace ConfigCat.Cli.Api.Organization
+﻿namespace ConfigCat.Cli.Api.Organization
 {
     class OrganizationModel
     {

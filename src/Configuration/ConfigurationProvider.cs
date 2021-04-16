@@ -6,6 +6,11 @@ using System.Threading.Tasks;
 
 namespace ConfigCat.Cli.Configuration
 {
+    interface IConfigurationProvider
+    {
+        Task<CliConfig> GetConfigAsync(CancellationToken cancellationToken);
+    }
+
     class ConfigurationProvider : IConfigurationProvider
     {
         private readonly IExecutionContextAccessor accessor;
@@ -42,11 +47,6 @@ namespace ConfigCat.Cli.Configuration
             output.Verbose($"Username: {user ?? config.Auth.UserName} {fromUser}");
             output.Verbose($"Password: <masked> {fromPass}");
 
-            var workspaceLog = config.Workspace is null || config.Workspace is null
-                ? "No workspace found to load"
-                : "Workspace loaded";
-            output.Verbose(workspaceLog);
-
             return new CliConfig
             {
                 Auth = new Auth
@@ -54,12 +54,8 @@ namespace ConfigCat.Cli.Configuration
                     ApiHost = host ?? config.Auth.ApiHost ?? Constants.DefaultApiHost,
                     Password = pass ?? config.Auth.Password,
                     UserName = user ?? config.Auth.UserName
-                },
-                Workspace = config.Workspace
+                }
             };
         }
-
-        public Task SaveConfigAsync(CliConfig config, CancellationToken cancellationToken) =>
-            this.configurationStorage.WriteConfigAsync(config, cancellationToken);
     }
 }

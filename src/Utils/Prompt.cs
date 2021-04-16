@@ -95,14 +95,14 @@ namespace ConfigCat.Cli.Utils
             output.WriteColored("UP", ForegroundColorSpan.LightCyan());
             output.WriteColored(" and ", ForegroundColorSpan.DarkGray());
             output.WriteColored("DOWN", ForegroundColorSpan.LightCyan());
-            output.WriteColored(" arrow keys to navigate)", ForegroundColorSpan.DarkGray());
+            output.WriteColored(" keys to navigate)", ForegroundColorSpan.DarkGray());
             output.WriteLine();
             output.WriteLine();
 
             int index = selectedValue is null || selectedValue.Equals(default) ? 0 : items.IndexOf(selectedValue);
 
             this.PrintChooseSection(index, items, labelSelector);
-            output.SetCursorPosition(0, Console.CursorTop - items.Count + index);
+            output.SetCursorPosition(0, output.CursorTop - items.Count + index);
 
             ConsoleKeyInfo key;
             try
@@ -137,14 +137,14 @@ namespace ConfigCat.Cli.Utils
 
                 output.ClearCurrentLine();
                 this.PrintSelected(items[index], labelSelector, true);
-                output.SetCursorPosition(0, Console.CursorTop + items.Count - index);
+                output.SetCursorPosition(0, output.CursorTop + items.Count - index);
                 output.WriteLine();
 
                 return items[index];
             }
             catch (OperationCanceledException)
             {
-                output.SetCursorPosition(0, Console.CursorTop + items.Count - index);
+                output.SetCursorPosition(0, output.CursorTop + items.Count - index);
                 throw;
             }
             finally
@@ -184,7 +184,7 @@ namespace ConfigCat.Cli.Utils
 
             var selectedItems = preSelectedItems ?? new List<TItem>();
             this.PrintMultiChooseSection(items, labelSelector, selectedItems);
-            output.SetCursorPosition(0, Console.CursorTop - items.Count + index);
+            output.SetCursorPosition(0, output.CursorTop - items.Count + index);
             ConsoleKeyInfo key;
             try
             {
@@ -234,14 +234,14 @@ namespace ConfigCat.Cli.Utils
 
                 output.ClearCurrentLine();
                 this.PrintNonSelectedInMulti(items[index], labelSelector, selectedItems);
-                output.SetCursorPosition(0, Console.CursorTop + items.Count - index);
+                output.SetCursorPosition(0, output.CursorTop + items.Count - index);
                 output.WriteLine();
 
                 return selectedItems;
             }
             catch (OperationCanceledException)
             {
-                output.SetCursorPosition(0, Console.CursorTop + items.Count - index);
+                output.SetCursorPosition(0, output.CursorTop + items.Count - index);
                 throw;
             }
             finally

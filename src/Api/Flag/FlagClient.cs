@@ -41,7 +41,7 @@ namespace ConfigCat.Cli.Api.Flag
         {
             this.Accessor.ExecutionContext.Output.Write($"Deleting Flag... ");
             await this.SendAsync(HttpMethod.Delete, $"v1/settings/{flagId}", null, token);
-            this.Accessor.ExecutionContext.Output.WriteGreen("Ok.");
+            this.Accessor.ExecutionContext.Output.WriteGreen(Constants.SuccessMessage);
             this.Accessor.ExecutionContext.Output.WriteLine();
         }
 
@@ -49,7 +49,7 @@ namespace ConfigCat.Cli.Api.Flag
         {
             this.Accessor.ExecutionContext.Output.Write($"Updating Flag... ");
             await this.SendAsync(HttpMethod.Patch, $"v1/settings/{flagId}", operations, token);
-            this.Accessor.ExecutionContext.Output.WriteGreen("Ok.");
+            this.Accessor.ExecutionContext.Output.WriteGreen(Constants.SuccessMessage);
             this.Accessor.ExecutionContext.Output.WriteLine();
         }
     }

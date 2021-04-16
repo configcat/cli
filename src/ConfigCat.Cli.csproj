@@ -13,7 +13,6 @@
 
   <ItemGroup>
     <Content Include="..\test\integ.ps1" Link="integ.ps1">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
 

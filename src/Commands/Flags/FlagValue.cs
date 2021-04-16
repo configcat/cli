@@ -1,9 +1,9 @@
-﻿using ConfigCat.Cli.Api.Config;
+﻿using ConfigCat.Cli.Api;
+using ConfigCat.Cli.Api.Config;
 using ConfigCat.Cli.Api.Environment;
 using ConfigCat.Cli.Api.Flag;
 using ConfigCat.Cli.Api.Flag.Value;
 using ConfigCat.Cli.Api.Product;
-using ConfigCat.Cli.Configuration;
 using ConfigCat.Cli.Exceptions;
 using ConfigCat.Cli.Utils;
 using System;
@@ -22,7 +22,7 @@ namespace ConfigCat.Cli.Commands
         private readonly IConfigClient configClient;
         private readonly IProductClient productClient;
         private readonly IEnvironmentClient environmentClient;
-        private readonly IWorkspaceManager workspaceManager;
+        private readonly IWorkspaceLoader workspaceLoader;
         private readonly IPrompt prompt;
         private readonly IExecutionContextAccessor accessor;
 
@@ -31,7 +31,7 @@ namespace ConfigCat.Cli.Commands
             IConfigClient configClient,
             IProductClient productClient,
             IEnvironmentClient environmentClient,
-            IWorkspaceManager workspaceManager,
+            IWorkspaceLoader workspaceLoader,
             IPrompt prompt,
             IExecutionContextAccessor accessor)
         {
@@ -40,7 +40,7 @@ namespace ConfigCat.Cli.Commands
             this.configClient = configClient;
             this.productClient = productClient;
             this.environmentClient = environmentClient;
-            this.workspaceManager = workspaceManager;
+            this.workspaceLoader = workspaceLoader;
             this.prompt = prompt;
             this.accessor = accessor;
         }
@@ -88,7 +88,7 @@ namespace ConfigCat.Cli.Commands
         public async Task<int> ListAllAsync(int? flagId, CancellationToken token)
         {
             var flag = flagId is null
-                ? await this.workspaceManager.LoadFlagAsync(token)
+                ? await this.workspaceLoader.LoadFlagAsync(token)
                 : await this.flagClient.GetFlagAsync(flagId.Value, token);
 
             var output = this.accessor.ExecutionContext.Output;
@@ -168,11 +168,11 @@ namespace ConfigCat.Cli.Commands
         public async Task<int> UpdateFlagValueAsync(int? flagId, string environmentId, string flagValue, CancellationToken token)
         {
             var flag = flagId is null
-                ? await this.workspaceManager.LoadFlagAsync(token)
+                ? await this.workspaceLoader.LoadFlagAsync(token)
                 : await this.flagClient.GetFlagAsync(flagId.Value, token);
 
             if (environmentId.IsEmpty())
-                environmentId = (await this.workspaceManager.LoadEnvironmentAsync(token, flag.ConfigId)).EnvironmentId;
+                environmentId = (await this.workspaceLoader.LoadEnvironmentAsync(token, flag.ConfigId)).EnvironmentId;
 
             var value = await this.flagValueClient.GetValueAsync(flag.SettingId, environmentId, token);
 
