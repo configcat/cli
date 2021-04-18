@@ -13,12 +13,17 @@ namespace ConfigCat.Cli.Commands
     {
         private readonly IPrompt prompt;
         private readonly IMeClient meClient;
+        private readonly IConfigurationStorage configurationStorage;
         private readonly IExecutionContextAccessor accessor;
 
-        public Setup(IPrompt prompt, IMeClient meClient, IExecutionContextAccessor accessor)
+        public Setup(IPrompt prompt, 
+            IMeClient meClient,
+            IConfigurationStorage configurationStorage, 
+            IExecutionContextAccessor accessor)
         {
             this.prompt = prompt;
             this.meClient = meClient;
+            this.configurationStorage = configurationStorage;
             this.accessor = accessor;
         }
 
@@ -54,7 +59,7 @@ namespace ConfigCat.Cli.Commands
                 UserName = arguments.UserName,
                 Password = arguments.Password
             };
-            await this.accessor.ExecutionContext.SaveConfigAsync(token);
+            await this.configurationStorage.WriteConfigAsync(this.accessor.ExecutionContext.Config, token);
 
             output.WriteGreen(Constants.SuccessMessage);
             output.WriteLine();

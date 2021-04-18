@@ -8,20 +8,14 @@ namespace ConfigCat.Cli
 {
     class ExecutionContext
     {
-        private readonly IConfigurationStorage configurationStorage;
-
         public IOutput Output { get; }
 
         public CliConfig Config { get; } = new CliConfig();
 
-        public ExecutionContext(IOutput output, IConfigurationStorage configurationStorage)
+        public ExecutionContext(IOutput output)
         {
             this.Output = output;
-            this.configurationStorage = configurationStorage;
         }
-
-        public Task SaveConfigAsync(CancellationToken token) =>
-            this.configurationStorage.WriteConfigAsync(this.Config, token);
     }
 
     interface IExecutionContextAccessor
@@ -31,13 +25,13 @@ namespace ConfigCat.Cli
 
     class ExecutionContextAccessor : IExecutionContextAccessor
     {
-        private readonly IServiceProvider serviceProvider;
+        private readonly Lazy<ExecutionContext> executionContext;
 
-        public ExecutionContext ExecutionContext => (ExecutionContext)this.serviceProvider.GetService(typeof(ExecutionContext));
+        public ExecutionContext ExecutionContext => this.executionContext.Value;
 
-        public ExecutionContextAccessor(IServiceProvider serviceProvider)
+        public ExecutionContextAccessor(Func<ExecutionContext> executionContextFunc)
         {
-            this.serviceProvider = serviceProvider;
+            this.executionContext = new Lazy<ExecutionContext>(executionContextFunc);
         }
     }
 }

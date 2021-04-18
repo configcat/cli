@@ -64,9 +64,9 @@ namespace ConfigCat.Cli
             container.Register<IFlagClient, FlagClient>();
             container.Register<IFlagValueClient, FlagValueClient>();
             container.Register<IExecutionContextAccessor, ExecutionContextAccessor>();
-            container.Register<ExecutionContext>();
             container.Register<IPrompt, Prompt>();
             container.Register(typeof(IBotPolicy<>), typeof(BotPolicy<>), c => c.WithTransientLifetime());
+            container.RegisterFunc(resolver => new ExecutionContext(resolver.Resolve<IOutput>()));
             container.RegisterInstance(new HttpClient());
 
             var r = container.Resolve<ICommandDescriptor>("root");
@@ -84,10 +84,10 @@ namespace ConfigCat.Cli
                 })
                 .UseMiddleware(async (context, next) =>
                 {
-                    var executionContext = container.Resolve<ExecutionContext>();
+                    var executionContextAccessor = container.Resolve<IExecutionContextAccessor>();
                     var configurationProvider = container.Resolve<IConfigurationProvider>();
                     var config = await configurationProvider.GetConfigAsync(context.GetCancellationToken());
-                    executionContext.Config.Auth = config.Auth;
+                    executionContextAccessor.ExecutionContext.Config.Auth = config.Auth;
                     await next(context);
                 })
                 .UseVersionOption()
