@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <AssemblyName>configcat</AssemblyName>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <PublishTrimmed>true</PublishTrimmed>
+    <TrimMode>link</TrimMode>
+    <SuppressTrimAnalysisWarnings>false</SuppressTrimAnalysisWarnings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="..\..\test\integ.ps1" Link="integ.ps1">
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <TrimmerRootAssembly Include="System.ComponentModel.TypeConverter" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="Stashbox" Version="3.6.1" />
+    <PackageReference Include="System.CommandLine" Version="2.0.0-beta1.20574.7" />
+    <PackageReference Include="System.CommandLine.Rendering" Version="0.3.0-alpha.20574.7" />
+    <PackageReference Include="System.Text.Json" Version="5.0.1" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\ConfigCat.Cli.Models\ConfigCat.Cli.Models.csproj" />
+    <ProjectReference Include="..\ConfigCat.Cli.Services\ConfigCat.Cli.Services.csproj" />
+  </ItemGroup>
+
+</Project>

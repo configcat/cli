@@ -22,17 +22,17 @@ jobs:
         
     - name: Publish Windows
       run: |
-        dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o publish/win
+        dotnet publish src/ConfigCat.Cli/ConfigCat.Cli.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o publish/win
         cp test/integ.ps1 publish/win/integ.ps1
 
     - name: Publish Linux
       run: |
-        dotnet publish -c Release -r linux-x64 --self-contained true -p:PublishSingleFile=true -o publish/linux
+        dotnet publish src/ConfigCat.Cli/ConfigCat.Cli.csproj -c Release -r linux-x64 --self-contained true -p:PublishSingleFile=true -o publish/linux
         cp test/integ.ps1 publish/linux/integ.ps1
 
     - name: Publish macOS
       run: |
-        dotnet publish -c Release -r osx-x64 --self-contained true -p:PublishSingleFile=true -o publish/mac
+        dotnet publish src/ConfigCat.Cli/ConfigCat.Cli.csproj -c Release -r osx-x64 --self-contained true -p:PublishSingleFile=true -o publish/mac
         cp test/integ.ps1 publish/mac/integ.ps1
 
     - name: Archive executables
