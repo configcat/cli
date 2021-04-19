@@ -1,6 +1,4 @@
 ﻿using System;
-using System.CommandLine;
-using System.CommandLine.Rendering;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,7 +8,8 @@ namespace ConfigCat.Cli.Services.Rendering
     public class Spinner : IDisposable
     {
         private readonly CancellationTokenSource combinedToken;
-        private readonly ITerminal terminal;
+        private readonly IOutput output;
+        private readonly CursorHider cursorHider;
         private readonly int top;
         private readonly int left;
         private readonly bool isVerboseEnabled;
@@ -23,21 +22,21 @@ namespace ConfigCat.Cli.Services.Rendering
             "|",
         };
 
-        public Spinner(CancellationToken token, IConsole console, bool isVerboseEnabled)
+        public Spinner(CancellationToken token, IOutput output, bool isVerboseEnabled)
         {
             if (isVerboseEnabled)
                 return;
 
-            if (console is not ITerminal terminal)
+            if (output.IsOutputRedirected)
                 return;
 
-            this.terminal = terminal;
+            this.output = output;
 
-            this.top = terminal.CursorTop;
-            this.left = terminal.CursorLeft;
+            this.top = output.CursorTop;
+            this.left = output.CursorLeft;
             this.combinedToken = CancellationTokenSource.CreateLinkedTokenSource(token);
 
-            this.terminal.HideCursor();
+            this.cursorHider = output.CreateCursorHider();
 
             var task = Task.Run(async () =>
             {
@@ -46,11 +45,11 @@ namespace ConfigCat.Cli.Services.Rendering
                 {
                     var spinnerFragment = SpinnerFragments[counter++ % SpinnerFragments.Length];
 
-                    this.terminal.SetCursorPosition(this.left, this.top);
-                    this.terminal.Out.Write(spinnerFragment);
+                    this.output.SetCursorPosition(this.left, this.top);
+                    this.output.Write(spinnerFragment);
                     try
                     {
-                        await Task.Delay(TimeSpan.FromMilliseconds(70), this.combinedToken.Token);
+                        await Task.Delay(TimeSpan.FromMilliseconds(50), this.combinedToken.Token);
                     }
                     catch (OperationCanceledException)
                     { }
@@ -61,16 +60,16 @@ namespace ConfigCat.Cli.Services.Rendering
 
         public void Stop()
         {
-            if (terminal is null || isVerboseEnabled)
+            if (this.output is null || isVerboseEnabled)
                 return;
 
             this.combinedToken.Cancel();
 
             var fragmentSize = SpinnerFragments[0].Length;
-            this.terminal.SetCursorPosition(this.left + fragmentSize, this.top);
-            this.terminal.Out.Write(string.Concat(Enumerable.Repeat("\b \b", fragmentSize)));
-            this.terminal.SetCursorPosition(this.left, this.top);
-            this.terminal.ShowCursor();
+            this.output.SetCursorPosition(this.left + fragmentSize, this.top);
+            this.output.Write(string.Concat(Enumerable.Repeat("\b \b", fragmentSize)));
+            this.output.SetCursorPosition(this.left, this.top);
+            this.cursorHider.ShowCursor();
         }
 
         public void Dispose() => this.Stop();

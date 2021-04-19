@@ -78,7 +78,9 @@ namespace ConfigCat.Cli.Services
             this.WriteYellow("Skipped.");
         }
 
-        public Spinner CreateSpinner(CancellationToken token) => new Spinner(token, this.console, this.showVerboseOutput);
+        public Spinner CreateSpinner(CancellationToken token) => new Spinner(token, this, this.showVerboseOutput);
+
+        public CursorHider CreateCursorHider() => new CursorHider(this);
 
         public void RenderView(View view)
         {
@@ -100,8 +102,12 @@ namespace ConfigCat.Cli.Services
             var top = Console.CursorTop;
             var left = Console.CursorLeft;
             var width = Console.BufferWidth;
-            var isEndReached = left >= width;
-            this.SetCursorPosition(isEndReached ? 0 : left + 1, isEndReached ? top + 1 : top);
+            var isEndReached = left >= width - 1;
+            var newTop = isEndReached ? top + 1 : top;
+            if (newTop >= Console.BufferHeight)
+                Console.BufferHeight++;
+
+            this.SetCursorPosition(isEndReached ? 0 : left + 1, newTop);
         }
 
         public void MoveCursorUp(int left) => this.SetCursorPosition(left, Console.CursorTop - 1);
@@ -116,19 +122,75 @@ namespace ConfigCat.Cli.Services
 
         public void ShowCursor() => Console.CursorVisible = true;
 
-        public void ClearBack(int charCount)
-        {
-            for (int i = 0; charCount-- > i;)
-            {
-                this.MoveCursorLeft();
-                this.console.Out.Write("\x1b[1P");
-            }
-        }
-
         public void ClearCurrentLine()
         {
             this.SetCursorPosition(0, Console.CursorTop);
             this.console.Out.Write("\x1b[K");
+        }
+
+        public async Task<string> ReadLineAsync(CancellationToken token, bool masked = false)
+        {
+            var builder = new StringBuilder();
+            int position = 0;
+            var initialLeft = this.CursorLeft;
+            ConsoleKeyInfo key;
+            do
+            {
+                key = await this.ReadKeyAsync(token, true);
+
+                if (key.Key == ConsoleKey.Escape)
+                {
+                    builder.Clear();
+                    return null;
+                }
+                else if (key.Key == ConsoleKey.Backspace && position > 0)
+                {
+                    using var _ = this.CreateCursorHider();
+                    var chunk = position < builder.Length ? builder.ToString().Substring(position) : string.Empty;
+                    builder.Remove(position - 1, 1);
+                    this.MoveCursorLeft();
+                    var left = this.CursorLeft;
+                    this.Write($"{(masked ? new string('*', chunk.Length) : chunk)} ");
+                    this.SetCursorPosition(left, this.GetTopPositionFromInitial(initialLeft, --position, builder.Length));
+                }
+                else if (key.Key == ConsoleKey.Delete && position < builder.Length)
+                {
+                    using var _ = this.CreateCursorHider();
+                    var left = this.CursorLeft;
+                    var chunk = position < builder.Length ? builder.ToString().Substring(position + 1) : string.Empty;
+                    builder.Remove(position, 1);
+                    this.Write($"{(masked ? new string('*', chunk.Length) : chunk)} ");
+                    this.SetCursorPosition(left, this.GetTopPositionFromInitial(initialLeft, position, builder.Length));
+                }
+                else if (key.Key == ConsoleKey.LeftArrow && position > 0)
+                {
+                    this.MoveCursorLeft();
+                    position--;
+                }
+                else if (key.Key == ConsoleKey.RightArrow && position < builder.Length)
+                {
+                    this.MoveCursorRight();
+                    position++;
+                }
+                else if (!char.IsControl(key.KeyChar))
+                {
+                    using var _ = this.CreateCursorHider();
+                    var left = this.CursorLeft;
+                    var chunk = position < builder.Length ? builder.ToString().Substring(position) : string.Empty;
+                    builder.Insert(position, key.KeyChar);
+                    this.Write($"{(masked ? new string('*', chunk.Length + 1) : key.KeyChar + chunk)}");
+                    this.SetCursorPosition(left, this.GetTopPositionFromInitial(initialLeft, position++, builder.Length - 1));
+                    this.MoveCursorRight();
+                }
+
+            } while (!token.IsCancellationRequested &&
+                     key.Key != ConsoleKey.Enter &&
+                     key.Key != ConsoleKey.Escape);
+
+            if (builder.Length == 0)
+                return null;
+
+            return builder.ToString().Trim();
         }
 
         public Task<ConsoleKeyInfo> ReadKeyAsync(CancellationToken token, bool intercept = false) =>
@@ -145,40 +207,11 @@ namespace ConfigCat.Cli.Services
                 return default;
             }, token);
 
-        public async Task<string> ReadLineAsync(CancellationToken token, bool masked = false)
+        private int GetTopPositionFromInitial(int intial, int position, int textLength)
         {
-            var builder = new StringBuilder();
-
-            ConsoleKeyInfo key;
-            do
-            {
-                key = await this.ReadKeyAsync(token, true);
-
-                if (key.Key == ConsoleKey.Escape)
-                {
-                    builder.Clear();
-                    return null;
-                }
-                else if (key.Key == ConsoleKey.Backspace && builder.Length > 0)
-                {
-                    this.ClearBack(1);
-                    builder.Remove(builder.Length - 1, 1);
-                }
-                else if (!char.IsControl(key.KeyChar))
-                {
-                    this.Write(masked ? "*" : key.KeyChar.ToString());
-                    builder.Append(key.KeyChar);
-                }
-
-
-            } while (!token.IsCancellationRequested &&
-                     key.Key != ConsoleKey.Enter &&
-                     key.Key != ConsoleKey.Escape);
-
-            if (builder.Length == 0)
-                return null;
-
-            return builder.ToString().Trim();
+            var whichLine = (intial + position) / Console.BufferWidth;
+            var lineCount = (intial + textLength) / Console.BufferWidth;
+            return this.CursorTop - lineCount + whichLine;
         }
     }
 }

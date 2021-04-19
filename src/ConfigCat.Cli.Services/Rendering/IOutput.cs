@@ -29,7 +29,6 @@ namespace ConfigCat.Cli.Services.Rendering
         void MoveCursorUp(int left);
         void MoveCursorDown(int left);
         void SetCursorPosition(int left, int top);
-        void ClearBack(int charCount);
         void ClearCurrentLine();
         void HideCursor();
         void ShowCursor();
@@ -42,6 +41,7 @@ namespace ConfigCat.Cli.Services.Rendering
         Task<string> ReadLineAsync(CancellationToken token, bool masked = false);
 
         Spinner CreateSpinner(CancellationToken token);
+        CursorHider CreateCursorHider();
         void RenderView(View view);
     }
 }

@@ -84,7 +84,7 @@ namespace ConfigCat.Cli.Services.Rendering
             if (token.IsCancellationRequested || output.IsOutputRedirected)
                 return default;
 
-            output.HideCursor();
+            using var _ = output.CreateCursorHider();
 
             output.WriteLine();
             output.WriteUnderline(label);
@@ -147,10 +147,6 @@ namespace ConfigCat.Cli.Services.Rendering
                 output.SetCursorPosition(0, output.CursorTop + items.Count - index);
                 throw;
             }
-            finally
-            {
-                output.ShowCursor();
-            }
         }
 
         public async Task<List<TItem>> ChooseMultipleFromListAsync<TItem>(string label,
@@ -163,7 +159,7 @@ namespace ConfigCat.Cli.Services.Rendering
             if (token.IsCancellationRequested || output.IsOutputRedirected)
                 return default;
 
-            output.HideCursor();
+            using var _ = output.CreateCursorHider();
 
             output.WriteLine();
             output.WriteUnderline(label);
@@ -243,10 +239,6 @@ namespace ConfigCat.Cli.Services.Rendering
             {
                 output.SetCursorPosition(0, output.CursorTop + items.Count - index);
                 throw;
-            }
-            finally
-            {
-                output.ShowCursor();
             }
         }
 
