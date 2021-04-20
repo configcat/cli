@@ -1,10 +1,9 @@
 ﻿using ConfigCat.Cli.Models.Configuration;
-using ConfigCat.Cli.Services;
 using ConfigCat.Cli.Services.Rendering;
 
-namespace ConfigCat.Cli
+namespace ConfigCat.Cli.Services
 {
-    class ExecutionContext : IExecutionContext
+    public class ExecutionContext
     {
         public IOutput Output { get; }
 

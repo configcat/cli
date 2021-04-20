@@ -159,7 +159,7 @@ Describe "Flag value / Rule Tests" {
     }
 
     It "Update targeting rule" {
-        Invoke-ConfigCat "flag", "targeting", "update", "-i", $flagId, "-e", $environmentId, 2, "-a", "EMAIL", "-c", "doesnotcontain", "-t", "sample.com", "-f", "false"
+        Invoke-ConfigCat "flag", "targeting", "update", "-i", $flagId, "-e", $environmentId, "-p", 2, "-a", "EMAIL", "-c", "doesnotcontain", "-t", "sample.com", "-f", "false"
         $result = Invoke-ConfigCat "flag", "value", "show", "-i", $flagId
         $result | Should -Match "1. When ID IS ONE OF SAMPLEID,SOMEID then True"
         $result | Should -Match "2. When EMAIL DOES NOT CONTAIN sample.com then False"
@@ -167,7 +167,7 @@ Describe "Flag value / Rule Tests" {
     }
 
     It "Move targeting rule" {
-        Invoke-ConfigCat "flag", "targeting", "move", "-i", $flagId, "-e", $environmentId, 3, 1 
+        Invoke-ConfigCat "flag", "targeting", "move", "-i", $flagId, "-e", $environmentId, "--from", 3, "--to", 1 
         $result = Invoke-ConfigCat "flag", "value", "show", "-i", $flagId
         $result | Should -Match "1. When VERSION IS NOT ONE OF 1.2.6,1.2.8 then True"
         $result | Should -Match "2. When ID IS ONE OF SAMPLEID,SOMEID then True"
@@ -175,7 +175,7 @@ Describe "Flag value / Rule Tests" {
     }
 
     It "Delete targeting rule" {
-        Invoke-ConfigCat "flag", "targeting", "rm", "-i", $flagId, "-e", $environmentId, 2 
+        Invoke-ConfigCat "flag", "targeting", "rm", "-i", $flagId, "-e", $environmentId, "-p", 2 
         $result = Invoke-ConfigCat "flag", "value", "show", "-i", $flagId
         $result | Should -Match "1. When VERSION IS NOT ONE OF 1.2.6,1.2.8 then True"
         $result | Should -Match "2. When EMAIL DOES NOT CONTAIN sample.com then False"

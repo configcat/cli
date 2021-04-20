@@ -71,10 +71,6 @@ namespace ConfigCat.Cli.Commands
                 Aliases = new[] { "up" },
                 Description = "Update targeting rule",
                 Handler = this.CreateHandler(nameof(FlagTargeting.UpdateTargetinRuleAsync)),
-                Arguments = new Argument[]
-                {
-                    new Argument<int>("position", "The position of the updating targeting rule"),
-                },
                 Options = new Option[]
                 {
                     new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the flag or setting")
@@ -82,6 +78,7 @@ namespace ConfigCat.Cli.Commands
                         Name = "flag-id"
                     },
                     new Option<string>(new[] { "--environment-id", "-e" }, "ID of the environment where the update must be applied"),
+                    new Option<int?>(new[] { "--position", "-p" }, "The position of the updating targeting rule"),
                     new Option<string>(new[] { "--attribute", "-a" }, "The user attribute to compare"),
                     new Option<string>(new[] { "--comparator", "-c" }, "The comparison operator")
                     {
@@ -97,10 +94,6 @@ namespace ConfigCat.Cli.Commands
                 Name = "rm",
                 Description = "Delete targeting rule",
                 Handler = this.CreateHandler(nameof(FlagTargeting.DeleteTargetinRuleAsync)),
-                Arguments = new Argument[]
-                {
-                    new Argument<int>("position", "The position of the targeting rule to delete"),
-                },
                 Options = new Option[]
                 {
                     new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the flag or setting")
@@ -108,6 +101,7 @@ namespace ConfigCat.Cli.Commands
                         Name = "flag-id"
                     },
                     new Option<string>(new[] { "--environment-id", "-e" }, "ID of the environment from where the rule must be deleted"),
+                    new Option<int?>(new[] { "--position", "-p" }, "The position of the targeting rule to delete"),
                 },
             },
             new SubCommandDescriptor
@@ -116,11 +110,6 @@ namespace ConfigCat.Cli.Commands
                 Aliases = new[] { "mv" },
                 Description = "Move a targeting rule into a different position",
                 Handler = this.CreateHandler(nameof(FlagTargeting.MoveTargetinRuleAsync)),
-                Arguments = new Argument[]
-                {
-                    new Argument<int>("from", "The actual position of the targeting rule"),
-                    new Argument<int>("to", "The desired position of the targeting rule"),
-                },
                 Options = new Option[]
                 {
                     new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the flag or setting")
@@ -128,6 +117,8 @@ namespace ConfigCat.Cli.Commands
                         Name = "flag-id"
                     },
                     new Option<string>(new[] { "--environment-id", "-e" }, "ID of the environment where the move must be applied"),
+                    new Option<int?>(new[] { "--from" }, "The position of the targeting rule to delete"),
+                    new Option<int?>(new[] { "--to" }, "The desired position of the targeting rule"),
                 },
             },
         };
@@ -159,7 +150,7 @@ namespace ConfigCat.Cli.Commands
             return ExitCodes.Ok;
         }
 
-        public async Task<int> UpdateTargetinRuleAsync(int? flagId, string environmentId, int position, AddTargetinRuleModel addTargetinRuleModel, CancellationToken token)
+        public async Task<int> UpdateTargetinRuleAsync(int? flagId, string environmentId, int? position, AddTargetinRuleModel addTargetinRuleModel, CancellationToken token)
         {
             var flag = flagId is null
                 ? await this.workspaceLoader.LoadFlagAsync(token)
@@ -168,19 +159,14 @@ namespace ConfigCat.Cli.Commands
             if (environmentId.IsEmpty())
                 environmentId = (await this.workspaceLoader.LoadEnvironmentAsync(token, flag.ConfigId)).EnvironmentId;
 
-            var value = await this.flagValueClient.GetValueAsync(flag.SettingId, environmentId, token);
-            var existing = value.TargetingRules.ElementAtOrDefault(position - 1);
-
-            if (existing is null)
-                throw new ShowHelpException($"Rule not found at position {position}.");
-
+            var (existing, realPosition) = await this.GetRuleAsync("Choose rule to update", flag.SettingId, environmentId, position, token);
             await this.ValidateAddModel(addTargetinRuleModel, token, existing);
 
-            if (!addTargetinRuleModel.FlagValue.TryParseFlagValue(value.Setting.SettingType, out var parsed))
-                throw new ShowHelpException($"Flag value '{addTargetinRuleModel.FlagValue}' must respect the type '{value.Setting.SettingType}'.");
+            if (!addTargetinRuleModel.FlagValue.TryParseFlagValue(flag.SettingType, out var parsed))
+                throw new ShowHelpException($"Flag value '{addTargetinRuleModel.FlagValue}' must respect the type '{flag.SettingType}'.");
 
             var jsonPatchDocument = new JsonPatchDocument();
-            jsonPatchDocument.Replace($"/{FlagValueModel.TargetingRuleJsonName}/{position - 1}", new TargetingModel
+            jsonPatchDocument.Replace($"/{FlagValueModel.TargetingRuleJsonName}/{realPosition}", new TargetingModel
             {
                 Comparator = addTargetinRuleModel.Comparator,
                 ComparisonAttribute = addTargetinRuleModel.Attribute,
@@ -192,7 +178,7 @@ namespace ConfigCat.Cli.Commands
             return ExitCodes.Ok;
         }
 
-        public async Task<int> DeleteTargetinRuleAsync(int? flagId, string environmentId, int position, CancellationToken token)
+        public async Task<int> DeleteTargetinRuleAsync(int? flagId, string environmentId, int? position, CancellationToken token)
         {
             var flag = flagId is null
                 ? await this.workspaceLoader.LoadFlagAsync(token)
@@ -201,14 +187,16 @@ namespace ConfigCat.Cli.Commands
             if (environmentId.IsEmpty())
                 environmentId = (await this.workspaceLoader.LoadEnvironmentAsync(token, flag.ConfigId)).EnvironmentId;
 
+            var (_, realPosition) = await this.GetRuleAsync("Choose rule to delete", flag.SettingId, environmentId, position, token);
+
             var jsonPatchDocument = new JsonPatchDocument();
-            jsonPatchDocument.Remove($"/{FlagValueModel.TargetingRuleJsonName}/{position - 1}");
+            jsonPatchDocument.Remove($"/{FlagValueModel.TargetingRuleJsonName}/{realPosition}");
 
             await this.flagValueClient.UpdateValueAsync(flag.SettingId, environmentId, jsonPatchDocument.Operations, token);
             return ExitCodes.Ok;
         }
 
-        public async Task<int> MoveTargetinRuleAsync(int? flagId, string environmentId, int from, int to, CancellationToken token)
+        public async Task<int> MoveTargetinRuleAsync(int? flagId, string environmentId, int? from, int? to, CancellationToken token)
         {
             var flag = flagId is null
                 ? await this.workspaceLoader.LoadFlagAsync(token)
@@ -217,8 +205,11 @@ namespace ConfigCat.Cli.Commands
             if (environmentId.IsEmpty())
                 environmentId = (await this.workspaceLoader.LoadEnvironmentAsync(token, flag.ConfigId)).EnvironmentId;
 
+            var (_, realFrom) = await this.GetRuleAsync("Choose rule to re-position", flag.SettingId, environmentId, from, token);
+            var (_, realTo) = await this.GetRuleAsync("Choose the position to move", flag.SettingId, environmentId, to, token);
+
             var jsonPatchDocument = new JsonPatchDocument();
-            jsonPatchDocument.Move($"/{FlagValueModel.TargetingRuleJsonName}/{from - 1}", $"/{FlagValueModel.TargetingRuleJsonName}/{to - 1}");
+            jsonPatchDocument.Move($"/{FlagValueModel.TargetingRuleJsonName}/{realFrom}", $"/{FlagValueModel.TargetingRuleJsonName}/{realTo}");
 
             await this.flagValueClient.UpdateValueAsync(flag.SettingId, environmentId, jsonPatchDocument.Operations, token);
             return ExitCodes.Ok;
@@ -246,6 +237,30 @@ namespace ConfigCat.Cli.Commands
 
             if (!Constants.ComparatorTypes.Keys.Contains(addTargetinRuleModel.Comparator, StringComparer.OrdinalIgnoreCase))
                 throw new ShowHelpException($"Comparator must be one of the following: {string.Join('|', Constants.ComparatorTypes)}");
+        }
+
+        private async Task<(TargetingModel, int)> GetRuleAsync(string label, int settingId, string environmentId, int? positionFromInput, CancellationToken token)
+        {
+            var value = await this.flagValueClient.GetValueAsync(settingId, environmentId, token);
+
+            TargetingModel existing = null;
+            if (positionFromInput is null)
+            {
+                existing = await this.prompt.ChooseFromListAsync(label, value.TargetingRules, r =>
+                {
+                    var comparatorName = Constants.ComparatorTypes.GetValueOrDefault(r.Comparator) ?? r.Comparator.ToUpperInvariant();
+                    return $"When {r.ComparisonAttribute} {comparatorName} {r.ComparisonValue} then {r.Value}";
+                }, token);
+
+            }
+            else
+                existing = value.TargetingRules.ElementAtOrDefault(positionFromInput.Value - 1);
+
+
+            if (existing is null)
+                throw new ShowHelpException($"Rule not found.");
+
+            return (existing, value.TargetingRules.IndexOf(existing));
         }
     }
 

@@ -46,12 +46,13 @@ namespace ConfigCat.Cli
                     .Register<ICommandDescriptor, SdkKey>(c => c.WhenDependantIs<Root>())
                     .Register<ICommandDescriptor, Cat>(c => c.WhenDependantIs<Root>());
             
-            container.RegisterAssemblyContaining<IExecutionContext>(
+            container.RegisterAssemblyContaining<Services.ExecutionContext>(
+                type => type != typeof(Output),
                 serviceTypeSelector: Rules.ServiceRegistrationFilters.Interfaces, 
                 registerSelf: false);
 
             container.Register(typeof(IBotPolicy<>), typeof(BotPolicy<>), c => c.WithTransientLifetime());
-            container.RegisterFunc<IExecutionContext>(resolver => new ExecutionContext(resolver.Resolve<IOutput>()));
+            container.RegisterFunc(resolver => new Services.ExecutionContext(resolver.Resolve<IOutput>()));
             container.RegisterInstance(new HttpClient());
 
             var r = container.Resolve<ICommandDescriptor>("root");

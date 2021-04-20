@@ -4,18 +4,18 @@ namespace ConfigCat.Cli.Services
 {
     public interface IExecutionContextAccessor
     {
-        IExecutionContext ExecutionContext { get; }
+        ExecutionContext ExecutionContext { get; }
     }
 
     public class ExecutionContextAccessor : IExecutionContextAccessor
     {
-        private readonly Lazy<IExecutionContext> executionContext;
+        private readonly Lazy<ExecutionContext> executionContext;
 
-        public IExecutionContext ExecutionContext => this.executionContext.Value;
+        public ExecutionContext ExecutionContext => this.executionContext.Value;
 
-        public ExecutionContextAccessor(Func<IExecutionContext> executionContextFunc)
+        public ExecutionContextAccessor(Func<ExecutionContext> executionContextFunc)
         {
-            this.executionContext = new Lazy<IExecutionContext>(executionContextFunc);
+            this.executionContext = new Lazy<ExecutionContext>(executionContextFunc);
         }
     }
 }
