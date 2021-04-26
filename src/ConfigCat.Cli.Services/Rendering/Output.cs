@@ -1,5 +1,4 @@
-﻿using ConfigCat.Cli.Services.Rendering;
-using System;
+﻿using System;
 using System.CommandLine;
 using System.CommandLine.IO;
 using System.CommandLine.Rendering;
@@ -13,7 +12,7 @@ namespace ConfigCat.Cli.Services.Rendering
 {
     public interface IOutput
     {
-        void Verbose(string text);
+        void Verbose(string text, ForegroundColorSpan color = null);
 
         void Write(string text);
         void WriteLine(string text = null);
@@ -56,6 +55,8 @@ namespace ConfigCat.Cli.Services.Rendering
         public int CursorTop => Console.CursorTop;
         public int CursorLeft => Console.CursorLeft;
 
+        private readonly object consoleLock = new object();
+
         private readonly IConsole console;
 
         private readonly IConsole originalConsole;
@@ -69,12 +70,17 @@ namespace ConfigCat.Cli.Services.Rendering
             this.showVerboseOutput = showVerboseOutput;
         }
 
-        public void Verbose(string text)
+        public void Verbose(string text, ForegroundColorSpan color = null)
         {
             if (!this.showVerboseOutput)
                 return;
 
-            this.console.Out.WriteLine($"[verbose]: {text}");
+            lock (this.consoleLock)
+            {
+                this.WriteColored("[verbose]: ", ForegroundColorSpan.DarkGray());
+                this.WriteColored(text, color ?? ForegroundColorSpan.DarkGray());
+                this.WriteLine();
+            }
         }
 
         public void Write(string text) => this.console.Out.Write(text);
@@ -113,8 +119,11 @@ namespace ConfigCat.Cli.Services.Rendering
 
         public void WriteNoChange()
         {
-            this.Write($"No changes detected... ");
-            this.WriteYellow("Skipped.");
+            lock (this.consoleLock)
+            {
+                this.Write($"No changes detected... ");
+                this.WriteYellow("Skipped.");
+            }
         }
 
         public Spinner CreateSpinner(CancellationToken token) => new Spinner(token, this, this.showVerboseOutput);

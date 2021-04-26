@@ -31,12 +31,12 @@ namespace ConfigCat.Cli.Services.Rendering
                 return;
 
             this.output = output;
+            this.cursorHider = output.CreateCursorHider();
 
             this.top = output.CursorTop;
             this.left = output.CursorLeft;
             this.combinedToken = CancellationTokenSource.CreateLinkedTokenSource(token);
 
-            this.cursorHider = output.CreateCursorHider();
 
             var task = Task.Run(async () =>
             {
@@ -47,20 +47,15 @@ namespace ConfigCat.Cli.Services.Rendering
 
                     this.output.SetCursorPosition(this.left, this.top);
                     this.output.Write(spinnerFragment);
-                    try
-                    {
-                        await Task.Delay(TimeSpan.FromMilliseconds(50), this.combinedToken.Token);
-                    }
-                    catch (OperationCanceledException)
-                    { }
+                    await Task.Delay(TimeSpan.FromMilliseconds(50), this.combinedToken.Token);
                 }
-            });
+            }, this.combinedToken.Token);
             this.isVerboseEnabled = isVerboseEnabled;
         }
 
         public void Stop()
         {
-            if (this.output is null || isVerboseEnabled)
+            if (this.output is null || this.isVerboseEnabled)
                 return;
 
             this.combinedToken.Cancel();

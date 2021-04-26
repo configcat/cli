@@ -1,6 +1,7 @@
 ﻿using ConfigCat.Cli.Services.Exceptions;
 using System;
 using System.Collections.Generic;
+using System.CommandLine.Rendering;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -55,10 +56,11 @@ namespace ConfigCat.Cli.Services.Api
         {
             using var request = this.CreateRequest(method, path, token);
 
-            this.Accessor.ExecutionContext.Output.Verbose($"Initiating HTTP request: {method.Method} {path}");
+            this.Accessor.ExecutionContext.Output.Verbose($"Initiating HTTP request: {method.Method} {path}", ForegroundColorSpan.LightCyan());
             using var response = await this.SendRequest(request, token);
 
-            this.Accessor.ExecutionContext.Output.Verbose($"HTTP response: {(int)response.StatusCode} {response.ReasonPhrase}");
+            this.Accessor.ExecutionContext.Output.Verbose($"HTTP response: {(int)response.StatusCode} {response.ReasonPhrase}",
+                response.IsSuccessStatusCode ? ForegroundColorSpan.LightGreen() : ForegroundColorSpan.LightRed());
 
             var content = await response.Content.ReadAsStringAsync();
             this.Accessor.ExecutionContext.Output.Verbose($"Response body: {content}");
@@ -71,7 +73,7 @@ namespace ConfigCat.Cli.Services.Api
         protected async Task SendAsync(HttpMethod method, string path, object body, CancellationToken token)
         {
             using var request = this.CreateRequest(method, path, token);
-            this.Accessor.ExecutionContext.Output.Verbose($"Initiating Http request: {method.Method} {path}");
+            this.Accessor.ExecutionContext.Output.Verbose($"Initiating Http request: {method.Method} {path}", ForegroundColorSpan.LightCyan());
 
             if (body is not null)
             {
@@ -82,7 +84,8 @@ namespace ConfigCat.Cli.Services.Api
             }
 
             using var response = await this.SendRequest(request, token);
-            this.Accessor.ExecutionContext.Output.Verbose($"HTTP response: {(int)response.StatusCode} {response.ReasonPhrase}");
+            this.Accessor.ExecutionContext.Output.Verbose($"HTTP response: {(int)response.StatusCode} {response.ReasonPhrase}", 
+                response.IsSuccessStatusCode ? ForegroundColorSpan.LightGreen() : ForegroundColorSpan.LightRed());
 
             var content = await response.Content.ReadAsStringAsync();
             this.Accessor.ExecutionContext.Output.Verbose($"Response body: {content}");
@@ -93,7 +96,7 @@ namespace ConfigCat.Cli.Services.Api
         protected async Task<TResult> SendAsync<TResult>(HttpMethod method, string path, object body, CancellationToken token)
         {
             using var request = this.CreateRequest(method, path, token);
-            this.Accessor.ExecutionContext.Output.Verbose($"Initiating HTTP request: {method.Method} {path}");
+            this.Accessor.ExecutionContext.Output.Verbose($"Initiating HTTP request: {method.Method} {path}", ForegroundColorSpan.LightCyan());
 
             if (body is not null)
             {
@@ -104,7 +107,8 @@ namespace ConfigCat.Cli.Services.Api
             }
 
             using var response = await this.SendRequest(request, token);
-            this.Accessor.ExecutionContext.Output.Verbose($"HTTP response: {(int)response.StatusCode} {response.ReasonPhrase}");
+            this.Accessor.ExecutionContext.Output.Verbose($"HTTP response: {(int)response.StatusCode} {response.ReasonPhrase}",
+                response.IsSuccessStatusCode ? ForegroundColorSpan.LightGreen() : ForegroundColorSpan.LightRed());
 
             var content = await response.Content.ReadAsStringAsync();
             this.Accessor.ExecutionContext.Output.Verbose($"Response body: {content}");
@@ -139,7 +143,7 @@ namespace ConfigCat.Cli.Services.Api
             var message = result is not null
                 ? $"Status code does not indicate success: {(int)result.StatusCode} {result.ReasonPhrase}"
                 : $"Error occured: {exception?.Message}";
-            this.Accessor.ExecutionContext.Output.Verbose($"{message}, retrying... [{context.CurrentAttempt}. attempt, waiting {context.CurrentDelay}]");
+            this.Accessor.ExecutionContext.Output.Verbose($"{message}, retrying... [{context.CurrentAttempt}. attempt, waiting {context.CurrentDelay}]", ForegroundColorSpan.LightYellow());
         }
 
         private void ValidateResponse(HttpResponseMessage responseMessage)

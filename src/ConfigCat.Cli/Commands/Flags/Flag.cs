@@ -73,10 +73,7 @@ namespace ConfigCat.Cli.Commands
                     new Option<string>(new[] { "--key", "-k" }, "Key of the new flag"),
                     new Option<string>(new[] { "--hint", "-d" }, "Hint of the new flag"),
                     new Option<string>(new[] { "--type", "-t" }, "Type of the new flag")
-                    {
-                        Argument = new Argument<string>()
-                            .AddSuggestions(SettingTypes.Collection),
-                    },
+                        .AddSuggestions(SettingTypes.Collection),
                     new Option<int[]>(new[] { "--tag-ids", "-g" }, "Tags to attach"),
                 },
             },

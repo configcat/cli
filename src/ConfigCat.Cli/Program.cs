@@ -18,6 +18,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Trybot;
 using Trybot.Retry.Exceptions;
+using Trybot.Timeout.Exceptions;
 
 namespace ConfigCat.Cli
 {
@@ -44,11 +45,12 @@ namespace ConfigCat.Cli
                         .Register<ICommandDescriptor, FlagPercentage>(c => c.WhenDependantIs<Flag>())
 
                     .Register<ICommandDescriptor, SdkKey>(c => c.WhenDependantIs<Root>())
+                    .Register<ICommandDescriptor, Scan>(c => c.WhenDependantIs<Root>())
                     .Register<ICommandDescriptor, Cat>(c => c.WhenDependantIs<Root>());
-            
+
             container.RegisterAssemblyContaining<Services.ExecutionContext>(
                 type => type != typeof(Output),
-                serviceTypeSelector: Rules.ServiceRegistrationFilters.Interfaces, 
+                serviceTypeSelector: Rules.ServiceRegistrationFilters.Interfaces,
                 registerSelf: false);
 
             container.Register(typeof(IBotPolicy<>), typeof(BotPolicy<>), c => c.WithTransientLifetime());
@@ -70,6 +72,12 @@ namespace ConfigCat.Cli
                 })
                 .UseMiddleware(async (context, next) =>
                 {
+                    if (context.ParseResult.CommandResult.Command.Name == "setup")
+                    {
+                        await next(context);
+                        return;
+                    }
+
                     var accessor = container.Resolve<IExecutionContextAccessor>();
                     var configurationProvider = container.Resolve<IConfigurationProvider>();
                     var config = await configurationProvider.GetConfigAsync(context.GetCancellationToken());
@@ -104,7 +112,9 @@ namespace ConfigCat.Cli
                 else
                     context.Console.WriteErrorOnTerminal(hasVerboseOption ? retryException.ToString() : retryException.Message);
             }
-            else if(exception is ShowHelpException misconfigurationException)
+            else if (exception is OperationTimeoutException) 
+                context.Console.WriteErrorOnTerminal("Operation timed out.");
+            else if (exception is ShowHelpException misconfigurationException)
             {
                 context.Console.WriteErrorOnTerminal(misconfigurationException.Message);
                 context.Console.Error.WriteLine();
@@ -113,7 +123,7 @@ namespace ConfigCat.Cli
             else
                 context.Console.WriteErrorOnTerminal(hasVerboseOption ? exception.ToString() : exception.Message);
 
-            context.ResultCode = ExitCodes.Error;
+            context.ExitCode = ExitCodes.Error;
         }
     }
 

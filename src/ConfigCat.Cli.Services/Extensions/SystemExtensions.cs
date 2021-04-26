@@ -1,10 +1,15 @@
 ﻿using ConfigCat.Cli.Services;
 using System.CommandLine.Rendering;
+using System.IO;
 
 namespace System
 {
     public static class SystemExtensions
     {
+        public static string AsSlash(this string text) => text.Replace(Path.DirectorySeparatorChar, '/');
+
+        public static int GetDigitCount(this int number) => (int)Math.Floor(Math.Log10(Math.Abs(number)) + 1);
+
         public static TextSpan Underline(this string value) =>
                new ContainerSpan(StyleSpan.UnderlinedOn(),
                                  new ContentSpan(value),

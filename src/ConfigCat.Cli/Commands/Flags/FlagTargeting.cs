@@ -57,10 +57,7 @@ namespace ConfigCat.Cli.Commands
                     new Option<string>(new[] { "--environment-id", "-e" }, "ID of the environment where the rule must be created"),
                     new Option<string>(new[] { "--attribute", "-a" }, "The user attribute to compare"),
                     new Option<string>(new[] { "--comparator", "-c" }, "The comparison operator")
-                    {
-                        Argument = new Argument<string>()
                             .AddSuggestions(Constants.ComparatorTypes.Keys.ToArray()),
-                    },
                     new Option<string>(new[] { "--compare-to", "-t" }, "The value to compare against"),
                     new Option<string>(new[] { "--flag-value", "-f" }, "The value to serve when the comparison matches, it must respect the setting type"),
                 },
@@ -81,10 +78,7 @@ namespace ConfigCat.Cli.Commands
                     new Option<int?>(new[] { "--position", "-p" }, "The position of the updating targeting rule"),
                     new Option<string>(new[] { "--attribute", "-a" }, "The user attribute to compare"),
                     new Option<string>(new[] { "--comparator", "-c" }, "The comparison operator")
-                    {
-                        Argument = new Argument<string>()
-                            .AddSuggestions(Constants.ComparatorTypes.Keys.ToArray()),
-                    },
+                        .AddSuggestions(Constants.ComparatorTypes.Keys.ToArray()),
                     new Option<string>(new[] { "--compare-to", "-t" }, "The value to compare against"),
                     new Option<string>(new[] { "--flag-value", "-f" }, "The value to serve when the comparison matches, it must respect the setting type"),
                 },
