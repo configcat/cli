@@ -59,7 +59,7 @@ namespace ConfigCat.Cli.Services.Api
 
         protected async Task<TResult> GetAsync<TResult>(HttpMethod method, string path, CancellationToken token)
         {
-            using var request = this.CreateRequest(method, path, token);
+            using var request = this.CreateRequest(method, path);
 
             this.Output.Verbose($"Initiating HTTP request: {method.Method} {path}", ForegroundColorSpan.LightCyan());
             using var response = await this.SendRequest(request, token);
@@ -77,7 +77,7 @@ namespace ConfigCat.Cli.Services.Api
 
         protected async Task SendAsync(HttpMethod method, string path, object body, CancellationToken token)
         {
-            using var request = this.CreateRequest(method, path, token);
+            using var request = this.CreateRequest(method, path);
             this.Output.Verbose($"Initiating Http request: {method.Method} {path}", ForegroundColorSpan.LightCyan());
 
             if (body is not null)
@@ -100,7 +100,7 @@ namespace ConfigCat.Cli.Services.Api
 
         protected async Task<TResult> SendAsync<TResult>(HttpMethod method, string path, object body, CancellationToken token)
         {
-            using var request = this.CreateRequest(method, path, token);
+            using var request = this.CreateRequest(method, path);
             this.Output.Verbose($"Initiating HTTP request: {method.Method} {path}", ForegroundColorSpan.LightCyan());
 
             if (body is not null)
@@ -134,7 +134,7 @@ namespace ConfigCat.Cli.Services.Api
             }, token);                
         }
 
-        private HttpRequestMessage CreateRequest(HttpMethod method, string path, CancellationToken token)
+        private HttpRequestMessage CreateRequest(HttpMethod method, string path)
         {
             var config = this.config.Auth;
             var request = new HttpRequestMessage(method, new Uri(new Uri($"https://{config.ApiHost}"), path));
