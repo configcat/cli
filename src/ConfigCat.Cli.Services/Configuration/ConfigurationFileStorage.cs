@@ -1,4 +1,5 @@
 ﻿using ConfigCat.Cli.Models.Configuration;
+using ConfigCat.Cli.Services.Rendering;
 using System.IO;
 using System.Text.Json;
 using System.Threading;
@@ -21,30 +22,26 @@ namespace ConfigCat.Cli.Services.Configuration
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
 
-        private readonly IExecutionContextAccessor accessor;
+        private readonly IOutput output;
 
-        public ConfigurationFileStorage(IExecutionContextAccessor accessor)
+        public ConfigurationFileStorage(IOutput output)
         {
-            this.accessor = accessor;
+            this.output = output;
         }
 
         public async Task<CliConfig> ReadConfigOrDefaultAsync(CancellationToken cancellationToken)
         {
-            var output = this.accessor.ExecutionContext.Output;
-
             if(!File.Exists(Constants.ConfigFilePath))
                 return null;
 
             var content = await File.ReadAllTextAsync(Constants.ConfigFilePath, cancellationToken);
             var config = JsonSerializer.Deserialize<CliConfig>(content, Options);
-            output.Verbose($"Config loaded from '{Constants.ConfigFilePath}'");
+            this.output.Verbose($"Config loaded from '{Constants.ConfigFilePath}'");
             return config;
         }
 
         public async Task WriteConfigAsync(CliConfig configuration, CancellationToken cancellationToken)
         {
-            var output = this.accessor.ExecutionContext.Output;
-
             var directory = Path.GetDirectoryName(Constants.ConfigFilePath);
             if (!Directory.Exists(directory))
             {
@@ -54,7 +51,7 @@ namespace ConfigCat.Cli.Services.Configuration
 
             var serialized = JsonSerializer.Serialize(configuration, Options);
 
-            output.Verbose($"Writing the configuration into '{Constants.ConfigFilePath}'");
+            this.output.Verbose($"Writing the configuration into '{Constants.ConfigFilePath}'");
             using var spinner = output.CreateSpinner(cancellationToken);
             await File.WriteAllTextAsync(Constants.ConfigFilePath, serialized, cancellationToken);
         }

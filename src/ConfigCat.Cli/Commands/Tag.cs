@@ -5,94 +5,35 @@ using ConfigCat.Cli.Services.Configuration;
 using ConfigCat.Cli.Services.Rendering;
 using System;
 using System.Collections.Generic;
-using System.CommandLine;
 using System.CommandLine.Rendering.Views;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace ConfigCat.Cli.Commands
 {
-    class Tag : ICommandDescriptor
+    class Tag
     {
         private readonly ITagClient tagClient;
         private readonly IProductClient productClient;
         private readonly IWorkspaceLoader workspaceLoader;
         private readonly IPrompt prompt;
-        private readonly IExecutionContextAccessor accessor;
+        private readonly IOutput output;
         private readonly IConfigurationProvider configurationProvider;
 
         public Tag(ITagClient tagClient, 
             IProductClient productClient,
             IWorkspaceLoader workspaceLoader,
             IPrompt prompt, 
-            IExecutionContextAccessor accessor, 
+            IOutput output, 
             IConfigurationProvider configurationProvider)
         {
             this.tagClient = tagClient;
             this.productClient = productClient;
             this.workspaceLoader = workspaceLoader;
             this.prompt = prompt;
-            this.accessor = accessor;
+            this.output = output;
             this.configurationProvider = configurationProvider;
         }
-
-        public string Name => "tag";
-
-        public string Description => "Manage tags";
-
-        public IEnumerable<string> Aliases => new[] { "t" };
-
-        public IEnumerable<SubCommandDescriptor> InlineSubCommands => new[]
-        {
-            new SubCommandDescriptor
-            {
-                Name = "ls",
-                Description = "List all tags",
-                Handler = this.CreateHandler(nameof(Tag.ListAllTagsAsync)),
-                Options = new[]
-                {
-                    new Option<string>(new[] { "--product-id", "-p" }, "Show only a product's tags"),
-                }
-            },
-            new SubCommandDescriptor
-            {
-                Name = "create",
-                Aliases = new[] { "cr" },
-                Description = "Create Tag",
-                Handler = this.CreateHandler(nameof(Tag.CreateTagAsync)),
-                Options = new[]
-                {
-                    new Option<string>(new[] { "--product-id", "-p" }, "ID of the product where the tag must be created"),
-                    new Option<string>(new[] { "--name", "-n" }, "The name of the new tag"),
-                    new Option<string>(new[] { "--color", "-c" }, "The color of the new tag"),
-                },
-            },
-            new SubCommandDescriptor
-            {
-                Name = "rm",
-                Description = "Delete Tag",
-                Handler = this.CreateHandler(nameof(Tag.DeleteTagAsync)),
-                Options = new Option[]
-                {
-                    new Option<int>(new[] { "--tag-id", "-i" }, "ID of the tag to delete"),
-                    new Option<string>(new[] { "--name", "-n" }, "The updated name"),
-                    new Option<string>(new[] { "--color", "-c" }, "The updated color"),
-                }
-            },
-            new SubCommandDescriptor
-            {
-                Name = "update",
-                Aliases = new[] { "up" },
-                Description = "Update Tag",
-                Handler = this.CreateHandler(nameof(Tag.UpdateTagAsync)),
-                Options = new Option[]
-                {
-                    new Option<int>(new[] { "--tag-id", "-i" }, "ID of the tag to update"),
-                    new Option<string>(new[] { "--name", "-n" }, "The updated name"),
-                    new Option<string>(new[] { "--color", "-c" }, "The updated color"),
-                }
-            },
-        };
 
         public async Task<int> ListAllTagsAsync(string productId, CancellationToken token)
         {
@@ -112,7 +53,7 @@ namespace ConfigCat.Cli.Commands
             table.AddColumn(p => p.Color, "COLOR");
             table.AddColumn(p => $"{p.Product.Name} [{p.Product.ProductId}]", "PRODUCT");
 
-            this.accessor.ExecutionContext.Output.RenderView(table);
+            this.output.RenderView(table);
 
             return ExitCodes.Ok;
         }
@@ -129,7 +70,7 @@ namespace ConfigCat.Cli.Commands
                 color = await this.prompt.GetStringAsync("Color", token);
 
             var result = await this.tagClient.CreateTagAsync(productId, name, color, token);
-            this.accessor.ExecutionContext.Output.Write(result.TagId.ToString());
+            this.output.Write(result.TagId.ToString());
 
             return ExitCodes.Ok;
         }
@@ -160,7 +101,7 @@ namespace ConfigCat.Cli.Commands
 
             if (name.IsEmptyOrEquals(tag.Name) && color.IsEmptyOrEquals(tag.Color))
             {
-                this.accessor.ExecutionContext.Output.WriteNoChange();
+                this.output.WriteNoChange();
                 return ExitCodes.Ok;
             }
 

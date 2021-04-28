@@ -31,28 +31,26 @@ namespace ConfigCat.Cli.Services.Rendering
 
     public class Prompt : IPrompt
     {
-        private readonly IExecutionContextAccessor accessor;
+        private readonly IOutput output;
 
-        public Prompt(IExecutionContextAccessor accessor)
+        public Prompt(IOutput output)
         {
-            this.accessor = accessor;
+            this.output = output;
         }
 
         public async Task<string> GetStringAsync(string label,
             CancellationToken token,
             string defaultValue = null)
         {
-            var output = this.accessor.ExecutionContext.Output;
-
             if (token.IsCancellationRequested ||
                 output.IsOutputRedirected)
                 return defaultValue;
 
             label = defaultValue is not null ? $"{label} [default: '{defaultValue}']" : label;
-            output.Write($"{label}: ");
+            this.output.Write($"{label}: ");
 
             var result = await output.ReadLineAsync(token);
-            output.WriteLine();
+            this.output.WriteLine();
             return result.IsEmpty() ? defaultValue : result;
         }
 
@@ -60,17 +58,15 @@ namespace ConfigCat.Cli.Services.Rendering
             CancellationToken token,
             string defaultValue = null)
         {
-            var output = this.accessor.ExecutionContext.Output;
-
             if (token.IsCancellationRequested ||
                 output.IsOutputRedirected)
                 return defaultValue;
 
             label = defaultValue is not null ? $"{label} [default: {defaultValue}]" : label;
-            output.Write($"{label}: ");
+            this.output.Write($"{label}: ");
 
             var result = await output.ReadLineAsync(token, true);
-            output.WriteLine();
+            this.output.WriteLine();
             return result.IsEmpty() ? defaultValue : result;
         }
 
@@ -80,45 +76,44 @@ namespace ConfigCat.Cli.Services.Rendering
             CancellationToken token,
             TItem selectedValue = default)
         {
-            var output = this.accessor.ExecutionContext.Output;
-            if (token.IsCancellationRequested || output.IsOutputRedirected)
+            if (token.IsCancellationRequested || this.output.IsOutputRedirected)
                 return default;
 
-            using var _ = output.CreateCursorHider();
+            using var _ = this.output.CreateCursorHider();
 
-            output.WriteLine();
-            output.WriteUnderline(label);
-            output.Write(":");
-            output.WriteLine();
+            this.output.WriteLine();
+            this.output.WriteUnderline(label);
+            this.output.Write(":");
+            this.output.WriteLine();
 
-            output.WriteColored("(Use the ", ForegroundColorSpan.DarkGray());
-            output.WriteColored("UP", ForegroundColorSpan.LightCyan());
-            output.WriteColored(" and ", ForegroundColorSpan.DarkGray());
-            output.WriteColored("DOWN", ForegroundColorSpan.LightCyan());
-            output.WriteColored(" keys to navigate)", ForegroundColorSpan.DarkGray());
-            output.WriteLine();
-            output.WriteLine();
+            this.output.WriteColored("(Use the ", ForegroundColorSpan.DarkGray());
+            this.output.WriteColored("UP", ForegroundColorSpan.LightCyan());
+            this.output.WriteColored(" and ", ForegroundColorSpan.DarkGray());
+            this.output.WriteColored("DOWN", ForegroundColorSpan.LightCyan());
+            this.output.WriteColored(" keys to navigate)", ForegroundColorSpan.DarkGray());
+            this.output.WriteLine();
+            this.output.WriteLine();
 
             int index = selectedValue is null || selectedValue.Equals(default) ? 0 : items.IndexOf(selectedValue);
 
             this.PrintChooseSection(index, items, labelSelector);
-            output.SetCursorPosition(0, output.CursorTop - items.Count + index);
+            this.output.SetCursorPosition(0, this.output.CursorTop - items.Count + index);
 
             ConsoleKeyInfo key;
             try
             {
                 do
                 {
-                    key = await output.ReadKeyAsync(token, true);
+                    key = await this.output.ReadKeyAsync(token, true);
                     if (key.Key == ConsoleKey.UpArrow)
                     {
                         if (index <= 0)
                             continue;
 
-                        output.ClearCurrentLine();
+                        this.output.ClearCurrentLine();
                         this.PrintNonSelected(items[index], labelSelector);
-                        output.MoveCursorUp(0);
-                        output.ClearCurrentLine();
+                        this.output.MoveCursorUp(0);
+                        this.output.ClearCurrentLine();
                         this.PrintSelected(items[--index], labelSelector, false);
                     }
                     else if (key.Key == ConsoleKey.DownArrow)
@@ -126,25 +121,25 @@ namespace ConfigCat.Cli.Services.Rendering
                         if (index >= items.Count - 1)
                             continue;
 
-                        output.ClearCurrentLine();
+                        this.output.ClearCurrentLine();
                         this.PrintNonSelected(items[index], labelSelector);
-                        output.MoveCursorDown(0);
-                        output.ClearCurrentLine();
+                        this.output.MoveCursorDown(0);
+                        this.output.ClearCurrentLine();
                         this.PrintSelected(items[++index], labelSelector, false);
                     }
                 } while (!token.IsCancellationRequested &&
                      key.Key != ConsoleKey.Enter);
 
-                output.ClearCurrentLine();
+                this.output.ClearCurrentLine();
                 this.PrintSelected(items[index], labelSelector, true);
-                output.SetCursorPosition(0, output.CursorTop + items.Count - index);
-                output.WriteLine();
+                this.output.SetCursorPosition(0, this.output.CursorTop + items.Count - index);
+                this.output.WriteLine();
 
                 return items[index];
             }
             catch (OperationCanceledException)
             {
-                output.SetCursorPosition(0, output.CursorTop + items.Count - index);
+                this.output.SetCursorPosition(0, this.output.CursorTop + items.Count - index);
                 throw;
             }
         }
@@ -155,47 +150,46 @@ namespace ConfigCat.Cli.Services.Rendering
             CancellationToken token,
             List<TItem> preSelectedItems = null)
         {
-            var output = this.accessor.ExecutionContext.Output;
-            if (token.IsCancellationRequested || output.IsOutputRedirected)
+            if (token.IsCancellationRequested || this.output.IsOutputRedirected)
                 return default;
 
-            using var _ = output.CreateCursorHider();
+            using var _ = this.output.CreateCursorHider();
 
-            output.WriteLine();
-            output.WriteUnderline(label);
-            output.Write(":");
-            output.WriteLine();
+            this.output.WriteLine();
+            this.output.WriteUnderline(label);
+            this.output.Write(":");
+            this.output.WriteLine();
 
-            output.WriteColored("(Use the ", ForegroundColorSpan.DarkGray());
-            output.WriteColored("UP", ForegroundColorSpan.LightCyan());
-            output.WriteColored(" and ", ForegroundColorSpan.DarkGray());
-            output.WriteColored("DOWN", ForegroundColorSpan.LightCyan());
-            output.WriteColored(" keys to navigate, and ", ForegroundColorSpan.DarkGray());
-            output.WriteColored("SPACE", ForegroundColorSpan.LightCyan());
-            output.WriteColored(" to select)", ForegroundColorSpan.DarkGray());
-            output.WriteLine();
-            output.WriteLine();
+            this.output.WriteColored("(Use the ", ForegroundColorSpan.DarkGray());
+            this.output.WriteColored("UP", ForegroundColorSpan.LightCyan());
+            this.output.WriteColored(" and ", ForegroundColorSpan.DarkGray());
+            this.output.WriteColored("DOWN", ForegroundColorSpan.LightCyan());
+            this.output.WriteColored(" keys to navigate, and ", ForegroundColorSpan.DarkGray());
+            this.output.WriteColored("SPACE", ForegroundColorSpan.LightCyan());
+            this.output.WriteColored(" to select)", ForegroundColorSpan.DarkGray());
+            this.output.WriteLine();
+            this.output.WriteLine();
 
             int index = 0;
 
             var selectedItems = preSelectedItems ?? new List<TItem>();
             this.PrintMultiChooseSection(items, labelSelector, selectedItems);
-            output.SetCursorPosition(0, output.CursorTop - items.Count + index);
+            this.output.SetCursorPosition(0, this.output.CursorTop - items.Count + index);
             ConsoleKeyInfo key;
             try
             {
                 do
                 {
-                    key = await output.ReadKeyAsync(token, true);
+                    key = await this.output.ReadKeyAsync(token, true);
                     if (key.Key == ConsoleKey.UpArrow)
                     {
                         if (index <= 0)
                             continue;
 
-                        output.ClearCurrentLine();
+                        this.output.ClearCurrentLine();
                         this.PrintNonSelectedInMulti(items[index], labelSelector, selectedItems);
-                        output.MoveCursorUp(0);
-                        output.ClearCurrentLine();
+                        this.output.MoveCursorUp(0);
+                        this.output.ClearCurrentLine();
                         this.PrintSelectedInMulti(items[--index], labelSelector, selectedItems);
                     }
                     else if (key.Key == ConsoleKey.DownArrow)
@@ -203,10 +197,10 @@ namespace ConfigCat.Cli.Services.Rendering
                         if (index >= items.Count - 1)
                             continue;
 
-                        output.ClearCurrentLine();
+                        this.output.ClearCurrentLine();
                         this.PrintNonSelectedInMulti(items[index], labelSelector, selectedItems);
-                        output.MoveCursorDown(0);
-                        output.ClearCurrentLine();
+                        this.output.MoveCursorDown(0);
+                        this.output.ClearCurrentLine();
                         this.PrintSelectedInMulti(items[++index], labelSelector, selectedItems);
                     }
                     else if (key.Key == ConsoleKey.Spacebar)
@@ -215,29 +209,29 @@ namespace ConfigCat.Cli.Services.Rendering
                         if (selectedItems.Contains(item))
                         {
                             selectedItems.Remove(item);
-                            output.ClearCurrentLine();
+                            this.output.ClearCurrentLine();
                             this.PrintSelected(item, labelSelector, false);
                         }
                         else
                         {
                             selectedItems.Add(item);
-                            output.ClearCurrentLine();
+                            this.output.ClearCurrentLine();
                             this.PrintSelectedInMulti(item, labelSelector, selectedItems);
                         }
                     }
                 } while (!token.IsCancellationRequested &&
                      key.Key != ConsoleKey.Enter);
 
-                output.ClearCurrentLine();
+                this.output.ClearCurrentLine();
                 this.PrintNonSelectedInMulti(items[index], labelSelector, selectedItems);
-                output.SetCursorPosition(0, output.CursorTop + items.Count - index);
-                output.WriteLine();
+                this.output.SetCursorPosition(0, this.output.CursorTop + items.Count - index);
+                this.output.WriteLine();
 
                 return selectedItems;
             }
             catch (OperationCanceledException)
             {
-                output.SetCursorPosition(0, output.CursorTop + items.Count - index);
+                this.output.SetCursorPosition(0, this.output.CursorTop + items.Count - index);
                 throw;
             }
         }
@@ -254,7 +248,7 @@ namespace ConfigCat.Cli.Services.Rendering
                 else
                     this.PrintNonSelected(item, labelSelector);
 
-                this.accessor.ExecutionContext.Output.WriteLine();
+                this.output.WriteLine();
             }
         }
 
@@ -273,7 +267,7 @@ namespace ConfigCat.Cli.Services.Rendering
                 else
                     this.PrintNonSelected(item, labelSelector);
 
-                this.accessor.ExecutionContext.Output.WriteLine();
+                this.output.WriteLine();
             }
         }
 
@@ -282,22 +276,20 @@ namespace ConfigCat.Cli.Services.Rendering
             bool isHighlight,
             bool showIndicator = false)
         {
-            var output = this.accessor.ExecutionContext.Output;
             if (isHighlight)
             {
-                output.WriteNonAnsiColor($"| {(showIndicator ? ">" : " ")} {labelSelector(item)}", ConsoleColor.White, ConsoleColor.DarkMagenta);
+                this.output.WriteNonAnsiColor($"| {(showIndicator ? ">" : " ")} {labelSelector(item)}", ConsoleColor.White, ConsoleColor.DarkMagenta);
                 return;
             }
 
-            output.WriteNonAnsiColor("|", ConsoleColor.DarkGray);
-            output.WriteNonAnsiColor($" > ", ConsoleColor.Magenta);
-            output.Write(labelSelector(item));
+            this.output.WriteNonAnsiColor("|", ConsoleColor.DarkGray);
+            this.output.WriteNonAnsiColor($" > ", ConsoleColor.Magenta);
+            this.output.Write(labelSelector(item));
         }
 
         private void PrintNonSelected<TItem>(TItem item, Func<TItem, string> labelSelector)
         {
-            var output = this.accessor.ExecutionContext.Output;
-            output.WriteNonAnsiColor($"|   {labelSelector(item)}", ConsoleColor.DarkGray);
+            this.output.WriteNonAnsiColor($"|   {labelSelector(item)}", ConsoleColor.DarkGray);
         }
 
         private void PrintSelectedInMulti<TItem>(TItem item, Func<TItem, string> labelSelector, List<TItem> selectedItems)

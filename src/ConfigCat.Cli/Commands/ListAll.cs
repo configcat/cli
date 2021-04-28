@@ -1,6 +1,7 @@
 ﻿using ConfigCat.Cli.Models.Api;
 using ConfigCat.Cli.Services;
 using ConfigCat.Cli.Services.Api;
+using ConfigCat.Cli.Services.Rendering;
 using System.Collections.Generic;
 using System.CommandLine.Rendering.Views;
 using System.Threading;
@@ -8,27 +9,23 @@ using System.Threading.Tasks;
 
 namespace ConfigCat.Cli.Commands
 {
-    class ListAll : IExecutableCommand
+    class ListAll
     {
         private readonly IProductClient productClient;
         private readonly IConfigClient configClient;
         private readonly IEnvironmentClient environmentClient;
-        private readonly IExecutionContextAccessor accessor;
+        private readonly IOutput output;
 
         public ListAll(IProductClient productClient,
             IConfigClient configClient,
             IEnvironmentClient environmentClient,
-            IExecutionContextAccessor accessor)
+            IOutput output)
         {
             this.productClient = productClient;
             this.configClient = configClient;
             this.environmentClient = environmentClient;
-            this.accessor = accessor;
+            this.output = output;
         }
-
-        public string Name => "ls";
-
-        public string Description => "List all products, configs, and environments IDs";
 
         public async Task<int> InvokeAsync(CancellationToken token)
         {
@@ -55,7 +52,7 @@ namespace ConfigCat.Cli.Commands
             table.AddColumn(p => $"{p.Config.ConfigId} ({p.Config.Name})", "CONFIG");
             table.AddColumn(p => $"{p.Environment.EnvironmentId} ({p.Environment.Name})", "ENVIRONMENT");
 
-            this.accessor.ExecutionContext.Output.RenderView(table);
+            this.output.RenderView(table);
 
             return ExitCodes.Ok;
         }

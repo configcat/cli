@@ -4,87 +4,32 @@ using ConfigCat.Cli.Services.Api;
 using ConfigCat.Cli.Services.Rendering;
 using System;
 using System.Collections.Generic;
-using System.CommandLine;
 using System.CommandLine.Rendering.Views;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace ConfigCat.Cli.Commands
 {
-    class Environment : ICommandDescriptor
+    class Environment
     {
         private readonly IEnvironmentClient environmentClient;
         private readonly IWorkspaceLoader workspaceLoader;
         private readonly IProductClient productClient;
         private readonly IPrompt prompt;
-        private readonly IExecutionContextAccessor accessor;
+        private readonly IOutput output;
 
         public Environment(IEnvironmentClient environmentClient,
             IWorkspaceLoader workspaceLoader,
             IProductClient productClient,
             IPrompt prompt,
-            IExecutionContextAccessor accessor)
+            IOutput output)
         {
             this.environmentClient = environmentClient;
             this.workspaceLoader = workspaceLoader;
             this.productClient = productClient;
             this.prompt = prompt;
-            this.accessor = accessor;
+            this.output = output;
         }
-
-        public string Name => "environment";
-
-        public string Description => "Manage environments";
-
-        public IEnumerable<string> Aliases => new[] { "e" };
-
-        public IEnumerable<SubCommandDescriptor> InlineSubCommands => new[]
-        {
-            new SubCommandDescriptor
-            {
-                Name = "ls",
-                Description = "List all environments",
-                Handler = this.CreateHandler(nameof(Environment.ListAllEnvironmentsAsync)),
-                Options = new[]
-                {
-                    new Option<string>(new[] { "--product-id", "-p" }, "Show only a product's environments"),
-                }
-            },
-            new SubCommandDescriptor
-            {
-                Name = "create",
-                Aliases = new[] { "cr" },
-                Description = "Create Environment",
-                Handler = this.CreateHandler(nameof(Environment.CreateEnvironmentAsync)),
-                Options = new[]
-                {
-                    new Option<string>(new[] { "--product-id", "-p" }, "ID of the product where the environment must be created"),
-                    new Option<string>(new[] { "--name", "-n" }, "Name of the new environment"),
-                }
-            },
-            new SubCommandDescriptor
-            {
-                Name = "rm",
-                Description = "Delete Environment",
-                Handler = this.CreateHandler(nameof(Environment.DeleteEnvironmentAsync)),
-                Options = new[]
-                {
-                    new Option<string>(new[] { "--environment-id", "-i" }, "ID of the environment to delete"),
-                }
-            },
-            new SubCommandDescriptor
-            {
-                Name = "update",
-                Aliases = new[] { "up" },
-                Description = "Update Environment",
-                Handler = this.CreateHandler(nameof(Environment.UpdateEnvironmentAsync)),
-                Options = new[]
-                {
-                    new Option<string>(new[] { "--environment-id", "-i" }, "ID of the environment to update"),
-                    new Option<string>(new[] { "--name", "-n" }, "The updated name"),
-                }
-            },
-        };
 
         public async Task<int> ListAllEnvironmentsAsync(string productId, CancellationToken token)
         {
@@ -103,7 +48,7 @@ namespace ConfigCat.Cli.Commands
             table.AddColumn(e => e.Name, "NAME");
             table.AddColumn(e => $"{e.Product.Name} [{e.Product.ProductId}]", "PRODUCT");
 
-            this.accessor.ExecutionContext.Output.RenderView(table);
+            this.output.RenderView(table);
 
             return ExitCodes.Ok;
         }
@@ -117,7 +62,7 @@ namespace ConfigCat.Cli.Commands
                 name = await this.prompt.GetStringAsync("Name", token);
 
             var result = await this.environmentClient.CreateEnvironmentAsync(productId, name, token);
-            this.accessor.ExecutionContext.Output.Write(result.EnvironmentId);
+            this.output.Write(result.EnvironmentId);
 
             return ExitCodes.Ok;
         }
@@ -142,7 +87,7 @@ namespace ConfigCat.Cli.Commands
 
             if (name.IsEmptyOrEquals(environment.Name))
             {
-                this.accessor.ExecutionContext.Output.WriteNoChange();
+                this.output.WriteNoChange();
                 return ExitCodes.Ok;
             }
 

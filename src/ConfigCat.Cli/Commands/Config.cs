@@ -4,87 +4,32 @@ using ConfigCat.Cli.Services.Api;
 using ConfigCat.Cli.Services.Rendering;
 using System;
 using System.Collections.Generic;
-using System.CommandLine;
 using System.CommandLine.Rendering.Views;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace ConfigCat.Cli.Commands
 {
-    class Config : ICommandDescriptor
+    class Config
     {
         private readonly IConfigClient configClient;
         private readonly IWorkspaceLoader workspaceLoader;
         private readonly IProductClient productClient;
         private readonly IPrompt prompt;
-        private readonly IExecutionContextAccessor accessor;
+        private readonly IOutput output;
 
         public Config(IConfigClient configClient,
             IWorkspaceLoader workspaceLoader,
             IProductClient productClient, 
-            IPrompt prompt, 
-            IExecutionContextAccessor accessor)
+            IPrompt prompt,
+            IOutput output)
         {
             this.configClient = configClient;
             this.workspaceLoader = workspaceLoader;
             this.productClient = productClient;
             this.prompt = prompt;
-            this.accessor = accessor;
+            this.output = output;
         }
-
-        public string Name => "config";
-
-        public string Description => "Manage configs";
-
-        public IEnumerable<string> Aliases => new[] { "c" };
-
-        public IEnumerable<SubCommandDescriptor> InlineSubCommands => new[]
-        {
-            new SubCommandDescriptor
-            {
-                Name = "ls",
-                Description = "List all configs",
-                Handler = this.CreateHandler(nameof(Config.ListAllConfigsAsync)),
-                Options = new[]
-                {
-                    new Option<string>(new string[] { "--product-id", "-p" }, "Show only a product's configs"),
-                }
-            },
-            new SubCommandDescriptor
-            {
-                Name = "create",
-                Aliases = new[] { "cr" },
-                Description = "Create config",
-                Handler = this.CreateHandler(nameof(Config.CreateConfigAsync)),
-                Options = new[]
-                {
-                    new Option<string>(new[] { "--product-id", "-p" }, "ID of the product where the config must be created"),
-                    new Option<string>(new[] { "--name", "-n" }, "Name of the new config"),
-                }
-            },
-            new SubCommandDescriptor
-            {
-                Name = "rm",
-                Description = "Delete config",
-                Handler = this.CreateHandler(nameof(Config.DeleteConfigAsync)),
-                Options = new[]
-                {
-                    new Option<string>(new[] { "--config-id", "-i" }, "ID of the config to delete"),
-                }
-            },
-            new SubCommandDescriptor
-            {
-                Name = "update",
-                Aliases = new[] { "up" },
-                Description = "Update Config",
-                Handler = this.CreateHandler(nameof(Config.UpdateConfigAsync)),
-                Options = new[]
-                {
-                    new Option<string>(new[] { "--config-id", "-i" }, "ID of the config to update"),
-                    new Option<string>(new[] { "--name", "-n" }, "The updated name"),
-                }
-            },
-        };
 
         public async Task<int> ListAllConfigsAsync(string productId, CancellationToken token)
         {
@@ -103,7 +48,7 @@ namespace ConfigCat.Cli.Commands
             table.AddColumn(c => c.Name, "NAME");
             table.AddColumn(c => $"{c.Product.Name} [{c.Product.ProductId}]", "PRODUCT");
 
-            this.accessor.ExecutionContext.Output.RenderView(table);
+            this.output.RenderView(table);
 
             return ExitCodes.Ok;
         }
@@ -117,7 +62,7 @@ namespace ConfigCat.Cli.Commands
                 name = await this.prompt.GetStringAsync("Name", token);
 
             var result = await this.configClient.CreateConfigAsync(productId, name, token);
-            this.accessor.ExecutionContext.Output.Write(result.ConfigId);
+            this.output.Write(result.ConfigId);
             return ExitCodes.Ok;
         }
 
@@ -141,7 +86,7 @@ namespace ConfigCat.Cli.Commands
 
             if (name.IsEmptyOrEquals(config.Name))
             {
-                this.accessor.ExecutionContext.Output.WriteNoChange();
+                this.output.WriteNoChange();
                 return ExitCodes.Ok;
             }
 

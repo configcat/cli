@@ -6,116 +6,32 @@ using ConfigCat.Cli.Services.Json;
 using ConfigCat.Cli.Services.Rendering;
 using System;
 using System.Collections.Generic;
-using System.CommandLine;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace ConfigCat.Cli.Commands
 {
-    class FlagTargeting : ICommandDescriptor
+    class FlagTargeting
     {
         private readonly IFlagValueClient flagValueClient;
         private readonly IFlagClient flagClient;
         private readonly IWorkspaceLoader workspaceLoader;
         private readonly IPrompt prompt;
-        private readonly IExecutionContextAccessor accessor;
+        private readonly IOutput output;
 
         public FlagTargeting(IFlagValueClient flagValueClient,
             IFlagClient flagClient,
             IWorkspaceLoader workspaceLoader,
             IPrompt prompt,
-            IExecutionContextAccessor accessor)
+            IOutput output)
         {
             this.flagValueClient = flagValueClient;
             this.flagClient = flagClient;
             this.workspaceLoader = workspaceLoader;
             this.prompt = prompt;
-            this.accessor = accessor;
+            this.output = output;
         }
-
-        public string Name => "targeting";
-
-        public string Description => "Manage targeting rules";
-
-        public IEnumerable<string> Aliases => new[] { "t" };
-
-        public IEnumerable<SubCommandDescriptor> InlineSubCommands => new[]
-        {
-            new SubCommandDescriptor
-            {
-                Name = "create",
-                Aliases = new[] { "cr" },
-                Description = "Create new targeting rule",
-                Handler = this.CreateHandler(nameof(FlagTargeting.AddTargetinRuleAsync)),
-                Options = new Option[]
-                {
-                    new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the flag or setting")
-                    {
-                        Name = "flag-id"
-                    },
-                    new Option<string>(new[] { "--environment-id", "-e" }, "ID of the environment where the rule must be created"),
-                    new Option<string>(new[] { "--attribute", "-a" }, "The user attribute to compare"),
-                    new Option<string>(new[] { "--comparator", "-c" }, "The comparison operator")
-                            .AddSuggestions(Constants.ComparatorTypes.Keys.ToArray()),
-                    new Option<string>(new[] { "--compare-to", "-t" }, "The value to compare against"),
-                    new Option<string>(new[] { "--flag-value", "-f" }, "The value to serve when the comparison matches, it must respect the setting type"),
-                },
-            },
-            new SubCommandDescriptor
-            {
-                Name = "update",
-                Aliases = new[] { "up" },
-                Description = "Update targeting rule",
-                Handler = this.CreateHandler(nameof(FlagTargeting.UpdateTargetinRuleAsync)),
-                Options = new Option[]
-                {
-                    new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the flag or setting")
-                    {
-                        Name = "flag-id"
-                    },
-                    new Option<string>(new[] { "--environment-id", "-e" }, "ID of the environment where the update must be applied"),
-                    new Option<int?>(new[] { "--position", "-p" }, "The position of the updating targeting rule"),
-                    new Option<string>(new[] { "--attribute", "-a" }, "The user attribute to compare"),
-                    new Option<string>(new[] { "--comparator", "-c" }, "The comparison operator")
-                        .AddSuggestions(Constants.ComparatorTypes.Keys.ToArray()),
-                    new Option<string>(new[] { "--compare-to", "-t" }, "The value to compare against"),
-                    new Option<string>(new[] { "--flag-value", "-f" }, "The value to serve when the comparison matches, it must respect the setting type"),
-                },
-            },
-            new SubCommandDescriptor
-            {
-                Name = "rm",
-                Description = "Delete targeting rule",
-                Handler = this.CreateHandler(nameof(FlagTargeting.DeleteTargetinRuleAsync)),
-                Options = new Option[]
-                {
-                    new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the flag or setting")
-                    {
-                        Name = "flag-id"
-                    },
-                    new Option<string>(new[] { "--environment-id", "-e" }, "ID of the environment from where the rule must be deleted"),
-                    new Option<int?>(new[] { "--position", "-p" }, "The position of the targeting rule to delete"),
-                },
-            },
-            new SubCommandDescriptor
-            {
-                Name = "move",
-                Aliases = new[] { "mv" },
-                Description = "Move a targeting rule into a different position",
-                Handler = this.CreateHandler(nameof(FlagTargeting.MoveTargetinRuleAsync)),
-                Options = new Option[]
-                {
-                    new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the flag or setting")
-                    {
-                        Name = "flag-id"
-                    },
-                    new Option<string>(new[] { "--environment-id", "-e" }, "ID of the environment where the move must be applied"),
-                    new Option<int?>(new[] { "--from" }, "The position of the targeting rule to delete"),
-                    new Option<int?>(new[] { "--to" }, "The desired position of the targeting rule"),
-                },
-            },
-        };
 
         public async Task<int> AddTargetinRuleAsync(int? flagId, string environmentId, AddTargetinRuleModel addTargetinRuleModel, CancellationToken token)
         {

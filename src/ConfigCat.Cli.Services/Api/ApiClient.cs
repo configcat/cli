@@ -1,4 +1,6 @@
-﻿using ConfigCat.Cli.Services.Exceptions;
+﻿using ConfigCat.Cli.Models.Configuration;
+using ConfigCat.Cli.Services.Exceptions;
+using ConfigCat.Cli.Services.Rendering;
 using System;
 using System.Collections.Generic;
 using System.CommandLine.Rendering;
@@ -17,16 +19,19 @@ namespace ConfigCat.Cli.Services.Api
     {
         private const string RetryingIdentifier = "retrying";
 
-        protected IExecutionContextAccessor Accessor { get; }
+        protected IOutput Output { get; }
 
+        private readonly CliConfig config;
         private readonly IBotPolicy<HttpResponseMessage> botPolicy;
         private readonly HttpClient httpClient;
 
-        protected ApiClient(IExecutionContextAccessor accessor,
+        protected ApiClient(IOutput output,
+            CliConfig config,
             IBotPolicy<HttpResponseMessage> botPolicy,
             HttpClient httpClient)
         {
-            this.Accessor = accessor;
+            this.Output = output;
+            this.config = config;
             this.botPolicy = botPolicy;
             this.httpClient = httpClient;
 
@@ -56,14 +61,14 @@ namespace ConfigCat.Cli.Services.Api
         {
             using var request = this.CreateRequest(method, path, token);
 
-            this.Accessor.ExecutionContext.Output.Verbose($"Initiating HTTP request: {method.Method} {path}", ForegroundColorSpan.LightCyan());
+            this.Output.Verbose($"Initiating HTTP request: {method.Method} {path}", ForegroundColorSpan.LightCyan());
             using var response = await this.SendRequest(request, token);
 
-            this.Accessor.ExecutionContext.Output.Verbose($"HTTP response: {(int)response.StatusCode} {response.ReasonPhrase}",
+            this.Output.Verbose($"HTTP response: {(int)response.StatusCode} {response.ReasonPhrase}",
                 response.IsSuccessStatusCode ? ForegroundColorSpan.LightGreen() : ForegroundColorSpan.LightRed());
 
             var content = await response.Content.ReadAsStringAsync();
-            this.Accessor.ExecutionContext.Output.Verbose($"Response body: {content}");
+            this.Output.Verbose($"Response body: {content}");
 
             this.ValidateResponse(response);
 
@@ -73,22 +78,22 @@ namespace ConfigCat.Cli.Services.Api
         protected async Task SendAsync(HttpMethod method, string path, object body, CancellationToken token)
         {
             using var request = this.CreateRequest(method, path, token);
-            this.Accessor.ExecutionContext.Output.Verbose($"Initiating Http request: {method.Method} {path}", ForegroundColorSpan.LightCyan());
+            this.Output.Verbose($"Initiating Http request: {method.Method} {path}", ForegroundColorSpan.LightCyan());
 
             if (body is not null)
             {
                 var jsonBody = JsonSerializer.Serialize(body, Constants.CamelCaseOptions);
-                this.Accessor.ExecutionContext.Output.Verbose($"Request body: {jsonBody}");
+                this.Output.Verbose($"Request body: {jsonBody}");
 
                 request.Content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
             }
 
             using var response = await this.SendRequest(request, token);
-            this.Accessor.ExecutionContext.Output.Verbose($"HTTP response: {(int)response.StatusCode} {response.ReasonPhrase}", 
+            this.Output.Verbose($"HTTP response: {(int)response.StatusCode} {response.ReasonPhrase}", 
                 response.IsSuccessStatusCode ? ForegroundColorSpan.LightGreen() : ForegroundColorSpan.LightRed());
 
             var content = await response.Content.ReadAsStringAsync();
-            this.Accessor.ExecutionContext.Output.Verbose($"Response body: {content}");
+            this.Output.Verbose($"Response body: {content}");
 
             this.ValidateResponse(response);
         }
@@ -96,22 +101,22 @@ namespace ConfigCat.Cli.Services.Api
         protected async Task<TResult> SendAsync<TResult>(HttpMethod method, string path, object body, CancellationToken token)
         {
             using var request = this.CreateRequest(method, path, token);
-            this.Accessor.ExecutionContext.Output.Verbose($"Initiating HTTP request: {method.Method} {path}", ForegroundColorSpan.LightCyan());
+            this.Output.Verbose($"Initiating HTTP request: {method.Method} {path}", ForegroundColorSpan.LightCyan());
 
             if (body is not null)
             {
                 var jsonBody = JsonSerializer.Serialize(body, Constants.CamelCaseOptions);
-                this.Accessor.ExecutionContext.Output.Verbose($"Request body: {jsonBody}");
+                this.Output.Verbose($"Request body: {jsonBody}");
 
                 request.Content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
             }
 
             using var response = await this.SendRequest(request, token);
-            this.Accessor.ExecutionContext.Output.Verbose($"HTTP response: {(int)response.StatusCode} {response.ReasonPhrase}",
+            this.Output.Verbose($"HTTP response: {(int)response.StatusCode} {response.ReasonPhrase}",
                 response.IsSuccessStatusCode ? ForegroundColorSpan.LightGreen() : ForegroundColorSpan.LightRed());
 
             var content = await response.Content.ReadAsStringAsync();
-            this.Accessor.ExecutionContext.Output.Verbose($"Response body: {content}");
+            this.Output.Verbose($"Response body: {content}");
 
             this.ValidateResponse(response);
 
@@ -120,7 +125,7 @@ namespace ConfigCat.Cli.Services.Api
 
         private async Task<HttpResponseMessage> SendRequest(HttpRequestMessage request, CancellationToken token)
         {
-            using var spinner = this.Accessor.ExecutionContext.Output.CreateSpinner(token);
+            using var spinner = this.Output.CreateSpinner(token);
             return await this.botPolicy.ExecuteAsync(async (ctx, cancellationToken) =>
             {
                 var isRetrying = ctx.GenericData.ContainsKey(RetryingIdentifier);
@@ -131,7 +136,7 @@ namespace ConfigCat.Cli.Services.Api
 
         private HttpRequestMessage CreateRequest(HttpMethod method, string path, CancellationToken token)
         {
-            var config = this.Accessor.ExecutionContext.Config.Auth;
+            var config = this.config.Auth;
             var request = new HttpRequestMessage(method, new Uri(new Uri($"https://{config.ApiHost}"), path));
             request.Headers.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes($"{config.UserName}:{config.Password}")));
             return request;
@@ -143,7 +148,7 @@ namespace ConfigCat.Cli.Services.Api
             var message = result is not null
                 ? $"Status code does not indicate success: {(int)result.StatusCode} {result.ReasonPhrase}"
                 : $"Error occured: {exception?.Message}";
-            this.Accessor.ExecutionContext.Output.Verbose($"{message}, retrying... [{context.CurrentAttempt}. attempt, waiting {context.CurrentDelay}]", ForegroundColorSpan.LightYellow());
+            this.Output.Verbose($"{message}, retrying... [{context.CurrentAttempt}. attempt, waiting {context.CurrentDelay}]", ForegroundColorSpan.LightYellow());
         }
 
         private void ValidateResponse(HttpResponseMessage responseMessage)

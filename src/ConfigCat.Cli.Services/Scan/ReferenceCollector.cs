@@ -1,4 +1,6 @@
 ﻿using ConfigCat.Cli.Models.Api;
+using ConfigCat.Cli.Models.Scan;
+using ConfigCat.Cli.Services.Rendering;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -21,15 +23,15 @@ namespace ConfigCat.Cli.Services.Scan
     {
         private readonly IFileScanner fileScanner;
         private readonly IBotPolicy<IEnumerable<FlagReferenceResult>> botPolicy;
-        private readonly IExecutionContextAccessor executionContextAccessor;
+        private readonly IOutput output;
 
         public ReferenceCollector(IFileScanner fileScanner,
             IBotPolicy<IEnumerable<FlagReferenceResult>> botPolicy,
-            IExecutionContextAccessor executionContextAccessor)
+            IOutput output)
         {
             this.fileScanner = fileScanner;
             this.botPolicy = botPolicy;
-            this.executionContextAccessor = executionContextAccessor;
+            this.output = output;
             this.botPolicy.Configure(p => p.Timeout(t => t.After(TimeSpan.FromSeconds(300))));
         }
 
@@ -38,8 +40,7 @@ namespace ConfigCat.Cli.Services.Scan
             int contextLines,
             CancellationToken token)
         {
-            var output = this.executionContextAccessor.ExecutionContext.Output;
-            using var spinner = output.CreateSpinner(token);
+            using var spinner = this.output.CreateSpinner(token);
 
             return await this.botPolicy.ExecuteAsync(async (ctx, cancellation) =>
             {
@@ -49,7 +50,7 @@ namespace ConfigCat.Cli.Services.Scan
                     if (cancellation.IsCancellationRequested)
                         break;
 
-                    tasks.Add(this.fileScanner.ScanForKeysAsync(flags, file, contextLines, cancellation));
+                    tasks.Add(this.fileScanner.ScanAsync(flags, file, contextLines, cancellation));
                 }
                 return (await Task.WhenAll(tasks)).Where(r => r is not null);
             }, token);

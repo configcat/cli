@@ -3,81 +3,37 @@ using ConfigCat.Cli.Services.Api;
 using ConfigCat.Cli.Options;
 using System;
 using System.Collections.Generic;
-using System.CommandLine;
 using System.Threading;
 using System.Threading.Tasks;
 using ConfigCat.Cli.Services.Exceptions;
 using ConfigCat.Cli.Models.Api;
+using ConfigCat.Cli.Services.Rendering;
 
 namespace ConfigCat.Cli.Commands
 {
-    class FlagPercentage : ICommandDescriptor
+    class FlagPercentage
     {
         private readonly IFlagValueClient flagValueClient;
         private readonly IFlagClient flagClient;
         private readonly IWorkspaceLoader workspaceLoader;
-        private readonly IExecutionContextAccessor accessor;
+        private readonly IOutput output;
 
         public FlagPercentage(IFlagValueClient flagValueClient,
             IFlagClient flagClient,
             IWorkspaceLoader workspaceLoader,
-            IExecutionContextAccessor accessor)
+            IOutput output)
         {
             this.flagValueClient = flagValueClient;
             this.flagClient = flagClient;
             this.workspaceLoader = workspaceLoader;
-            this.accessor = accessor;
+            this.output = output;
         }
-
-        public string Name => "percentage";
-
-        public string Description => "Manage percentage rules";
-
-        public IEnumerable<string> Aliases => new[] { "%" };
-
-        public IEnumerable<SubCommandDescriptor> InlineSubCommands => new[]
-        {
-            new SubCommandDescriptor
-            {
-                Name = "update",
-                Aliases = new[] { "up" },
-                Description = "Update percentage rules",
-                Handler = this.CreateHandler(nameof(FlagPercentage.UpdatePercentageRulesAsync)),
-                Arguments = new Argument[]
-                {
-                    new PercentageRuleArgument()
-                },
-                Options = new Option[]
-                {
-                    new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the flag or setting")
-                    {
-                        Name = "flag-id"
-                    },
-                    new Option<string>(new[] { "--environment-id", "-e" }, "ID of the environment where the update must be applied"),
-                }
-            },
-            new SubCommandDescriptor
-            {
-                Name = "clear",
-                Aliases = new[] { "clr" },
-                Description = "Delete all percentage rules",
-                Handler = this.CreateHandler(nameof(FlagPercentage.DeletePercentageRulesAsync)),
-                Options = new Option[]
-                {
-                    new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the flag or setting")
-                    {
-                        Name = "flag-id"
-                    },
-                    new Option<string>(new[] { "--environment-id", "-e" }, "ID of the environment from where the rules must be deleted"),
-                }
-            },
-        };
 
         public async Task<int> UpdatePercentageRulesAsync(int? flagId, string environmentId, UpdatePercentageModel[] rules, CancellationToken token)
         {
             if (rules.Length == 0)
             {
-                this.accessor.ExecutionContext.Output.WriteNoChange();
+                this.output.WriteNoChange();
                 return ExitCodes.Ok;
             }
 

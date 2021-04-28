@@ -1,4 +1,5 @@
 ﻿using ConfigCat.Cli.Services.FileSystem.Ignore;
+using ConfigCat.Cli.Services.Rendering;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -14,17 +15,16 @@ namespace ConfigCat.Cli.Services.FileSystem
 
     public class FileCollector : IFileCollector
     {
-        private readonly IExecutionContextAccessor executionContextAccessor;
+        private readonly IOutput output;
 
-        public FileCollector(IExecutionContextAccessor executionContextAccessor)
+        public FileCollector(IOutput output)
         {
-            this.executionContextAccessor = executionContextAccessor;
+            this.output = output;
         }
 
         public async Task<IEnumerable<FileInfo>> CollectAsync(DirectoryInfo rootDirectory, CancellationToken token)
         {
-            var output = this.executionContextAccessor.ExecutionContext.Output;
-            using var spinner = output.CreateSpinner(token);
+            using var spinner = this.output.CreateSpinner(token);
 
             var files = rootDirectory.GetFiles("*", new EnumerationOptions
             {

@@ -1,4 +1,6 @@
 ﻿using ConfigCat.Cli.Models.Api;
+using ConfigCat.Cli.Models.Scan;
+using ConfigCat.Cli.Services.Rendering;
 using System;
 using System.Collections.Generic;
 using System.CommandLine.Rendering;
@@ -13,38 +15,37 @@ namespace ConfigCat.Cli.Services.Scan
 {
     public interface IFileScanner
     {
-        Task<FlagReferenceResult> ScanForKeysAsync(IEnumerable<FlagModel> flags, FileInfo file, int contextLines, CancellationToken token);
+        Task<FlagReferenceResult> ScanAsync(IEnumerable<FlagModel> flags, FileInfo file, int contextLines, CancellationToken token);
     }
 
     public class FileScanner : IFileScanner
     {
         private readonly IBotPolicy<FlagReferenceResult> botPolicy;
-        private readonly IExecutionContextAccessor executionContextAccessor;
+        private readonly IOutput output;
 
         public FileScanner(IBotPolicy<FlagReferenceResult> botPolicy,
-            IExecutionContextAccessor executionContextAccessor)
+            IOutput output)
         {
             this.botPolicy = botPolicy;
-            this.executionContextAccessor = executionContextAccessor;
+            this.output = output;
 
             this.botPolicy.Configure(p => p.Timeout(t => t.After(TimeSpan.FromSeconds(30))));
         }
 
-        public async Task<FlagReferenceResult> ScanForKeysAsync(IEnumerable<FlagModel> flags, FileInfo file, int contextLines, CancellationToken token)
+        public async Task<FlagReferenceResult> ScanAsync(IEnumerable<FlagModel> flags, FileInfo file, int contextLines, CancellationToken token)
         {
             try
             {
                 return await this.botPolicy.ExecuteAsync(async (ctx, cancellation) =>
                 {
-                    var output = this.executionContextAccessor.ExecutionContext.Output;
                     await using var stream = file.OpenRead();
                     if (await stream.IsBinaryAsync(cancellation))
                     {
-                        output.Verbose($"{file.FullName} is binary, skipping.", ForegroundColorSpan.LightYellow());
+                        this.output.Verbose($"{file.FullName} is binary, skipping.", ForegroundColorSpan.LightYellow());
                         return null;
                     }
 
-                    output.Verbose($"{file.FullName} start scanning...");
+                    this.output.Verbose($"{file.FullName} start scanning...");
 
                     using var reader = new StreamReader(stream);
                     var tracker = new LineTracker(contextLines);
@@ -63,13 +64,13 @@ namespace ConfigCat.Cli.Services.Scan
                     }
 
                     tracker.FinishAll();
-                    output.Verbose($"{file.FullName} scan completed.", ForegroundColorSpan.LightGreen());
-                    return new FlagReferenceResult { File = file, FlagReferences = tracker.FinishedReferences };
+                    this.output.Verbose($"{file.FullName} scan completed.", ForegroundColorSpan.LightGreen());
+                    return new FlagReferenceResult { File = file, References = tracker.FinishedReferences };
                 }, token);
             }
             catch (OperationTimeoutException)
             {
-                this.executionContextAccessor.ExecutionContext.Output.Verbose($"{file.FullName} scan timed out.", ForegroundColorSpan.LightRed());
+                this.output.Verbose($"{file.FullName} scan timed out.", ForegroundColorSpan.LightRed());
                 return null;
             }
         }
@@ -80,13 +81,13 @@ namespace ConfigCat.Cli.Services.Scan
             private readonly Queue<Line> preContextLineBuffer;
             private readonly int contextLineCount;
 
-            public List<FlagReference> FinishedReferences { get; }
+            public List<Reference> FinishedReferences { get; }
 
             public LineTracker(int contextLineCount)
             {
                 this.preContextLineBuffer = new Queue<Line>(contextLineCount);
                 this.trackedReferences = new List<Trackable>();
-                this.FinishedReferences = new List<FlagReference>();
+                this.FinishedReferences = new List<Reference>();
                 this.contextLineCount = contextLineCount;
             }
 
@@ -99,7 +100,7 @@ namespace ConfigCat.Cli.Services.Scan
 
             public void TrackReference(FlagModel flag, string line, int lineNumber)
             {
-                var reference = new FlagReference
+                var reference = new Reference
                 {
                     FoundFlag = flag,
                     ReferenceLine = new Line { LineText = line, LineNumber = lineNumber },
@@ -148,7 +149,7 @@ namespace ConfigCat.Cli.Services.Scan
         {
             public int RemainingContextLines { get; set; }
 
-            public FlagReference FlagReference { get; set; }
+            public Reference FlagReference { get; set; }
         }
     }
 }

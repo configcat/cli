@@ -1,4 +1,6 @@
 ﻿using ConfigCat.Cli.Models.Api;
+using ConfigCat.Cli.Models.Configuration;
+using ConfigCat.Cli.Services.Rendering;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
@@ -22,10 +24,11 @@ namespace ConfigCat.Cli.Services.Api
 
     public class TagClient : ApiClient, ITagClient
     {
-        public TagClient(IExecutionContextAccessor accessor,
+        public TagClient(IOutput output,
+            CliConfig config,
             IBotPolicy<HttpResponseMessage> botPolicy,
-            HttpClient httpClient) 
-            : base(accessor, botPolicy, httpClient)
+            HttpClient httpClient)
+            : base(output, config, botPolicy, httpClient)
         { }
 
         public Task<IEnumerable<TagModel>> GetTagsAsync(string productId, CancellationToken token) =>
@@ -39,18 +42,18 @@ namespace ConfigCat.Cli.Services.Api
 
         public async Task DeleteTagAsync(int tagId, CancellationToken token)
         {
-            this.Accessor.ExecutionContext.Output.Write($"Deleting Tag... ");
+            this.Output.Write($"Deleting Tag... ");
             await this.SendAsync(HttpMethod.Delete, $"v1/tags/{tagId}", null, token);
-            this.Accessor.ExecutionContext.Output.WriteGreen(Constants.SuccessMessage);
-            this.Accessor.ExecutionContext.Output.WriteLine();
+            this.Output.WriteGreen(Constants.SuccessMessage);
+            this.Output.WriteLine();
         }
 
         public async Task UpdateTagAsync(int tagId, string name, string color, CancellationToken token)
         {
-            this.Accessor.ExecutionContext.Output.Write($"Updating Tag... ");
+            this.Output.Write($"Updating Tag... ");
             await this.SendAsync(HttpMethod.Put, $"v1/tags/{tagId}", new { Name = name, Color = color }, token);
-            this.Accessor.ExecutionContext.Output.WriteGreen(Constants.SuccessMessage);
-            this.Accessor.ExecutionContext.Output.WriteLine();
+            this.Output.WriteGreen(Constants.SuccessMessage);
+            this.Output.WriteLine();
         }
     }
 }

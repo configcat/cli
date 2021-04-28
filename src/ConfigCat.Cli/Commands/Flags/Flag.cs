@@ -6,7 +6,6 @@ using ConfigCat.Cli.Services.Json;
 using ConfigCat.Cli.Services.Rendering;
 using System;
 using System.Collections.Generic;
-using System.CommandLine;
 using System.CommandLine.Rendering.Views;
 using System.Linq;
 using System.Threading;
@@ -14,130 +13,29 @@ using System.Threading.Tasks;
 
 namespace ConfigCat.Cli.Commands
 {
-    class Flag : ICommandDescriptor
+    class Flag
     {
         private readonly IFlagClient flagClient;
         private readonly IConfigClient configClient;
         private readonly IProductClient productClient;
         private readonly IWorkspaceLoader workspaceLoader;
         private readonly IPrompt prompt;
-        private readonly IExecutionContextAccessor accessor;
+        private readonly IOutput output;
 
         public Flag(IFlagClient flagClient,
             IConfigClient configClient,
             IProductClient productClient,
             IWorkspaceLoader workspaceLoader,
             IPrompt prompt,
-            IExecutionContextAccessor accessor)
+            IOutput output)
         {
             this.flagClient = flagClient;
             this.configClient = configClient;
             this.productClient = productClient;
             this.workspaceLoader = workspaceLoader;
             this.prompt = prompt;
-            this.accessor = accessor;
+            this.output = output;
         }
-
-        public string Name => "flag";
-
-        public string Description => "Manage flags & settings";
-
-        public IEnumerable<string> Aliases => new[] { "setting", "f", "s" };
-
-        public IEnumerable<ICommandDescriptor> SubCommands { get; set; }
-
-        public IEnumerable<SubCommandDescriptor> InlineSubCommands => new[]
-        {
-            new SubCommandDescriptor
-            {
-                Name = "ls",
-                Description = "List all flags",
-                Handler = this.CreateHandler(nameof(Flag.ListAllFlagsAsync)),
-                Options = new Option[]
-                {
-                    new Option<string>(new[] { "--config-id", "-c" }, "Show only a config's flags"),
-                    new Option<string>(new[] { "--tag-name", "-n" }, "Filter by a tag's name"),
-                    new Option<int>(new[] { "--tag-id", "-t" }, "Filter by a tag's ID"),
-                },
-            },
-            new SubCommandDescriptor
-            {
-                Name = "create",
-                Aliases = new[] { "cr" },
-                Description = "Create flag",
-                Handler = this.CreateHandler(nameof(Flag.CreateFlagAsync)),
-                Options = new Option[]
-                {
-                    new Option<string>(new[] { "--config-id", "-c" }, "ID of the config where the flag must be created"),
-                    new Option<string>(new[] { "--name", "-n" }, "Name of the new flag"),
-                    new Option<string>(new[] { "--key", "-k" }, "Key of the new flag"),
-                    new Option<string>(new[] { "--hint", "-d" }, "Hint of the new flag"),
-                    new Option<string>(new[] { "--type", "-t" }, "Type of the new flag")
-                        .AddSuggestions(SettingTypes.Collection),
-                    new Option<int[]>(new[] { "--tag-ids", "-g" }, "Tags to attach"),
-                },
-            },
-            new SubCommandDescriptor
-            {
-                Name = "rm",
-                Description = "Delete flag",
-                Handler = this.CreateHandler(nameof(Flag.DeleteFlagAsync)),
-                Options = new Option[]
-                {
-                    new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the flag or setting to delete")
-                    {
-                        Name = "flag-id"
-                    },
-                },
-            },
-            new SubCommandDescriptor
-            {
-                Name = "update",
-                Aliases = new[] { "up" },
-                Description = "Update flag",
-                Handler = this.CreateHandler(nameof(Flag.UpdateFlagAsync)),
-                Options = new Option[]
-                {
-                    new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the flag or setting to update")
-                    {
-                        Name = "flag-id"
-                    },
-                    new Option<string>(new[] { "--name", "-n" }, "The updated name"),
-                    new Option<string>(new[] { "--hint", "-d" }, "The updated hint"),
-                    new Option<int[]>(new[] { "--tag-ids", "-g" }, "The updated tag list"),
-                },
-            },
-            new SubCommandDescriptor
-            {
-                Name = "attach",
-                Aliases = new[] { "at" },
-                Description = "Attach tag(s) to a flag",
-                Handler = this.CreateHandler(nameof(Flag.AttachTagsAsync)),
-                Options = new Option[]
-                {
-                    new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the flag or setting to attach tags")
-                    {
-                        Name = "flag-id"
-                    },
-                    new Option<int[]>(new[] { "--tag-ids", "-g" }, "Tag IDs to attach"),
-                },
-            },
-            new SubCommandDescriptor
-            {
-                Name = "detach",
-                Aliases = new[] { "dt" },
-                Description = "Detach tag(s) from a flag",
-                Handler = this.CreateHandler(nameof(Flag.DetachTagsAsync)),
-                Options = new Option[]
-                {
-                    new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the flag or setting to detach tags")
-                    {
-                        Name = "flag-id"
-                    },
-                    new Option<int[]>(new[] { "--tag-ids", "-g" }, "Tag IDs to detach"),
-                },
-            },
-        };
 
         public async Task<int> ListAllFlagsAsync(string configId, string tagName, int? tagId, CancellationToken token)
         {
@@ -180,7 +78,7 @@ namespace ConfigCat.Cli.Commands
             table.AddColumn(f => $"{f.OwnerUserFullName} [{f.OwnerUserEmail}]", "OWNER");
             table.AddColumn(f => $"{f.ConfigName} [{f.ConfigId}]", "CONFIG");
 
-            this.accessor.ExecutionContext.Output.RenderView(table);
+            this.output.RenderView(table);
 
             return ExitCodes.Ok;
         }
@@ -212,7 +110,7 @@ namespace ConfigCat.Cli.Commands
                 throw new ShowHelpException($"Type must be one of the following: {string.Join('|', SettingTypes.Collection)}");
 
             var result = await this.flagClient.CreateFlagAsync(configId, createConfigModel, token);
-            this.accessor.ExecutionContext.Output.Write(result.SettingId.ToString());
+            this.output.Write(result.SettingId.ToString());
 
             return ExitCodes.Ok;
         }
@@ -250,7 +148,7 @@ namespace ConfigCat.Cli.Commands
                 !updateFlagModel.TagIds.Any() || 
                 Enumerable.SequenceEqual(updateFlagModel.TagIds, flag.Tags.Select(t => t.TagId))))
             {
-                this.accessor.ExecutionContext.Output.WriteNoChange();
+                this.output.WriteNoChange();
                 return ExitCodes.Ok;
             }
 
@@ -275,7 +173,7 @@ namespace ConfigCat.Cli.Commands
                 Enumerable.SequenceEqual(tagIds, flagTagIds) ||
                 !tagIds.Except(flagTagIds).Any())
             {
-                this.accessor.ExecutionContext.Output.WriteNoChange();
+                this.output.WriteNoChange();
                 return ExitCodes.Ok;
             }
 
@@ -301,7 +199,7 @@ namespace ConfigCat.Cli.Commands
             var relevantTags = tagsCopy.Where(t => tagIds.Contains(t.TagId)).ToList();
             if (relevantTags.Count == 0)
             {
-                this.accessor.ExecutionContext.Output.WriteNoChange();
+                this.output.WriteNoChange();
                 return ExitCodes.Ok;
             }
 

@@ -1,17 +1,18 @@
 ﻿using ConfigCat.Cli.Services;
+using ConfigCat.Cli.Services.Rendering;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace ConfigCat.Cli.Commands
 {
-    class Cat : IExecutableCommand
+    class Cat
     {
-        private readonly IExecutionContextAccessor accessor;
+        private readonly IOutput output;
 
-        public Cat(IExecutionContextAccessor accessor)
+        public Cat(IOutput output)
         {
-            this.accessor = accessor;
+            this.output = output;
         }
 
         public string Name => "whoisthebestcat";
@@ -22,7 +23,7 @@ namespace ConfigCat.Cli.Commands
 
         public Task<int> InvokeAsync(CancellationToken token)
         {
-            this.accessor.ExecutionContext.Output.Write(@"
+            this.output.Write(@"
                                                               oK        
                                                              koK     
                                                            Xk;oK

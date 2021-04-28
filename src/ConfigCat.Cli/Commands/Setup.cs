@@ -11,22 +11,25 @@ using System.Threading.Tasks;
 
 namespace ConfigCat.Cli.Commands
 {
-    class Setup : IExecutableCommand<SetupArgs>
+    class Setup
     {
         private readonly IPrompt prompt;
         private readonly IMeClient meClient;
         private readonly IConfigurationStorage configurationStorage;
-        private readonly IExecutionContextAccessor accessor;
+        private readonly IOutput output;
+        private readonly CliConfig cliConfig;
 
         public Setup(IPrompt prompt, 
             IMeClient meClient,
-            IConfigurationStorage configurationStorage, 
-            IExecutionContextAccessor accessor)
+            IConfigurationStorage configurationStorage,
+            IOutput output,
+            CliConfig cliConfig)
         {
             this.prompt = prompt;
             this.meClient = meClient;
             this.configurationStorage = configurationStorage;
-            this.accessor = accessor;
+            this.output = output;
+            this.cliConfig = cliConfig;
         }
 
         public string Name => "setup";
@@ -52,16 +55,15 @@ namespace ConfigCat.Cli.Commands
             if (arguments.Password.IsEmpty())
                 arguments.Password = await this.prompt.GetMaskedStringAsync("Password", token);
 
-            var output = this.accessor.ExecutionContext.Output;
-            output.WriteLine();
-            output.Write($"Saving the configuration to '{Constants.ConfigFilePath}'... ");
-            this.accessor.ExecutionContext.Config.Auth = new Auth
+            this.output.WriteLine();
+            this.output.Write($"Saving the configuration to '{Constants.ConfigFilePath}'... ");
+            this.cliConfig.Auth = new Auth
             {
                 ApiHost = arguments.ApiHost,
                 UserName = arguments.UserName,
                 Password = arguments.Password
             };
-            await this.configurationStorage.WriteConfigAsync(this.accessor.ExecutionContext.Config, token);
+            await this.configurationStorage.WriteConfigAsync(this.cliConfig, token);
 
             output.WriteGreen(Constants.SuccessMessage);
             output.WriteLine();

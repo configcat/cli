@@ -1,6 +1,7 @@
 ﻿using ConfigCat.Cli.Models.Api;
 using ConfigCat.Cli.Services;
 using ConfigCat.Cli.Services.Api;
+using ConfigCat.Cli.Services.Rendering;
 using System.Collections.Generic;
 using System.CommandLine.Rendering.Views;
 using System.Threading;
@@ -8,32 +9,26 @@ using System.Threading.Tasks;
 
 namespace ConfigCat.Cli.Commands
 {
-    class SdkKey : IExecutableCommand
+    class SdkKey
     {
         private readonly IProductClient productClient;
         private readonly IConfigClient configClient;
         private readonly IEnvironmentClient environmentClient;
         private readonly ISdkKeyClient sdkKeyClient;
-        private readonly IExecutionContextAccessor accessor;
+        private readonly IOutput output;
 
         public SdkKey(IProductClient productClient,
             IConfigClient configClient,
             IEnvironmentClient environmentClient,
-            ISdkKeyClient sdkKeyClient, 
-            IExecutionContextAccessor accessor)
+            ISdkKeyClient sdkKeyClient,
+            IOutput output)
         {
             this.productClient = productClient;
             this.configClient = configClient;
             this.environmentClient = environmentClient;
             this.sdkKeyClient = sdkKeyClient;
-            this.accessor = accessor;
+            this.output = output;
         }
-
-        public string Name => "sdk-key";
-
-        public string Description => "List sdk keys";
-
-        public IEnumerable<string> Aliases => new[] { "k" };
 
         public async Task<int> InvokeAsync(CancellationToken token)
         {
@@ -61,7 +56,7 @@ namespace ConfigCat.Cli.Commands
             table.AddColumn(k => k.Config.Name, "CONFIG");
             table.AddColumn(k => k.Config.Product.Name, "PRODUCT");
 
-            this.accessor.ExecutionContext.Output.RenderView(table);
+            this.output.RenderView(table);
 
             return ExitCodes.Ok;
         }

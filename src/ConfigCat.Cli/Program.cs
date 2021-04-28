@@ -1,6 +1,7 @@
 ﻿using ConfigCat.Cli.Commands;
 using ConfigCat.Cli.Options;
 using ConfigCat.Cli.Services;
+using ConfigCat.Cli.Services.Api;
 using ConfigCat.Cli.Services.Configuration;
 using ConfigCat.Cli.Services.Exceptions;
 using ConfigCat.Cli.Services.Rendering;
@@ -28,41 +29,22 @@ namespace ConfigCat.Cli
 
         static async Task<int> Main(string[] args)
         {
-            using var container = new StashboxContainer(c => c.WithDefaultLifetime(Lifetimes.Singleton))
-                .Register<ICommandDescriptor, Root>(c => c.WithName("root")
-                    .WithDependencyBinding(nameof(ICommandDescriptor.SubCommands)))
-                    .Register<ICommandDescriptor, Setup>(c => c.WhenDependantIs<Root>())
-                    .Register<ICommandDescriptor, ListAll>(c => c.WhenDependantIs<Root>())
-                    .Register<ICommandDescriptor, Product>(c => c.WhenDependantIs<Root>())
-                    .Register<ICommandDescriptor, Config>(c => c.WhenDependantIs<Root>())
-                    .Register<ICommandDescriptor, Commands.Environment>(c => c.WhenDependantIs<Root>())
-                    .Register<ICommandDescriptor, Tag>(c => c.WhenDependantIs<Root>())
+            await using var container = new StashboxContainer(c => c.WithDefaultLifetime(Lifetimes.Singleton));
 
-                    .Register<ICommandDescriptor, Flag>(c => c.WhenDependantIs<Root>()
-                        .WithDependencyBinding(nameof(ICommandDescriptor.SubCommands)))
-                        .Register<ICommandDescriptor, FlagValue>(c => c.WhenDependantIs<Flag>())
-                        .Register<ICommandDescriptor, FlagTargeting>(c => c.WhenDependantIs<Flag>())
-                        .Register<ICommandDescriptor, FlagPercentage>(c => c.WhenDependantIs<Flag>())
-
-                    .Register<ICommandDescriptor, SdkKey>(c => c.WhenDependantIs<Root>())
-                    .Register<ICommandDescriptor, Scan>(c => c.WhenDependantIs<Root>())
-                    .Register<ICommandDescriptor, Cat>(c => c.WhenDependantIs<Root>());
-
-            container.RegisterAssemblyContaining<Services.ExecutionContext>(
+            container.RegisterAssemblyContaining<ApiClient>(
                 type => type != typeof(Output),
                 serviceTypeSelector: Rules.ServiceRegistrationFilters.Interfaces,
                 registerSelf: false);
 
             container.Register(typeof(IBotPolicy<>), typeof(BotPolicy<>), c => c.WithTransientLifetime());
-            container.RegisterFunc(resolver => new Services.ExecutionContext(resolver.Resolve<IOutput>()));
             container.RegisterInstance(new HttpClient());
 
-            var r = container.Resolve<ICommandDescriptor>("root");
-            var root = new RootCommand(r.Description);
-            root.AddGlobalOption(VerboseOption);
-            root.Configure(r.SubCommands, r.InlineSubCommands);
+            var root = CommandTree.Build();
+            var rootCommand = new RootCommand(root.Description);
+            rootCommand.AddGlobalOption(VerboseOption);
+            rootCommand.Configure(root.SubCommands, container);
 
-            var parser = new CommandLineBuilder(root)
+            var parser = new CommandLineBuilder(rootCommand)
                 .UseMiddleware(async (context, next) =>
                 {
                     var hasVerboseOption = context.ParseResult.FindResultFor(VerboseOption) is not null;
@@ -78,10 +60,18 @@ namespace ConfigCat.Cli
                         return;
                     }
 
-                    var accessor = container.Resolve<IExecutionContextAccessor>();
                     var configurationProvider = container.Resolve<IConfigurationProvider>();
                     var config = await configurationProvider.GetConfigAsync(context.GetCancellationToken());
-                    accessor.ExecutionContext.Config.Auth = config.Auth;
+                    container.RegisterInstance(config);
+                    await next(context);
+                })
+                .UseMiddleware(async (context, next) =>
+                {
+                    var descriptor = container.Resolve<HandlerDescriptor>(context.ParseResult.CommandResult.Command.GetHashCode(), nullResultAllowed: true);
+                    if (descriptor is not null)
+                        context.BindingContext.AddService(descriptor.HandlerType,
+                            c => container.Resolve(descriptor.HandlerType));
+
                     await next(context);
                 })
                 .UseVersionOption()
@@ -112,7 +102,7 @@ namespace ConfigCat.Cli
                 else
                     context.Console.WriteErrorOnTerminal(hasVerboseOption ? retryException.ToString() : retryException.Message);
             }
-            else if (exception is OperationTimeoutException) 
+            else if (exception is OperationTimeoutException)
                 context.Console.WriteErrorOnTerminal("Operation timed out.");
             else if (exception is ShowHelpException misconfigurationException)
             {
@@ -130,27 +120,9 @@ namespace ConfigCat.Cli
     static class CommandExtensions
     {
         public static void Configure(this Command command,
-            IEnumerable<ICommandDescriptor> commandDescriptors,
-            IEnumerable<SubCommandDescriptor> inlineSubCommands)
+            IEnumerable<CommandDescriptor> commandDescriptors,
+            IDependencyRegistrator registrator)
         {
-            foreach (var subCommandDescriptor in inlineSubCommands)
-            {
-                var inlineSubCommand = new Command(subCommandDescriptor.Name, subCommandDescriptor.Description);
-
-                foreach (var option in subCommandDescriptor.Options)
-                    inlineSubCommand.AddOption(option);
-
-                foreach (var argument in subCommandDescriptor.Arguments)
-                    inlineSubCommand.AddArgument(argument);
-
-                foreach (var alias in subCommandDescriptor.Aliases)
-                    inlineSubCommand.AddAlias(alias);
-
-                inlineSubCommand.TreatUnmatchedTokensAsErrors = true;
-                inlineSubCommand.Handler = subCommandDescriptor.Handler;
-                command.AddCommand(inlineSubCommand);
-            }
-
             foreach (var commandDescriptor in commandDescriptors)
             {
                 var subCommand = new Command(commandDescriptor.Name, commandDescriptor.Description);
@@ -165,11 +137,14 @@ namespace ConfigCat.Cli
                     subCommand.AddAlias(alias);
 
                 subCommand.TreatUnmatchedTokensAsErrors = true;
-                subCommand.Configure(commandDescriptor.SubCommands, commandDescriptor.InlineSubCommands);
+                subCommand.Configure(commandDescriptor.SubCommands, registrator);
 
-                var method = commandDescriptor.GetType().GetMethod(nameof(IExecutableCommand.InvokeAsync));
-                if (method is not null)
-                    subCommand.Handler = CommandHandler.Create(method, commandDescriptor);
+                if (commandDescriptor.Handler is not null)
+                {
+                    registrator.Register(commandDescriptor.Handler.HandlerType);
+                    registrator.RegisterInstance(commandDescriptor.Handler, subCommand.GetHashCode());
+                    subCommand.Handler = CommandHandler.Create(commandDescriptor.Handler.Method);
+                }
 
                 command.AddCommand(subCommand);
             }

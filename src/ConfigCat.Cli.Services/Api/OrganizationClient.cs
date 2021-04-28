@@ -1,4 +1,6 @@
 ﻿using ConfigCat.Cli.Models.Api;
+using ConfigCat.Cli.Models.Configuration;
+using ConfigCat.Cli.Services.Rendering;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
@@ -14,10 +16,11 @@ namespace ConfigCat.Cli.Services.Api
 
     public class OrganizationClient : ApiClient, IOrganizationClient
     {
-        public OrganizationClient(IExecutionContextAccessor accessor, 
-            IBotPolicy<HttpResponseMessage> botPolicy, 
-            HttpClient httpClient) 
-            : base(accessor, botPolicy, httpClient)
+        public OrganizationClient(IOutput output,
+            CliConfig config,
+            IBotPolicy<HttpResponseMessage> botPolicy,
+            HttpClient httpClient)
+            : base(output, config, botPolicy, httpClient)
         {
         }
 

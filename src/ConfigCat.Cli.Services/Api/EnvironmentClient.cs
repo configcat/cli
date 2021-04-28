@@ -1,4 +1,6 @@
 ﻿using ConfigCat.Cli.Models.Api;
+using ConfigCat.Cli.Models.Configuration;
+using ConfigCat.Cli.Services.Rendering;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
@@ -22,10 +24,11 @@ namespace ConfigCat.Cli.Services.Api
 
     public class EnvironmentClient : ApiClient, IEnvironmentClient
     {
-        public EnvironmentClient(IExecutionContextAccessor accessor,
+        public EnvironmentClient(IOutput output,
+            CliConfig config,
             IBotPolicy<HttpResponseMessage> botPolicy,
             HttpClient httpClient)
-            : base(accessor, botPolicy, httpClient)
+            : base(output, config, botPolicy, httpClient)
         { }
 
         public Task<IEnumerable<EnvironmentModel>> GetEnvironmentsAsync(string productId, CancellationToken token) =>
@@ -39,18 +42,18 @@ namespace ConfigCat.Cli.Services.Api
 
         public async Task DeleteEnvironmentAsync(string environmentId, CancellationToken token)
         {
-            this.Accessor.ExecutionContext.Output.Write($"Deleting Environment... ");
+            this.Output.Write($"Deleting Environment... ");
             await this.SendAsync(HttpMethod.Delete, $"v1/environments/{environmentId}", null, token);
-            this.Accessor.ExecutionContext.Output.WriteGreen(Constants.SuccessMessage);
-            this.Accessor.ExecutionContext.Output.WriteLine();
+            this.Output.WriteGreen(Constants.SuccessMessage);
+            this.Output.WriteLine();
         }
 
         public async Task UpdateEnvironmentAsync(string environmentId, string name, CancellationToken token)
         {
-            this.Accessor.ExecutionContext.Output.Write($"Updating Environment... ");
+            this.Output.Write($"Updating Environment... ");
             await this.SendAsync(HttpMethod.Put, $"v1/environments/{environmentId}", new { Name = name }, token);
-            this.Accessor.ExecutionContext.Output.WriteGreen(Constants.SuccessMessage);
-            this.Accessor.ExecutionContext.Output.WriteLine();
+            this.Output.WriteGreen(Constants.SuccessMessage);
+            this.Output.WriteLine();
         }
     }
 }
