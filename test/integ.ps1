@@ -87,10 +87,10 @@ Describe "Tag / Flag Tests" {
 
     AfterAll {
         Invoke-ConfigCat "tag", "rm", "-i", $tag1Id
-        Invoke-ConfigCat "tag", "ls" | Should -Not -Match $tag1Id
+        Invoke-ConfigCat "tag", "ls", "-p", $productId | Should -Not -Match $tag1Id
 
         Invoke-ConfigCat "tag", "rm", "-i", $tag2Id
-        Invoke-ConfigCat "tag", "ls" | Should -Not -Match $tag2Id
+        Invoke-ConfigCat "tag", "ls", "-p", $productId | Should -Not -Match $tag2Id
 
         Invoke-ConfigCat "flag", "rm", "-i", $flagId
         Invoke-ConfigCat "flag", "ls", "-c", $configId | Should -Not -Match $flagId
