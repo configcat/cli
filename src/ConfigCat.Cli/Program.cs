@@ -1,4 +1,5 @@
 ﻿using ConfigCat.Cli.Commands;
+using ConfigCat.Cli.Models.Configuration;
 using ConfigCat.Cli.Options;
 using ConfigCat.Cli.Services;
 using ConfigCat.Cli.Services.Api;
@@ -56,6 +57,7 @@ namespace ConfigCat.Cli
                 {
                     if (context.ParseResult.CommandResult.Command.Name == "setup")
                     {
+                        container.RegisterInstance(new CliConfig());
                         await next(context);
                         return;
                     }
