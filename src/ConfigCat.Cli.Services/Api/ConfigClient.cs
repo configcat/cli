@@ -44,7 +44,7 @@ namespace ConfigCat.Cli.Services.Api
         {
             this.Output.Write($"Deleting Config... ");
             await this.SendAsync(HttpMethod.Delete, $"v1/configs/{configId}", null, token);
-            this.Output.WriteGreen(Constants.SuccessMessage);
+            this.Output.WriteSuccess();
             this.Output.WriteLine();
         }
 
@@ -52,7 +52,7 @@ namespace ConfigCat.Cli.Services.Api
         {
             this.Output.Write($"Updating Config... ");
             await this.SendAsync(HttpMethod.Put, $"v1/configs/{configId}", new { Name = name }, token);
-            this.Output.WriteGreen(Constants.SuccessMessage);
+            this.Output.WriteSuccess();
             this.Output.WriteLine();
         }
     }

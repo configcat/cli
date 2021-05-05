@@ -47,7 +47,12 @@ namespace ConfigCat.Cli.Services.Rendering
 
                     this.output.SetCursorPosition(this.left, this.top);
                     this.output.Write(spinnerFragment);
-                    await Task.Delay(TimeSpan.FromMilliseconds(50), this.combinedToken.Token);
+                    try
+                    {
+                        await Task.Delay(TimeSpan.FromMilliseconds(50), this.combinedToken.Token);
+                    }
+                    catch (OperationCanceledException)
+                    { }
                 }
             }, this.combinedToken.Token);
             this.isVerboseEnabled = isVerboseEnabled;

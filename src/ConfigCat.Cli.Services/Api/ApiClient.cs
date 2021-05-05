@@ -45,7 +45,7 @@ namespace ConfigCat.Cli.Services.Api
                     .WaitBetweenAttempts((attempt, exception, result) =>
                     {
                         var backoffTime = TimeSpan.FromSeconds(Math.Pow(2, attempt));
-                        if (result.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
+                        if (result != null && result.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
                         {
                             var retryAfter = result.Headers.RetryAfter.Delta;
                             return retryAfter ?? backoffTime;

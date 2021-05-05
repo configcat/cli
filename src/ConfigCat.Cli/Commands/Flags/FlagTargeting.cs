@@ -18,19 +18,16 @@ namespace ConfigCat.Cli.Commands
         private readonly IFlagClient flagClient;
         private readonly IWorkspaceLoader workspaceLoader;
         private readonly IPrompt prompt;
-        private readonly IOutput output;
 
         public FlagTargeting(IFlagValueClient flagValueClient,
             IFlagClient flagClient,
             IWorkspaceLoader workspaceLoader,
-            IPrompt prompt,
-            IOutput output)
+            IPrompt prompt)
         {
             this.flagValueClient = flagValueClient;
             this.flagClient = flagClient;
             this.workspaceLoader = workspaceLoader;
             this.prompt = prompt;
-            this.output = output;
         }
 
         public async Task<int> AddTargetinRuleAsync(int? flagId, string environmentId, AddTargetinRuleModel addTargetinRuleModel, CancellationToken token)

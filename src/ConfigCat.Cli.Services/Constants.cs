@@ -16,8 +16,6 @@ namespace ConfigCat.Cli.Services
 
         public const string ApiPasswordEnvironmentVariableName = "CONFIGCAT_API_PASS";
 
-        public const string SuccessMessage = "Ok.";
-
         public static string ConfigFilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
             ".configcat", "cli.json");
 

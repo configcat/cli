@@ -55,7 +55,9 @@ namespace ConfigCat.Cli.Services.Scan
                         var line = await reader.ReadLineAsync();
                         foreach (var flag in flags)
                         {
-                            if (line.Contains(flag.Key))
+                            if (line.Contains($"\"{flag.Key}\"") ||
+                                line.Contains($"'{flag.Key}'") ||
+                                line.Contains($"`{flag.Key}`"))
                                 tracker.TrackReference(flag, line, lineNumber);
                         }
 

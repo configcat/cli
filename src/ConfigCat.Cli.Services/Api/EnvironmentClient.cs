@@ -44,7 +44,7 @@ namespace ConfigCat.Cli.Services.Api
         {
             this.Output.Write($"Deleting Environment... ");
             await this.SendAsync(HttpMethod.Delete, $"v1/environments/{environmentId}", null, token);
-            this.Output.WriteGreen(Constants.SuccessMessage);
+            this.Output.WriteSuccess();
             this.Output.WriteLine();
         }
 
@@ -52,7 +52,7 @@ namespace ConfigCat.Cli.Services.Api
         {
             this.Output.Write($"Updating Environment... ");
             await this.SendAsync(HttpMethod.Put, $"v1/environments/{environmentId}", new { Name = name }, token);
-            this.Output.WriteGreen(Constants.SuccessMessage);
+            this.Output.WriteSuccess();
             this.Output.WriteLine();
         }
     }

@@ -1,4 +1,5 @@
-﻿using ConfigCat.Cli.Models.Scan;
+﻿using ConfigCat.Cli.Models.Api;
+using ConfigCat.Cli.Models.Scan;
 using ConfigCat.Cli.Services;
 using ConfigCat.Cli.Services.Api;
 using ConfigCat.Cli.Services.FileSystem;
@@ -36,37 +37,54 @@ namespace ConfigCat.Cli.Commands
             this.output = output;
         }
 
-        public string Name => "scan";
-
-        public string Description => "Scans files for feature flag or setting usages";
-
-        public IEnumerable<Argument> Arguments => new Argument[]
-        {
-            new Argument<DirectoryInfo>("directory", "Directory to scan").ExistingOnly(),
-        };
-
-        public IEnumerable<Option> Options => new Option[]
-        {
-            new Option<string>(new[] { "--config-id", "-c" }, "ID of the config to scan against"),
-            new Option<int>(new[] { "--line-count", "-l" }, () => 4, "Context line count before and after the reference line"),
-        };
-
-        public async Task<int> InvokeAsync(DirectoryInfo directory, string configId, int lineCount, CancellationToken token)
+        public async Task<int> InvokeAsync(DirectoryInfo directory, string configId, int lineCount, bool print, CancellationToken token)
         {
             if (configId.IsEmpty())
                 configId = (await this.workspaceLoader.LoadConfigAsync(token)).ConfigId;
 
             var flags = await this.flagClient.GetFlagsAsync(configId, token);
+            var deletedFlags = await this.flagClient.GetDeletedFlagsAsync(configId, token);
 
             var files = await this.fileCollector.CollectAsync(directory, token);
-            var references = await this.referenceCollector.CollectAsync(flags, files, lineCount, token);
+            var flagReferences = await this.referenceCollector.CollectAsync(flags.Concat(deletedFlags), files, lineCount, token);
+
+            var liveFlagReferences = flagReferences.Where(f => f.References.Where(r => r.FoundFlag is not DeletedFlagModel).Any());
+            var deletedFlagReferences = flagReferences.Where(f => f.References.Where(r => r.FoundFlag is DeletedFlagModel).Any());
+
+            this.output.Write("Found "); 
+            this.output.WriteColored(liveFlagReferences.Sum(f => f.References.Where(r => r.FoundFlag is not DeletedFlagModel).Count()).ToString(), ForegroundColorSpan.LightCyan());
+            this.output.Write($" feature flag/setting reference(s) in "); 
+            this.output.WriteColored(liveFlagReferences.Count().ToString(), ForegroundColorSpan.LightCyan());
+            this.output.Write(" file(s). " +
+                $"Keys: [{string.Join(", ", liveFlagReferences.SelectMany(r => r.References.Where(r => r.FoundFlag is not DeletedFlagModel)).Select(r => r.FoundFlag.Key).Distinct())}]");
+            this.output.WriteLine();
+
+            if (print)
+                this.PrintReferences(liveFlagReferences, r => r.FoundFlag is not DeletedFlagModel);
+
+            if (deletedFlagReferences.Any())
+                this.output.WriteWarning($"{deletedFlagReferences.Sum(f => f.References.Where(r => r.FoundFlag is DeletedFlagModel).Count())} deleted feature flag/setting " +
+                    $"reference(s) found in {deletedFlagReferences.Count()} file(s). " +
+                    $"Keys: [{string.Join(", ", deletedFlagReferences.SelectMany(r => r.References.Where(r => r.FoundFlag is DeletedFlagModel)).Select(r => r.FoundFlag.Key).Distinct())}]");
+            else
+                this.output.WriteGreen("OK. Didn't find any deleted feature flag/setting references.");
 
             this.output.WriteLine();
-            foreach (var fileReference in references.Where(r => r.References.Count > 0))
+
+            if (print)
+                this.PrintReferences(deletedFlagReferences, r => r.FoundFlag is DeletedFlagModel);
+
+            return ExitCodes.Ok;
+        }
+
+        private void PrintReferences(IEnumerable<FlagReferenceResult> references, Func<Reference, bool> filter)
+        {
+            this.output.WriteLine();
+            foreach (var fileReference in references)
             {
                 this.output.WriteColored(fileReference.File.FullName, ForegroundColorSpan.LightYellow());
                 this.output.WriteLine();
-                foreach (var reference in fileReference.References)
+                foreach (var reference in fileReference.References.Where(filter))
                 {
                     var maxDigitCount = reference.PostLines.Count > 0
                         ? reference.PostLines.Max(pl => pl.LineNumber).GetDigitCount()
@@ -82,8 +100,6 @@ namespace ConfigCat.Cli.Commands
                     this.output.WriteLine();
                 }
             }
-
-            return ExitCodes.Ok;
         }
 
         private void PrintRegularLine(Line line, int maxDigitCount)

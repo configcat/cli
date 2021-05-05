@@ -19,6 +19,7 @@ namespace ConfigCat.Cli.Services.Rendering
         void WriteGreen(string text);
         void WriteYellow(string text);
         void WriteError(string text);
+        void WriteWarning(string text);
         void WriteUnderline(string text);
         void WriteBlink(string text);
         void WriteReverse(string text);
@@ -27,6 +28,7 @@ namespace ConfigCat.Cli.Services.Rendering
         void WriteColoredWithBackground(string text, ForegroundColorSpan foreground, BackgroundColorSpan background);
         void WriteNonAnsiColor(string text, ConsoleColor foreground, ConsoleColor? background = null);
         void WriteNoChange();
+        void WriteSuccess();
 
         void MoveCursorLeft();
         void MoveCursorRight();
@@ -87,7 +89,23 @@ namespace ConfigCat.Cli.Services.Rendering
 
         public void WriteLine(string text = null) => this.console.Out.WriteLine(text);
 
-        public void WriteError(string text) => this.console.WriteError(text);
+        public void WriteError(string text)
+        {
+            lock (this.consoleLock)
+            {
+                this.WriteColored("[error]: ", ForegroundColorSpan.DarkGray());
+                this.console.WriteError(text);
+            }
+        }
+
+        public void WriteWarning(string text)
+        {
+            lock (this.consoleLock)
+            {
+                this.WriteColored("[warning]: ", ForegroundColorSpan.DarkGray());
+                this.WriteYellow(text);
+            }
+        }
 
         public void WriteGreen(string text) => this.console.WriteStyle(text.Color(ForegroundColorSpan.LightGreen()), text);
 
@@ -125,6 +143,8 @@ namespace ConfigCat.Cli.Services.Rendering
                 this.WriteYellow("Skipped.");
             }
         }
+
+        public void WriteSuccess() => this.WriteGreen($"Ok.");
 
         public Spinner CreateSpinner(CancellationToken token) => new Spinner(token, this, this.showVerboseOutput);
 

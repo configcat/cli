@@ -33,4 +33,6 @@ namespace ConfigCat.Cli.Models.Api
                 TagIds = this.Tags.Select(t => t.TagId)
             };
     }
+
+    public class DeletedFlagModel : FlagModel { }
 }
