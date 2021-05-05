@@ -1,0 +1,1 @@
+﻿ConfigCat CLI (configcat.exe) is maintained by the developer team at ConfigCat.

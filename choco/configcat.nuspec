@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+  <metadata>
+    <id>configcat</id>
+    <version>#VERSION_PLACEHOLDER#</version>
+    <packageSourceUrl>https://github.com/configcat/cli</packageSourceUrl>
+    <owners>ConfigCat</owners>
+    <title>ConfigCat CLI</title>
+    <authors>ConfigCat</authors>
+    <projectUrl>https://configcat.com</projectUrl>
+    <iconUrl>https://raw.githubusercontent.com/configcat/cli/main/choco/icon.png</iconUrl>
+    <copyright>Year Software Vendor</copyright>
+    <licenseUrl>https://raw.githubusercontent.com/configcat/cli/main/LICENSE</licenseUrl>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <projectSourceUrl>https://github.com/configcat/cli</projectSourceUrl>
+    <docsUrl>https://github.com/configcat/cli</docsUrl>
+    <bugTrackerUrl>https://github.com/configcat/cli/issues</bugTrackerUrl>
+    <tags>configcat feature-flag feature-toggle</tags>
+    <summary>Command Line Interface for ConfigCat</summary>
+    <description>The ConfigCat Command Line Interface allows you to interact with the ConfigCat Management API. It supports most functionality found on the ConfigCat Dashboard. You can manage ConfigCat resources like Feature Flags, Products, Configs, Environments, Targeting / Percentage rules, and more.</description>
+    <releaseNotes>https://github.com/configcat/cli/releases</releaseNotes>
+  </metadata>
+  <files>
+    <file src="..\win\configcat.exe" target="tools" />
+    <file src="..\README.md" target="tools" />    
+    <file src="..\LICENSE" target="tools\LICENSE" />    
+    <file src="VERIFICATION.txt" target="tools"/>
+  </files>
+</package>

@@ -1,0 +1,120 @@
+name: ConfigCat CLI Publish
+
+on:
+  push:
+    tags: ['v[0-9]+.[0-9]+.[0-9]+']
+
+  workflow_dispatch:
+  
+jobs:
+  produce-executables:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup dotnet
+      uses: actions/setup-dotnet@v1.7.2
+      with:
+        dotnet-version: '5.0.x'
+    
+    - name: Get version from tag
+      run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
+
+    - name: Publish Windows
+      run: dotnet publish src/ConfigCat.Cli/ConfigCat.Cli.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:Version=${{ env.VERSION }} -o publish/win
+
+    - name: Publish Linux
+      run: dotnet publish src/ConfigCat.Cli/ConfigCat.Cli.csproj -c Release -r linux-x64 --self-contained true -p:PublishSingleFile=true -p:Version=${{ env.VERSION }} -o publish/linux
+
+    - name: Publish macOS
+      run: dotnet publish src/ConfigCat.Cli/ConfigCat.Cli.csproj -c Release -r osx-x64 --self-contained true -p:PublishSingleFile=true -p:Version=${{ env.VERSION }} -o publish/mac
+
+    - name: Archive executables
+      uses: actions/upload-artifact@v2
+      with:
+        name: executables
+        path: publish
+
+
+  snap:
+    runs-on: ubuntu-latest
+    needs: produce-executables
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Download executables
+      uses: actions/download-artifact@v2
+      with:
+        name: executables
+
+    - name: Get version from tag
+      run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
+
+    - name: Update version in snapcraft
+      run: sed -i 's/#VERSION_PLACEHOLDER#/${{ env.VERSION }}/g' snap/snapcraft.yaml
+
+    - name: Build snap
+      uses: snapcore/action-build@v1
+      id: build
+
+    # - name: 🚀Publish
+    #   uses: snapcore/action-publish@v1
+    #   with:
+    #     store_login: ${{ secrets.SNAP_LOGIN }}
+    #     snap: ${{ steps.build.outputs.snap }}
+    #     release: stable
+
+  chocolatey:
+    runs-on: windows-latest
+    needs: produce-executables
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Download executables
+      uses: actions/download-artifact@v2
+      with:
+        name: executables
+
+    - name: Get version from tag
+      run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
+      shell: bash
+
+    - name: Update version in nuspec
+      run: ((Get-Content -path choco\configcat.nuspec -Raw) -replace '#VERSION_PLACEHOLDER#','${{ env.VERSION }}') | Set-Content -Path choco\configcat.nuspec
+      shell: powershell
+
+    - name: Pack
+      run: choco pack choco\configcat.nuspec
+
+    # - name: 🚀Publish
+    #   run: |
+    #     choco apikey --key ${{ secrets.CHOCO_API_KEY }} --source https://push.chocolatey.org/
+    #     choco push configcat.${{ env.VERSION }}.nupkg --source https://push.chocolatey.org/
+
+  github-release:
+    runs-on: ubuntu-latest
+    needs: produce-executables
+
+    steps:
+    - name: Download executables
+      uses: actions/download-artifact@v2
+      with:
+        name: executables
+
+    - name: Get version from tag
+      run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
+
+    - name: Create archives & checksum
+      run: |
+        cd linux/ && tar --exclude='*.pdb' -czf ../configcat-cli_${{ env.VERSION }}_linux_x64.tar.gz * && cd ..
+        cd mac/ && tar --exclude='*.pdb' -czf ../configcat-cli_${{ env.VERSION }}_osx_x64.tar.gz * && cd ..
+        zip -r -D configcat-cli_${{ env.VERSION }}_win_x64.zip win/* -x '*.pdb'
+        sha256sum configcat-cli_${{ env.VERSION }}_linux_x64.tar.gz configcat-cli_${{ env.VERSION }}_osx_x64.tar.gz configcat-cli_${{ env.VERSION }}_win_x64.zip > configcat-cli_${{ env.VERSION }}_sha256_checksums.txt
+
+
+    - name: 🚀Update release
+      uses: ncipollo/release-action@v1
+      with:
+        artifacts: "configcat-cli_*.tar.gz,configcat-cli_*.zip,configcat-cli_*checksums.txt"
+        token: ${{ secrets.GITHUB_TOKEN }}
