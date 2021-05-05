@@ -125,6 +125,6 @@ jobs:
     - name: 🚀Update release
       uses: ncipollo/release-action@v1
       with:
-        artifacts: "configcat-cli_*.tar.gz,configcat-cli_*.zip,configcat-cli_*checksums.txt"
+        artifacts: "configcat-cli_*.tar.gz,configcat-cli_*.zip,configcat-cli_*_checksums.sha256"
         allowUpdates: true
         token: ${{ secrets.GITHUB_TOKEN }}
