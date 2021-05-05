@@ -14,6 +14,12 @@
   <ItemGroup>
     <Content Include="..\..\test\integ.ps1" Link="integ.ps1">
     </Content>
+   <Content Include="..\..\LICENSE">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\README.md">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
