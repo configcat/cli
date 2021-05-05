@@ -1,0 +1,32 @@
+name: configcat
+version: '#VERSION_PLACEHOLDER#'
+base: core18
+summary: Command Line Interface for ConfigCat
+description: |
+  The ConfigCat Command Line Interface allows you to interact with the ConfigCat Management API.
+  It supports most functionality found on the ConfigCat Dashboard. You can manage ConfigCat resources
+  like Feature Flags, Products, Configs, Environments, Targeting / Percentage rules, and more.
+license: MIT License
+
+grade: stable
+confinement: strict
+
+parts:
+  configcat:
+    plugin: dump
+    source: linux/
+    organize:
+      configcat: bin/
+    stage:
+      - bin/configcat
+    override-build: |
+      cd $SNAPCRAFT_PART_BUILD
+      chmod +x configcat
+      snapcraftctl build
+
+apps:
+  configcat:
+    command: bin/configcat
+    plugs:
+      - home
+      - network
