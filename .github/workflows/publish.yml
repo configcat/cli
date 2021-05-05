@@ -119,7 +119,7 @@ jobs:
         cd linux/ && tar --exclude='*.pdb' -czf ../configcat-cli_${{ env.VERSION }}_linux_x64.tar.gz * && cd ..
         cd mac/ && tar --exclude='*.pdb' -czf ../configcat-cli_${{ env.VERSION }}_osx_x64.tar.gz * && cd ..
         zip -r -D configcat-cli_${{ env.VERSION }}_win_x64.zip win/* -x '*.pdb'
-        sha256sum configcat-cli_${{ env.VERSION }}_linux_x64.tar.gz configcat-cli_${{ env.VERSION }}_osx_x64.tar.gz configcat-cli_${{ env.VERSION }}_win_x64.zip > configcat-cli_${{ env.VERSION }}_sha256_checksums.txt
+        sha256sum configcat-cli_${{ env.VERSION }}_linux_x64.tar.gz configcat-cli_${{ env.VERSION }}_osx_x64.tar.gz configcat-cli_${{ env.VERSION }}_win_x64.zip > configcat-cli_${{ env.VERSION }}_checksums.sha256
 
 
     - name: 🚀Update release
