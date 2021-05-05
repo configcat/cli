@@ -20,13 +20,22 @@ jobs:
       run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
 
     - name: Publish Windows
-      run: dotnet publish src/ConfigCat.Cli/ConfigCat.Cli.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:Version=${{ env.VERSION }} -o publish/win
+      run: |
+        dotnet publish src/ConfigCat.Cli/ConfigCat.Cli.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:Version=${{ env.VERSION }} -o publish/win
+        cp LICENSE publish/win/LICENSE
+        cp README.md publish/win/README.md
 
     - name: Publish Linux
-      run: dotnet publish src/ConfigCat.Cli/ConfigCat.Cli.csproj -c Release -r linux-x64 --self-contained true -p:PublishSingleFile=true -p:Version=${{ env.VERSION }} -o publish/linux
+      run: |
+        dotnet publish src/ConfigCat.Cli/ConfigCat.Cli.csproj -c Release -r linux-x64 --self-contained true -p:PublishSingleFile=true -p:Version=${{ env.VERSION }} -o publish/linux
+        cp LICENSE publish/linux/LICENSE
+        cp README.md publish/linux/README.md
 
     - name: Publish macOS
-      run: dotnet publish src/ConfigCat.Cli/ConfigCat.Cli.csproj -c Release -r osx-x64 --self-contained true -p:PublishSingleFile=true -p:Version=${{ env.VERSION }} -o publish/mac
+      run: |
+        dotnet publish src/ConfigCat.Cli/ConfigCat.Cli.csproj -c Release -r osx-x64 --self-contained true -p:PublishSingleFile=true -p:Version=${{ env.VERSION }} -o publish/mac
+        cp LICENSE publish/mac/LICENSE
+        cp README.md publish/mac/README.md
 
     - name: Archive executables
       uses: actions/upload-artifact@v2
@@ -117,4 +126,5 @@ jobs:
       uses: ncipollo/release-action@v1
       with:
         artifacts: "configcat-cli_*.tar.gz,configcat-cli_*.zip,configcat-cli_*checksums.txt"
+        allowUpdates: true
         token: ${{ secrets.GITHUB_TOKEN }}

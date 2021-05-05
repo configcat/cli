@@ -2,7 +2,7 @@
   "profiles": {
     "ConfigCat.Cli": {
       "commandName": "Project",
-      "commandLineArgs": "configcat setup"
+      "commandLineArgs": "configcat p ls"
     }
   }
 }
