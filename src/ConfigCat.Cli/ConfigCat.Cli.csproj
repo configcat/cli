@@ -2,12 +2,18 @@
 
   <PropertyGroup>
     <LangVersion>latest</LangVersion>
+    <Product>ConfigCat CLI</Product>    
+    <Company>ConfigCat</Company>
+    <Description>Command Line Interface for ConfigCat.</Description>
+    <Copyright>Copyright © ConfigCat 2021</Copyright>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <AssemblyName>configcat</AssemblyName>
+    <AssemblyTitle>ConfigCat CLI</AssemblyTitle>
     <InvariantGlobalization>true</InvariantGlobalization>
     <PublishTrimmed>true</PublishTrimmed>
     <TrimMode>link</TrimMode>
+    <Version>0.0.0</Version>
     <SuppressTrimAnalysisWarnings>false</SuppressTrimAnalysisWarnings>
   </PropertyGroup>
 
