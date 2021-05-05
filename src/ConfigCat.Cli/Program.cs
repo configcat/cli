@@ -55,7 +55,8 @@ namespace ConfigCat.Cli
                 })
                 .UseMiddleware(async (context, next) =>
                 {
-                    if (context.ParseResult.CommandResult.Command.Name == "setup")
+                    var commandName = context.ParseResult.CommandResult.Command.Name;
+                    if (commandName == "setup" || commandName == "whoisthebestcat")
                     {
                         container.RegisterInstance(new CliConfig());
                         await next(context);

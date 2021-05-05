@@ -1,3 +1,5 @@
+#!/usr/bin/pwsh
+
 $cliPath = $args[0]
 
 function Invoke-ConfigCat {
@@ -41,6 +43,13 @@ AfterAll {
     Invoke-ConfigCat "product", "ls" | Should -Not -Match $productId
 }
 
+Describe "Setup Tests" {
+    It "Setup" {
+       Invoke-ConfigCat "setup", "-H", $Env:CONFIGCAT_API_HOST, "-u", $Env:CONFIGCAT_API_USER, "-p", $Env:CONFIGCAT_API_PASS | Should -Match "Welcome,"
+       [IO.Path]::Combine([System.Environment]::GetFolderPath("UserProfile"), ".configcat", "cli.json") | Should -Exist
+    }
+}
+
 Describe "Product / Config / Environment Tests" {
     It "Rename Product" {
         $newProductName = [guid]::NewGuid().ToString()
@@ -76,7 +85,7 @@ Describe "Tag / Flag Tests" {
         $tag2Id = Invoke-ConfigCat "tag", "create", "-p", $productId, "-n", "tag2", "-c", "whale"
         Invoke-ConfigCat "tag", "ls", "-p", $productId | Should -Match "tag2"    
 
-        $flagId = Invoke-ConfigCat "flag", "create", "-c", $configId, "-n", "Bool-Flag", "-k", "bool_flag", "-d", "hint", "-t", "boolean", "-g", $tag1Id
+        $flagId = Invoke-ConfigCat "flag", "create", "-c", $configId, "-n", "Bool-Flag", "-k", "bool_flag", "-H", "hint", "-t", "boolean", "-g", $tag1Id
         $flagResult = Invoke-ConfigCat "flag", "ls", "-c", $configId
         $flagResult | Should -Match "Bool-Flag"
         $flagResult | Should -Match "bool_flag"
@@ -107,7 +116,7 @@ Describe "Tag / Flag Tests" {
     }
     
     It "Update Flag" {
-        Invoke-ConfigCat "flag", "update", "-i", $flagId, "-n", "Bool-Flag-Updated", "-d", "hint-updated", "-g", $tag2Id
+        Invoke-ConfigCat "flag", "update", "-i", $flagId, "-n", "Bool-Flag-Updated", "-H", "hint-updated", "-g", $tag2Id
         $updateResult = Invoke-ConfigCat "flag", "ls", "-c", $configId
         $updateResult | Should -Match "Bool-Flag-Updated"
         $updateResult | Should -Match "bool_flag"
@@ -134,7 +143,7 @@ Describe "Tag / Flag Tests" {
 
 Describe "Flag value / Rule Tests" {
     BeforeAll {
-        $flagId = Invoke-ConfigCat "flag", "create", "-c", $configId, "-n", "Bool-Flag", "-k", "bool_flag", "-d", "hint", "-t", "boolean"
+        $flagId = Invoke-ConfigCat "flag", "create", "-c", $configId, "-n", "Bool-Flag", "-k", "bool_flag", "-H", "hint", "-t", "boolean"
     }
 
     AfterAll {

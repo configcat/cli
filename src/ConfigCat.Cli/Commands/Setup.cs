@@ -4,8 +4,6 @@ using ConfigCat.Cli.Services.Api;
 using ConfigCat.Cli.Services.Configuration;
 using ConfigCat.Cli.Services.Rendering;
 using System;
-using System.Collections.Generic;
-using System.CommandLine;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -32,18 +30,6 @@ namespace ConfigCat.Cli.Commands
             this.cliConfig = cliConfig;
         }
 
-        public string Name => "setup";
-
-        public string Description => $"Setup the CLI with Management API host and credentials." +
-            $"{System.Environment.NewLine}You can get your credentials from here: https://app.configcat.com/my-account/public-api-credentials";
-
-        public IEnumerable<Option> Options => new[]
-        {
-            new Option<string>(new[] { "--api-host", "-s" }, $"The Management API host, also used from {Constants.ApiHostEnvironmentVariableName}. (default '{Constants.DefaultApiHost}')"),
-            new Option<string>(new[] { "--username", "-u" }, $"The Management API basic authentication username, also used from {Constants.ApiUserNameEnvironmentVariableName}"),
-            new Option<string>(new[] { "--password", "-p" }, $"The Management API basic authentication password, also used from {Constants.ApiPasswordEnvironmentVariableName}"),
-        };
-
         public async Task<int> InvokeAsync(SetupArgs arguments, CancellationToken token)
         {
             if (arguments.ApiHost.IsEmpty())
@@ -65,19 +51,19 @@ namespace ConfigCat.Cli.Commands
             };
             await this.configurationStorage.WriteConfigAsync(this.cliConfig, token);
 
-            output.WriteGreen(Constants.SuccessMessage);
-            output.WriteLine();
-            output.Write($"Verifying your credentials against '{arguments.ApiHost}'... ");
+            this.output.WriteSuccess();
+            this.output.WriteLine();
+            this.output.Write($"Verifying your credentials against '{arguments.ApiHost}'... ");
 
             var me = await this.meClient.GetMeAsync(token);
 
-            output.WriteGreen(Constants.SuccessMessage);
-            output.Write($" Welcome, {me.FullName}.");
-            output.WriteLine();
-            output.WriteLine();
-            output.WriteGreen("Setup complete.");
-            output.WriteLine();
-            output.WriteLine();
+            this.output.WriteSuccess();
+            this.output.Write($" Welcome, {me.FullName}.");
+            this.output.WriteLine();
+            this.output.WriteLine();
+            this.output.WriteGreen("Setup complete.");
+            this.output.WriteLine();
+            this.output.WriteLine();
 
             return ExitCodes.Ok;
         }

@@ -35,7 +35,7 @@ namespace ConfigCat.Cli
             {
                 Options = new[]
                 {
-                    new Option<string>(new[] { "--api-host", "-s" }, $"The Management API host, also used from {Constants.ApiHostEnvironmentVariableName}. (default '{Constants.DefaultApiHost}')"),
+                    new Option<string>(new[] { "--api-host", "-H" }, $"The Management API host, also used from {Constants.ApiHostEnvironmentVariableName}. (default '{Constants.DefaultApiHost}')"),
                     new Option<string>(new[] { "--username", "-u" }, $"The Management API basic authentication username, also used from {Constants.ApiUserNameEnvironmentVariableName}"),
                     new Option<string>(new[] { "--password", "-p" }, $"The Management API basic authentication password, also used from {Constants.ApiPasswordEnvironmentVariableName}"),
                 },
@@ -252,7 +252,7 @@ namespace ConfigCat.Cli
                             new Option<string>(new[] { "--config-id", "-c" }, "ID of the config where the flag must be created"),
                             new Option<string>(new[] { "--name", "-n" }, "Name of the new flag"),
                             new Option<string>(new[] { "--key", "-k" }, "Key of the new flag"),
-                            new Option<string>(new[] { "--hint", "-d" }, "Hint of the new flag"),
+                            new Option<string>(new[] { "--hint", "-H" }, "Hint of the new flag"),
                             new Option<string>(new[] { "--type", "-t" }, "Type of the new flag")
                                 .AddSuggestions(SettingTypes.Collection),
                             new Option<int[]>(new[] { "--tag-ids", "-g" }, "Tags to attach"),
@@ -280,7 +280,7 @@ namespace ConfigCat.Cli
                                 Name = "flag-id"
                             },
                             new Option<string>(new[] { "--name", "-n" }, "The updated name"),
-                            new Option<string>(new[] { "--hint", "-d" }, "The updated hint"),
+                            new Option<string>(new[] { "--hint", "-H" }, "The updated hint"),
                             new Option<int[]>(new[] { "--tag-ids", "-g" }, "The updated tag list"),
                         }
                     },
@@ -485,6 +485,7 @@ namespace ConfigCat.Cli
                 {
                     new Option<string>(new[] { "--config-id", "-c" }, "ID of the config to scan against"),
                     new Option<int>(new[] { "--line-count", "-l" }, () => 4, "Context line count before and after the reference line"),
+                    new Option<bool>(new[] { "--print", "-p" }, "Print found references"),
                 }
             };
 

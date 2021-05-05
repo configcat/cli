@@ -44,7 +44,7 @@ namespace ConfigCat.Cli.Services.Api
         {
             this.Output.Write($"Deleting Tag... ");
             await this.SendAsync(HttpMethod.Delete, $"v1/tags/{tagId}", null, token);
-            this.Output.WriteGreen(Constants.SuccessMessage);
+            this.Output.WriteSuccess();
             this.Output.WriteLine();
         }
 
@@ -52,7 +52,7 @@ namespace ConfigCat.Cli.Services.Api
         {
             this.Output.Write($"Updating Tag... ");
             await this.SendAsync(HttpMethod.Put, $"v1/tags/{tagId}", new { Name = name, Color = color }, token);
-            this.Output.WriteGreen(Constants.SuccessMessage);
+            this.Output.WriteSuccess();
             this.Output.WriteLine();
         }
     }

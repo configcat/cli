@@ -14,6 +14,8 @@ namespace ConfigCat.Cli.Services.Api
     {
         Task<IEnumerable<FlagModel>> GetFlagsAsync(string configId, CancellationToken token);
 
+        Task<IEnumerable<DeletedFlagModel>> GetDeletedFlagsAsync(string configId, CancellationToken token);
+
         Task<FlagModel> GetFlagAsync(int flagId, CancellationToken token);
 
         Task<FlagModel> CreateFlagAsync(string configId, CreateFlagModel createFlagModel, CancellationToken token);
@@ -35,6 +37,9 @@ namespace ConfigCat.Cli.Services.Api
         public Task<IEnumerable<FlagModel>> GetFlagsAsync(string configId, CancellationToken token) =>
             this.GetAsync<IEnumerable<FlagModel>>(HttpMethod.Get, $"v1/configs/{configId}/settings", token);
 
+        public Task<IEnumerable<DeletedFlagModel>> GetDeletedFlagsAsync(string configId, CancellationToken token) =>
+            this.GetAsync<IEnumerable<DeletedFlagModel>>(HttpMethod.Get, $"v1/configs/{configId}/deleted-settings", token);
+
         public Task<FlagModel> GetFlagAsync(int flagId, CancellationToken token) =>
             this.GetAsync<FlagModel>(HttpMethod.Get, $"v1/settings/{flagId}", token);
 
@@ -45,7 +50,7 @@ namespace ConfigCat.Cli.Services.Api
         {
             this.Output.Write($"Deleting Flag... ");
             await this.SendAsync(HttpMethod.Delete, $"v1/settings/{flagId}", null, token);
-            this.Output.WriteGreen(Constants.SuccessMessage);
+            this.Output.WriteSuccess();
             this.Output.WriteLine();
         }
 
@@ -53,7 +58,7 @@ namespace ConfigCat.Cli.Services.Api
         {
             this.Output.Write($"Updating Flag... ");
             await this.SendAsync(HttpMethod.Patch, $"v1/settings/{flagId}", operations, token);
-            this.Output.WriteGreen(Constants.SuccessMessage);
+            this.Output.WriteSuccess();
             this.Output.WriteLine();
         }
     }
