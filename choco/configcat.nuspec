@@ -9,7 +9,7 @@
     <authors>ConfigCat</authors>
     <projectUrl>https://configcat.com</projectUrl>
     <iconUrl>https://raw.githubusercontent.com/configcat/cli/main/choco/icon.png</iconUrl>
-    <copyright>Year Software Vendor</copyright>
+    <copyright>2021 Configcat</copyright>
     <licenseUrl>https://raw.githubusercontent.com/configcat/cli/main/LICENSE</licenseUrl>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <projectSourceUrl>https://github.com/configcat/cli</projectSourceUrl>
