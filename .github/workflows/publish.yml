@@ -66,6 +66,12 @@ jobs:
       uses: snapcore/action-build@v1
       id: build
 
+    - name: Archive snap
+      uses: actions/upload-artifact@v2
+      with:
+        name: snap-pack
+        path: configcat_*.snap
+
     # - name: 🚀Publish
     #   uses: snapcore/action-publish@v1
     #   with:
@@ -96,6 +102,12 @@ jobs:
     - name: Pack
       run: choco pack choco\configcat.nuspec
 
+    - name: Archive choco package
+      uses: actions/upload-artifact@v2
+      with:
+        name: choco-pack
+        path: configcat.*.nupkg
+
     # - name: 🚀Publish
     #   run: |
     #     choco apikey --key ${{ secrets.CHOCO_API_KEY }} --source https://push.chocolatey.org/
@@ -116,6 +128,7 @@ jobs:
 
     - name: Create archives & checksum
       run: |
+        chmod +x linux/configcat mac/configcat
         cd linux/ && tar --exclude='*.pdb' -czf ../configcat-cli_${{ env.VERSION }}_linux_x64.tar.gz * && cd ..
         cd mac/ && tar --exclude='*.pdb' -czf ../configcat-cli_${{ env.VERSION }}_osx_x64.tar.gz * && cd ..
         zip -r -D configcat-cli_${{ env.VERSION }}_win_x64.zip win/* -x '*.pdb'
