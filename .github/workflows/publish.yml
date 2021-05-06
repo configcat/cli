@@ -119,7 +119,7 @@ jobs:
 
     - name: Create archives & checksum
       run: |
-        chmod +x linux-x64/configcat linux-musl-x64/configcat linux-arm/configcat linux-arm64/configcat osx-x64/configcat osx.11.0-arm64/configcat
+        chmod +x linux-x64/configcat linux-musl-x64/configcat linux-arm/configcat linux-arm64/configcat osx-x64/configcat
         cd linux-x64/ && tar --exclude='*.pdb' -czf ../configcat-cli_${{ env.VERSION }}_linux-x64.tar.gz * && cd ..
         cd linux-musl-x64/ && tar --exclude='*.pdb' -czf ../configcat-cli_${{ env.VERSION }}_linux-musl-x64.tar.gz * && cd ..
         cd linux-arm/ && tar --exclude='*.pdb' -czf ../configcat-cli_${{ env.VERSION }}_linux-arm.tar.gz * && cd ..
