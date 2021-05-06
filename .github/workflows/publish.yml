@@ -145,4 +145,6 @@ jobs:
       with:
         artifacts: "configcat-cli_*.tar.gz,configcat-cli_*.zip,configcat-cli_*_checksums.sha256"
         allowUpdates: true
+        omitBodyDuringUpdate: true
+        omitNameDuringUpdate: true
         token: ${{ secrets.GITHUB_TOKEN }}
