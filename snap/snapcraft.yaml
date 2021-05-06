@@ -14,7 +14,7 @@ confinement: strict
 parts:
   configcat:
     plugin: dump
-    source: linux/
+    source: linux-x64/
     organize:
       configcat: bin/
     stage:

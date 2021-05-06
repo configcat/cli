@@ -21,7 +21,7 @@
     <releaseNotes>https://github.com/configcat/cli/releases</releaseNotes>
   </metadata>
   <files>
-    <file src="..\win\configcat.exe" target="tools" />
+    <file src="..\win-x64\configcat.exe" target="tools" />
     <file src="..\README.md" target="tools" />    
     <file src="..\LICENSE" target="tools\LICENSE" />    
     <file src="VERIFICATION.txt" target="tools"/>

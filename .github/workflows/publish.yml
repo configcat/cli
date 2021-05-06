@@ -5,10 +5,13 @@ on:
     tags: ['v[0-9]+.[0-9]+.[0-9]+']
 
   workflow_dispatch:
-  
+
 jobs:
   produce-executables:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [win-x64, win-x86, win-arm, win-arm64, linux-x64, linux-musl-x64, linux-arm, linux-arm64, osx-x64, osx.11.0-arm64]
     steps:
     - uses: actions/checkout@v2
     - name: Setup dotnet
@@ -19,23 +22,11 @@ jobs:
     - name: Get version from tag
       run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
 
-    - name: Publish Windows
+    - name: Publish ${{ matrix.arch }}
       run: |
-        dotnet publish src/ConfigCat.Cli/ConfigCat.Cli.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:Version=${{ env.VERSION }} -o publish/win
-        cp LICENSE publish/win/LICENSE
-        cp README.md publish/win/README.md
-
-    - name: Publish Linux
-      run: |
-        dotnet publish src/ConfigCat.Cli/ConfigCat.Cli.csproj -c Release -r linux-x64 --self-contained true -p:PublishSingleFile=true -p:Version=${{ env.VERSION }} -o publish/linux
-        cp LICENSE publish/linux/LICENSE
-        cp README.md publish/linux/README.md
-
-    - name: Publish macOS
-      run: |
-        dotnet publish src/ConfigCat.Cli/ConfigCat.Cli.csproj -c Release -r osx-x64 --self-contained true -p:PublishSingleFile=true -p:Version=${{ env.VERSION }} -o publish/mac
-        cp LICENSE publish/mac/LICENSE
-        cp README.md publish/mac/README.md
+        dotnet publish src/ConfigCat.Cli/ConfigCat.Cli.csproj -c Release -r ${{ matrix.arch }} --self-contained true -p:PublishSingleFile=true -p:Version=${{ env.VERSION }} -o publish/${{ matrix.arch }}
+        cp LICENSE publish/${{ matrix.arch }}/LICENSE
+        cp README.md publish/${{ matrix.arch }}/README.md
 
     - name: Archive executables
       uses: actions/upload-artifact@v2
@@ -126,14 +117,31 @@ jobs:
     - name: Get version from tag
       run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
 
+      #[win-x64, win-x86, win-arm, win-arm64, linux-x64, linux-musl-x64, linux-arm, linux-arm64, osx-x64, osx.11.0-arm64]
     - name: Create archives & checksum
       run: |
-        chmod +x linux/configcat mac/configcat
-        cd linux/ && tar --exclude='*.pdb' -czf ../configcat-cli_${{ env.VERSION }}_linux_x64.tar.gz * && cd ..
-        cd mac/ && tar --exclude='*.pdb' -czf ../configcat-cli_${{ env.VERSION }}_osx_x64.tar.gz * && cd ..
-        zip -r -D configcat-cli_${{ env.VERSION }}_win_x64.zip win/* -x '*.pdb'
-        sha256sum configcat-cli_${{ env.VERSION }}_linux_x64.tar.gz configcat-cli_${{ env.VERSION }}_osx_x64.tar.gz configcat-cli_${{ env.VERSION }}_win_x64.zip > configcat-cli_${{ env.VERSION }}_checksums.sha256
-
+        chmod +x linux-x64/configcat linux-musl-x64/configcat linux-arm/configcat linux-arm64/configcat osx-x64/configcat osx.11.0-arm64/configcat
+        cd linux-x64/ && tar --exclude='*.pdb' -czf ../configcat-cli_${{ env.VERSION }}_linux-x64.tar.gz * && cd ..
+        cd linux-musl-x64/ && tar --exclude='*.pdb' -czf ../configcat-cli_${{ env.VERSION }}_linux-musl-x64.tar.gz * && cd ..
+        cd linux-arm/ && tar --exclude='*.pdb' -czf ../configcat-cli_${{ env.VERSION }}_linux-arm.tar.gz * && cd ..
+        cd linux-arm64/ && tar --exclude='*.pdb' -czf ../configcat-cli_${{ env.VERSION }}_linux-arm64.tar.gz * && cd ..
+        cd osx-x64/ && tar --exclude='*.pdb' -czf ../configcat-cli_${{ env.VERSION }}_osx-x64.tar.gz * && cd ..
+        cd osx.11.0-arm64/ && tar --exclude='*.pdb' -czf ../configcat-cli_${{ env.VERSION }}_osx-11-0-arm64.tar.gz * && cd ..
+        zip -r -D configcat-cli_${{ env.VERSION }}_win-x64.zip win-x64/* -x '*.pdb'
+        zip -r -D configcat-cli_${{ env.VERSION }}_win-x86.zip win-x86/* -x '*.pdb'
+        zip -r -D configcat-cli_${{ env.VERSION }}_win-arm.zip win-arm/* -x '*.pdb'
+        zip -r -D configcat-cli_${{ env.VERSION }}_win-arm64.zip win-arm64/* -x '*.pdb'
+        
+        sha256sum configcat-cli_${{ env.VERSION }}_linux-x64.tar.gz \
+        configcat-cli_${{ env.VERSION }}_linux-musl-x64.tar.gz \
+        configcat-cli_${{ env.VERSION }}_linux-arm.tar.gz \
+        configcat-cli_${{ env.VERSION }}_linux-arm64.tar.gz \
+        configcat-cli_${{ env.VERSION }}_osx-x64.tar.gz \
+        configcat-cli_${{ env.VERSION }}_osx-11-0-arm64.tar.gz \
+        configcat-cli_${{ env.VERSION }}_win-x64.zip \
+        configcat-cli_${{ env.VERSION }}_win-x86.zip \
+        configcat-cli_${{ env.VERSION }}_win-arm.zip \
+        configcat-cli_${{ env.VERSION }}_win-arm64.zip > configcat-cli_${{ env.VERSION }}_checksums.sha256
 
     - name: 🚀Update release
       uses: ncipollo/release-action@v1
