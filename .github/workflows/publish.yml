@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        arch: [win-x64, win-x86, win-arm, win-arm64, linux-x64, linux-musl-x64, linux-arm, linux-arm64, osx-x64, osx.11.0-arm64]
+        arch: [win-x64, win-x86, win-arm, win-arm64, linux-x64, linux-musl-x64, linux-arm, linux-arm64, osx-x64]
     steps:
     - uses: actions/checkout@v2
     - name: Setup dotnet
@@ -117,7 +117,6 @@ jobs:
     - name: Get version from tag
       run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
 
-      #[win-x64, win-x86, win-arm, win-arm64, linux-x64, linux-musl-x64, linux-arm, linux-arm64, osx-x64, osx.11.0-arm64]
     - name: Create archives & checksum
       run: |
         chmod +x linux-x64/configcat linux-musl-x64/configcat linux-arm/configcat linux-arm64/configcat osx-x64/configcat osx.11.0-arm64/configcat
@@ -126,7 +125,6 @@ jobs:
         cd linux-arm/ && tar --exclude='*.pdb' -czf ../configcat-cli_${{ env.VERSION }}_linux-arm.tar.gz * && cd ..
         cd linux-arm64/ && tar --exclude='*.pdb' -czf ../configcat-cli_${{ env.VERSION }}_linux-arm64.tar.gz * && cd ..
         cd osx-x64/ && tar --exclude='*.pdb' -czf ../configcat-cli_${{ env.VERSION }}_osx-x64.tar.gz * && cd ..
-        cd osx.11.0-arm64/ && tar --exclude='*.pdb' -czf ../configcat-cli_${{ env.VERSION }}_osx-11-0-arm64.tar.gz * && cd ..
         zip -r -D configcat-cli_${{ env.VERSION }}_win-x64.zip win-x64/* -x '*.pdb'
         zip -r -D configcat-cli_${{ env.VERSION }}_win-x86.zip win-x86/* -x '*.pdb'
         zip -r -D configcat-cli_${{ env.VERSION }}_win-arm.zip win-arm/* -x '*.pdb'
@@ -137,7 +135,6 @@ jobs:
         configcat-cli_${{ env.VERSION }}_linux-arm.tar.gz \
         configcat-cli_${{ env.VERSION }}_linux-arm64.tar.gz \
         configcat-cli_${{ env.VERSION }}_osx-x64.tar.gz \
-        configcat-cli_${{ env.VERSION }}_osx-11-0-arm64.tar.gz \
         configcat-cli_${{ env.VERSION }}_win-x64.zip \
         configcat-cli_${{ env.VERSION }}_win-x86.zip \
         configcat-cli_${{ env.VERSION }}_win-arm.zip \
