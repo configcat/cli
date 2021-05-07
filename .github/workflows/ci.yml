@@ -25,7 +25,10 @@ jobs:
         dotnet-version: '5.0.x'
         
     - name: Publish ${{ matrix.arch }}
-      run: dotnet publish src/ConfigCat.Cli/ConfigCat.Cli.csproj -c Release -r ${{ matrix.arch }} --self-contained true -p:PublishSingleFile=true -o publish/${{ matrix.arch }}
+      run: | 
+        dotnet publish src/ConfigCat.Cli/ConfigCat.Cli.csproj -c Release -r ${{ matrix.arch }} --self-contained true -p:PublishSingleFile=true -o publish/${{ matrix.arch }}
+        cp LICENSE publish/${{ matrix.arch }}/LICENSE
+        cp README.md publish/${{ matrix.arch }}/README.md
 
     - name: Archive executables
       uses: actions/upload-artifact@v2
@@ -130,7 +133,7 @@ jobs:
       with:
         context: .
         push: false
-        tags: configcat/cli:$GITHUB_RUN_NUMBER
+        tags: configcat/cli:${{ GITHUB_RUN_NUMBER }}
 
     - name: Execute tests
       shell: pwsh
@@ -139,4 +142,4 @@ jobs:
         --env CONFIGCAT_API_HOST=${{ secrets.CONFIGCAT_API_HOST }} \
         --env CONFIGCAT_API_USER=${{ secrets.CONFIGCAT_API_USER }} \
         --env CONFIGCAT_API_PASS=${{ secrets.CONFIGCAT_API_PASS }} \
-        configcat/cli:$GITHUB_RUN_NUMBER"
+        configcat/cli:${{ GITHUB_RUN_NUMBER }}
