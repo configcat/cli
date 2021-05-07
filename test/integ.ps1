@@ -45,7 +45,10 @@ AfterAll {
 
 Describe "Setup Tests" {
     It "Setup" {
-       Invoke-ConfigCat "setup", "-H", $Env:CONFIGCAT_API_HOST, "-u", $Env:CONFIGCAT_API_USER, "-p", $Env:CONFIGCAT_API_PASS | Should -Match "Welcome,"
+       $apiHost = [System.Environment]::GetEnvironmentVariable('CONFIGCAT_API_HOST')
+       $apiUser = [System.Environment]::GetEnvironmentVariable('CONFIGCAT_API_USER')
+       $apiPass = [System.Environment]::GetEnvironmentVariable('CONFIGCAT_API_PASS')
+       Invoke-ConfigCat "setup", "--api-host", $apiHost, "--username", $apiUser, "--password", $apiPass | Should -Match "Setup complete."
     }
 }
 
