@@ -34,7 +34,6 @@ jobs:
         name: executables
         path: publish
 
-
   snap:
     runs-on: ubuntu-latest
     needs: produce-executables
