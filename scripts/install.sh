@@ -36,7 +36,6 @@ DIR="${DIR:-/usr/local/bin}"
 echo "Installing ConfigCat CLI v${VERSION}."
 
 UCPATH=$(mktemp -d "${TMPDIR:-/tmp}/configcat.XXXXXXXXX")
-cd "$UCPATH"
 
 case "$(uname -s)" in
 	Linux)
@@ -57,15 +56,17 @@ FILE_NAME="configcat-cli_${VERSION}_${OS}-${ARCH}.tar.gz"
 DOWNLOAD_URL="https://github.com/configcat/cli/releases/download/v${VERSION}/${FILE_NAME}"
 
 echo "Downloading ${DOWNLOAD_URL}."
-curl -sL --retry 3 "$DOWNLOAD_URL" -o "$FILE_NAME"
+(cd "$UCPATH" && curl -sL --retry 3 "$DOWNLOAD_URL" -o "$FILE_NAME")
 
-echo "Extracting ${FILE_NAME}."
-tar -xzf ${FILE_NAME}
+echo "Extracting ${FILE_NAME} into ${UCPATH}."
+(cd "$UCPATH" && tar -xzf ${FILE_NAME})
 
 echo "Moving binary to ${DIR}."
-cp configcat "${DIR}"
+cp "$UCPATH/configcat" "${DIR}"
 
-echo "ConfigCat CLI v${VERSION} successfully installed."
-configcat cat
-
+echo "Deleting ${UCPATH}."
 rm -rf "$UCPATH"
+
+echo ""
+echo "ConfigCat CLI v${VERSION} successfully installed. Happy Feature Flagging!"
+configcat cat
