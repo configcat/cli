@@ -46,7 +46,6 @@ AfterAll {
 Describe "Setup Tests" {
     It "Setup" {
        Invoke-ConfigCat "setup", "-H", $Env:CONFIGCAT_API_HOST, "-u", $Env:CONFIGCAT_API_USER, "-p", $Env:CONFIGCAT_API_PASS | Should -Match "Welcome,"
-       [IO.Path]::Combine([System.Environment]::GetFolderPath("UserProfile"), ".configcat", "cli.json") | Should -Exist
     }
 }
 
