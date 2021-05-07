@@ -142,4 +142,4 @@ jobs:
         --env CONFIGCAT_API_HOST=${{ secrets.CONFIGCAT_API_HOST }} \
         --env CONFIGCAT_API_USER=${{ secrets.CONFIGCAT_API_USER }} \
         --env CONFIGCAT_API_PASS=${{ secrets.CONFIGCAT_API_PASS }} \
-        configcat/cli:dev
+        configcat/cli:dev"
