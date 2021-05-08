@@ -4,7 +4,7 @@
 
 The ConfigCat Command Line Interface allows you to interact with the ConfigCat Management API. It supports most functionality found on the ConfigCat Dashboard. You can manage ConfigCat resources like Feature Flags, Targeting / Percentage rules, Products, Configs, Environments, and more.
 
-<img src="assets/teaser.gif" alt="ConfigCat CLI Feature Flag Create" width="100%"/>
+<img src="assets/teaser.gif" alt="ConfigCat CLI Feature Flag Create"/>
 
 ## About ConfigCat
 ConfigCat is a hosted feature flag service: https://configcat.com. Manage feature toggles across frontend, backend, mobile, desktop apps. Alternative to LaunchDarkly. Management app + feature flag SDKs.
@@ -67,7 +67,7 @@ curl -fsSL "https://raw.githubusercontent.com/configcat/cli/main/scripts/install
 ### Setup
 After a successful installation, the CLI must be configured with your [ConfigCat Management API credentials](https://app.configcat.com/my-account/public-api-credentials).
 
-<img src="assets/setup.gif" alt="ConfigCat CLI Setup" width="100%"/>
+<img src="assets/setup.gif" alt="ConfigCat CLI" />
 
 ## Useful links
 - Documentation (Coming soon)
