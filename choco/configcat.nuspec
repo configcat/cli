@@ -17,7 +17,7 @@
     <bugTrackerUrl>https://github.com/configcat/cli/issues</bugTrackerUrl>
     <tags>configcat feature-flag feature-toggle</tags>
     <summary>Command Line Interface for ConfigCat</summary>
-    <description>The ConfigCat Command Line Interface allows you to interact with the ConfigCat Management API. It supports most functionality found on the ConfigCat Dashboard. You can manage ConfigCat resources like Feature Flags, Products, Configs, Environments, Targeting / Percentage rules, and more.</description>
+    <description>The ConfigCat Command Line Interface allows you to interact with the ConfigCat Management API. It supports most functionality found on the ConfigCat Dashboard. You can manage ConfigCat resources like Feature Flags, Targeting / Percentage rules, Products, Configs, Environments, and more.</description>
     <releaseNotes>https://github.com/configcat/cli/releases</releaseNotes>
   </metadata>
   <files>
