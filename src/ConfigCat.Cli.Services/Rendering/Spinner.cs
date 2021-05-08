@@ -7,7 +7,8 @@ namespace ConfigCat.Cli.Services.Rendering
 {
     public class Spinner : IDisposable
     {
-        private readonly CancellationTokenSource combinedToken;
+        private readonly CancellationTokenSource spinnerTokenSource;
+        private readonly CancellationTokenSource linkedTokenSource;
         private readonly IOutput output;
         private readonly CursorHider cursorHider;
         private readonly int top;
@@ -35,13 +36,13 @@ namespace ConfigCat.Cli.Services.Rendering
 
             this.top = output.CursorTop;
             this.left = output.CursorLeft;
-            this.combinedToken = CancellationTokenSource.CreateLinkedTokenSource(token);
-
+            this.spinnerTokenSource = new CancellationTokenSource();
+            this.linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(token, this.spinnerTokenSource.Token);
 
             var task = Task.Run(async () =>
             {
                 var counter = 0;
-                while (!this.combinedToken.IsCancellationRequested)
+                while (!this.linkedTokenSource.Token.IsCancellationRequested)
                 {
                     var spinnerFragment = SpinnerFragments[counter++ % SpinnerFragments.Length];
 
@@ -49,12 +50,12 @@ namespace ConfigCat.Cli.Services.Rendering
                     this.output.Write(spinnerFragment);
                     try
                     {
-                        await Task.Delay(TimeSpan.FromMilliseconds(50), this.combinedToken.Token);
+                        await Task.Delay(TimeSpan.FromMilliseconds(50), this.linkedTokenSource.Token);
                     }
                     catch (OperationCanceledException)
                     { }
                 }
-            }, this.combinedToken.Token);
+            }, this.linkedTokenSource.Token);
             this.isVerboseEnabled = isVerboseEnabled;
         }
 
@@ -63,7 +64,9 @@ namespace ConfigCat.Cli.Services.Rendering
             if (this.output is null || this.isVerboseEnabled)
                 return;
 
-            this.combinedToken.Cancel();
+            this.spinnerTokenSource.Cancel();
+            this.spinnerTokenSource.Dispose();
+            this.linkedTokenSource.Dispose();
 
             var fragmentSize = SpinnerFragments[0].Length;
             this.output.SetCursorPosition(this.left + fragmentSize, this.top);
