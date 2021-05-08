@@ -12,7 +12,7 @@ on:
   
 jobs:
   produce-executables:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     strategy:
       matrix:
         arch: [win-x64, linux-x64, linux-musl-x64, osx-x64]
@@ -27,8 +27,8 @@ jobs:
     - name: Publish ${{ matrix.arch }}
       run: | 
         dotnet publish src/ConfigCat.Cli/ConfigCat.Cli.csproj -c Release -r ${{ matrix.arch }} --self-contained true -p:PublishSingleFile=true -o publish/${{ matrix.arch }}
-        cp LICENSE publish/${{ matrix.arch }}/LICENSE
-        cp README.md publish/${{ matrix.arch }}/README.md
+        copy LICENSE publish/${{ matrix.arch }}/LICENSE
+        copy README.md publish/${{ matrix.arch }}/README.md
 
     - name: Archive executables
       uses: actions/upload-artifact@v2
