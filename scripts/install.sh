@@ -21,7 +21,7 @@ case $i in
     ;;
     *)
         echo "==> ERROR: Unknown option ${i}."
-		exit 1	
+        exit 1	
     ;;
 esac
 done
@@ -37,18 +37,18 @@ echo "==> Installing ConfigCat CLI v${VERSION}."
 UCPATH=$(mktemp -d "${TMPDIR:-/tmp}/configcat.XXXXXXXXX")
 
 case "$(uname -s)" in
-	Linux)
-	    OS='linux'
+    Linux)
+        OS='linux'
         ARCH="${ARCH:-x64}"
-	;;
-	Darwin)
-		OS='osx'
+    ;;
+    Darwin)
+        OS='osx'
         ARCH='x64'
-	;;
-	*)
-		echo '==> ERROR: Not supported operating system.'
-		exit 1	
-	;;
+    ;;
+    *)
+        echo '==> ERROR: Not supported operating system.'
+        exit 1	
+    ;;
 esac
 
 FILE_NAME="configcat-cli_${VERSION}_${OS}-${ARCH}.tar.gz"
