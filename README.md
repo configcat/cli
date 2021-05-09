@@ -21,17 +21,11 @@ In the meantime, you can download the binaries directly from [GitHub Releases](h
 
 #### via Install Script
 You can install the CLI by executing an install script on Unix platforms. 
-
-*curl*:
 ```bash
 curl -fsSL "https://raw.githubusercontent.com/configcat/cli/main/scripts/install.sh" | bash
 ```
-*wget*:
-```bash
-wget -O - "https://raw.githubusercontent.com/configcat/cli/main/scripts/install.sh" | bash
-```
 
-By default, the script downloads the OS specific artifact from the latest [GitHub Release](https://github.com/configcat/cli/releases) and moves it into the `/usr/local/bin` directory.
+By default, the script downloads the OS specific artifact from the latest [GitHub Release](https://github.com/configcat/cli/releases) with `curl` and moves it into the `/usr/local/bin` directory.
 
 It might happen, that you don't have permissions to write into `/usr/local/bin`, then you should execute the install script with `sudo`.
 
@@ -39,7 +33,7 @@ It might happen, that you don't have permissions to write into `/usr/local/bin`,
 curl -fsSL "https://raw.githubusercontent.com/configcat/cli/main/scripts/install.sh" | sudo bash
 ```
 
-The script accepts input parameters:
+The script accepts the following input parameters:
 
 Parameter | Description | Default value
 --------- | ----------- | -------------
