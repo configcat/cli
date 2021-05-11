@@ -11,6 +11,8 @@ configcat [options] config create
 | ------ | ----------- |
 | `--product-id`, `-p` | ID of the product where the config must be created |
 | `--name`, `-n` | Name of the new config |
+| `--verbose`, `-v`, `/v` | Print detailed execution information |
+| `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |
 ## Parent Command
 | Command | Description |
 | ------ | ----------- |

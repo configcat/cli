@@ -10,6 +10,8 @@ configcat [options] flag targeting rm
 | `--flag-id`, `-i`, `--setting-id`, `flag-id` | ID of the flag or setting |
 | `--environment-id`, `-e` | ID of the environment from where the rule must be deleted |
 | `--position`, `-p` | The position of the targeting rule to delete |
+| `--verbose`, `-v`, `/v` | Print detailed execution information |
+| `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |
 ## Parent Command
 | Command | Description |
 | ------ | ----------- |

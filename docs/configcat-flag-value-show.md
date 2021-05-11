@@ -10,6 +10,8 @@ configcat [options] flag value show
 | Option | Description |
 | ------ | ----------- |
 | `--flag-id`, `-i`, `--setting-id`, `flag-id` | ID of the flag or setting |
+| `--verbose`, `-v`, `/v` | Print detailed execution information |
+| `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |
 ## Parent Command
 | Command | Description |
 | ------ | ----------- |

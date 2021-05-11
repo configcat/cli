@@ -6,6 +6,11 @@ configcat config [command]
 ```
 ## Aliases
 `c`
+## Options
+| Option | Description |
+| ------ | ----------- |
+| `--verbose`, `-v`, `/v` | Print detailed execution information |
+| `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |
 ## Parent Command
 | Command | Description |
 | ------ | ----------- |

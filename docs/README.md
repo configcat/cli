@@ -1,5 +1,11 @@
 # Command Line Interface Reference
 This is a reference for the ConfigCat CLI. allows you to interact with the ConfigCat Management API via the command line. It supports most functionality found on the ConfigCat Dashboard. You can manage ConfigCat resources like Feature Flags, Targeting / Percentage rules, Products, Configs, Environments, and more.
+## Options
+| Option | Description |
+| ------ | ----------- |
+| `--verbose`, `-v`, `/v` | Print detailed execution information |
+| `--version` | Show version information |
+| `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |
 ## Commands
 This is the complete list of the available commands provided by the CLI.
 ### configcat setup

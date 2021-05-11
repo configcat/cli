@@ -10,6 +10,8 @@ configcat [options] flag ls
 | `--config-id`, `-c` | Show only a config's flags |
 | `--tag-name`, `-n` | Filter by a tag's name |
 | `--tag-id`, `-t` | Filter by a tag's ID |
+| `--verbose`, `-v`, `/v` | Print detailed execution information |
+| `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |
 ## Parent Command
 | Command | Description |
 | ------ | ----------- |

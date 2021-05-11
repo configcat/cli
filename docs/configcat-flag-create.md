@@ -15,6 +15,8 @@ configcat [options] flag create
 | `--hint`, `-H` | Hint of the new flag |
 | `--type`, `-t` | Type of the new flag |
 | `--tag-ids`, `-g` | Tags to attach |
+| `--verbose`, `-v`, `/v` | Print detailed execution information |
+| `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |
 ## Parent Command
 | Command | Description |
 | ------ | ----------- |

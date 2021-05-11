@@ -8,6 +8,8 @@ configcat [options] tag rm
 | Option | Description |
 | ------ | ----------- |
 | `--tag-id`, `-i` | ID of the tag to delete |
+| `--verbose`, `-v`, `/v` | Print detailed execution information |
+| `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |
 ## Parent Command
 | Command | Description |
 | ------ | ----------- |

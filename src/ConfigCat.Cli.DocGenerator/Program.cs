@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.CommandLine;
+using System.CommandLine.Builder;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -20,20 +21,34 @@ namespace ConfigCat.Cli.DocGenerator
                 Directory.CreateDirectory(currentPath);
 
             var rootCommand = CommandBuilder.BuildRootCommand(asRootCommand: false);
+            var commandLineBuilder = new CommandLineBuilder(rootCommand)
+                .UseVersionOption()
+                .UseHelp();
             var output = new StringBuilder();
 
             output.AppendLine($"# Command Line Interface Reference");
             output.AppendLine("This is a reference for the ConfigCat CLI. allows you to interact with the ConfigCat Management API via the command line. It supports most functionality found on the ConfigCat Dashboard. You can manage ConfigCat resources like Feature Flags, Targeting / Percentage rules, Products, Configs, Environments, and more.");
+
+            var options = rootCommand.Options.Where(o => !o.IsHidden);
+            if (options.Any())
+            {
+                output.AppendLine("## Options");
+                output.AppendLine("| Option | Description |");
+                output.AppendLine("| ------ | ----------- |");
+                foreach (var option in options)
+                    output.AppendLine($"| {string.Join(", ", option.Aliases.Select(a => $"`{a}`"))} | {option.Description.Replace(Environment.NewLine, "<br/>")} |");
+            }
+
             output.AppendLine("## Commands");
             output.AppendLine("This is the complete list of the available commands provided by the CLI.");
 
-            foreach (var subCommand in rootCommand.Children.OfType<ICommand>().Where(c => !c.IsHidden))
+            foreach (var subCommand in rootCommand.Children.OfType<Command>().Where(c => !c.IsHidden))
             {
                 output.AppendLine($"### configcat {subCommand.Name}");
                 output.AppendLine("| Command | Description |");
                 output.AppendLine("| ------ | ----------- |");
                 var generatedSubCommandDocs = new Dictionary<string, string>();
-                await GenerateDocsForSubCommand(subCommand, new Stack<ICommand>(new[] { rootCommand }), generatedSubCommandDocs);
+                await GenerateDocsForSubCommand(subCommand, new Stack<Command>(new[] { rootCommand }), generatedSubCommandDocs);
 
                 foreach (var subCommandDoc in generatedSubCommandDocs)
                     output.AppendLine($"| {subCommandDoc.Key} | {subCommandDoc.Value} |");
@@ -42,7 +57,7 @@ namespace ConfigCat.Cli.DocGenerator
             await File.WriteAllTextAsync(Path.Combine(currentPath, $"README.md"), output.ToString());
         }
 
-        static async Task GenerateDocsForSubCommand(ICommand command, Stack<ICommand> parents, IDictionary<string, string> generatedDocs)
+        static async Task GenerateDocsForSubCommand(Command command, Stack<Command> parents, IDictionary<string, string> generatedDocs)
         {
             var output = new StringBuilder();
 
@@ -66,7 +81,7 @@ namespace ConfigCat.Cli.DocGenerator
                 output.AppendLine(string.Join(", ", aliases.Select(a => $"`{a}`")));
             }
 
-            var options = command.Options.Where(o => !o.IsHidden);
+            var options = command.Options.Where(o => !o.IsHidden).Concat(parents.SelectMany(p => p.GlobalOptions.Where(go => !go.IsHidden)));
             if (options.Any())
             {
                 output.AppendLine("## Options");
@@ -91,7 +106,7 @@ namespace ConfigCat.Cli.DocGenerator
             output.AppendLine("| ------ | ----------- |");
             output.AppendLine($"| {ProduceMarkdownLinkFromNames(parentNamesInOrder)} | {parents.Peek().Description.Replace(Environment.NewLine, "<br/>")} |");
 
-            var subCommands = command.Children.OfType<ICommand>();
+            var subCommands = command.Children.OfType<Command>();
             if (subCommands.Any())
             {
                 output.AppendLine("## Subcommands");

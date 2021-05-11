@@ -11,6 +11,8 @@ configcat [options] environment update
 | ------ | ----------- |
 | `--environment-id`, `-i` | ID of the environment to update |
 | `--name`, `-n` | The updated name |
+| `--verbose`, `-v`, `/v` | Print detailed execution information |
+| `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |
 ## Parent Command
 | Command | Description |
 | ------ | ----------- |

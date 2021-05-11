@@ -4,6 +4,11 @@ List all products
 ```
 configcat product ls
 ```
+## Options
+| Option | Description |
+| ------ | ----------- |
+| `--verbose`, `-v`, `/v` | Print detailed execution information |
+| `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |
 ## Parent Command
 | Command | Description |
 | ------ | ----------- |
