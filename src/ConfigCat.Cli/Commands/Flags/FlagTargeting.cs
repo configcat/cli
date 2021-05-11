@@ -150,6 +150,9 @@ namespace ConfigCat.Cli.Commands
         {
             var value = await this.flagValueClient.GetValueAsync(settingId, environmentId, token);
 
+            if(value.TargetingRules.Count == 0)
+                throw new Exception("No rules found in the selected environment.");
+
             TargetingModel existing = null;
             if (positionFromInput is null)
             {

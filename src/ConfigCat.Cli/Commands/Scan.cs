@@ -79,6 +79,9 @@ namespace ConfigCat.Cli.Commands
 
         private void PrintReferences(IEnumerable<FlagReferenceResult> references, Func<Reference, bool> filter)
         {
+            if(!references.Any())
+                return;
+
             this.output.WriteLine();
             foreach (var fileReference in references)
             {

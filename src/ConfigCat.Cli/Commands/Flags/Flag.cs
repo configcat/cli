@@ -103,7 +103,7 @@ namespace ConfigCat.Cli.Commands
                 createConfigModel.Type = await this.prompt.ChooseFromListAsync("Choose type", SettingTypes.Collection.ToList(), t => t, token);
 
             if (shouldPromptTags && (createConfigModel.TagIds is null || !createConfigModel.TagIds.Any()))
-                createConfigModel.TagIds = (await this.workspaceLoader.LoadTagsAsync(token, configId)).Select(t => t.TagId);
+                createConfigModel.TagIds = (await this.workspaceLoader.LoadTagsAsync(token, configId, optional: true)).Select(t => t.TagId);
 
             if (!SettingTypes.Collection.ToList()
                     .Contains(createConfigModel.Type, StringComparer.OrdinalIgnoreCase))
@@ -139,7 +139,7 @@ namespace ConfigCat.Cli.Commands
                     updateFlagModel.Hint = await this.prompt.GetStringAsync("Hint", token, flag.Hint);
 
                 if (updateFlagModel.TagIds is null || !updateFlagModel.TagIds.Any())
-                    updateFlagModel.TagIds = (await this.workspaceLoader.LoadTagsAsync(token, flag.ConfigId, flag.Tags)).Select(t => t.TagId);
+                    updateFlagModel.TagIds = (await this.workspaceLoader.LoadTagsAsync(token, flag.ConfigId, flag.Tags, optional: true)).Select(t => t.TagId);
             }
 
             if (updateFlagModel.Hint.IsEmptyOrEquals(flag.Hint) &&

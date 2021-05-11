@@ -47,7 +47,8 @@ namespace ConfigCat.Cli.Services.Rendering
                 return defaultValue;
 
             label = defaultValue is not null ? $"{label} [default: '{defaultValue}']" : label;
-            this.output.Write($"{label}: ");
+            this.output.WriteUnderline(label);
+            this.output.Write(": ");
 
             var result = await output.ReadLineAsync(token);
             this.output.WriteLine();
@@ -63,7 +64,8 @@ namespace ConfigCat.Cli.Services.Rendering
                 return defaultValue;
 
             label = defaultValue is not null ? $"{label} [default: {defaultValue}]" : label;
-            this.output.Write($"{label}: ");
+            this.output.WriteUnderline(label);
+            this.output.Write(": ");
 
             var result = await output.ReadLineAsync(token, true);
             this.output.WriteLine();
@@ -81,7 +83,6 @@ namespace ConfigCat.Cli.Services.Rendering
 
             using var _ = this.output.CreateCursorHider();
 
-            this.output.WriteLine();
             this.output.WriteUnderline(label);
             this.output.Write(":");
             this.output.WriteLine();
@@ -155,7 +156,6 @@ namespace ConfigCat.Cli.Services.Rendering
 
             using var _ = this.output.CreateCursorHider();
 
-            this.output.WriteLine();
             this.output.WriteUnderline(label);
             this.output.Write(":");
             this.output.WriteLine();

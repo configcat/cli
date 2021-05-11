@@ -6,6 +6,7 @@
 # Usage: curl -fsSL https://raw.githubusercontent.com/configcat/cli/main/scripts/install.sh | bash -s -- -d=<INSTALL-DIR> -v=<VERSION> -a=<ARCHITECTURE>
 
 set -e
+set -o pipefail
 
 for i in "$@"
 do
@@ -25,6 +26,11 @@ case $i in
     ;;
 esac
 done
+
+if ! command -v curl &> /dev/null; then
+    echo "Required command 'curl' not found. Please install 'curl' and try again."
+    exit 1;
+fi
 
 if [ -z "$VERSION" ]; then
 	VERSION=$(curl -s "https://api.github.com/repos/configcat/cli/releases/latest" | grep -Po '"tag_name": "v\K.*?(?=")')
@@ -50,6 +56,8 @@ case "$(uname -s)" in
         exit 1	
     ;;
 esac
+
+mkdir -p "$DIR"
 
 FILE_NAME="configcat-cli_${VERSION}_${OS}-${ARCH}.tar.gz"
 DOWNLOAD_URL="https://github.com/configcat/cli/releases/download/v${VERSION}/${FILE_NAME}"

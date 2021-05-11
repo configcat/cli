@@ -1,6 +1,7 @@
 ﻿using ConfigCat.Cli.Models.Api;
 using ConfigCat.Cli.Services.Exceptions;
 using ConfigCat.Cli.Services.Rendering;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -22,7 +23,7 @@ namespace ConfigCat.Cli.Services.Api
 
         Task<FlagModel> LoadFlagAsync(CancellationToken token);
 
-        Task<List<TagModel>> LoadTagsAsync(CancellationToken token, string configId = null, List<TagModel> defaultTags = null);
+        Task<List<TagModel>> LoadTagsAsync(CancellationToken token, string configId = null, List<TagModel> defaultTags = null, bool optional = false);
     }
 
     public class WorkspaceLoader : IWorkspaceLoader
@@ -65,6 +66,10 @@ namespace ConfigCat.Cli.Services.Api
         public async Task<ProductModel> LoadProductAsync(CancellationToken token)
         {
             var products = await this.productClient.GetProductsAsync(token);
+
+            if(!products.Any())
+                this.ThrowInformalException("product", "product create");
+
             var selected = await this.prompt.ChooseFromListAsync("Choose product", products.ToList(), p => $"{p.Name} ({p.Organization.Name})", token);
             if (selected == null)
                 this.ThrowHelpException("--product-id");
@@ -78,6 +83,9 @@ namespace ConfigCat.Cli.Services.Api
             var configs = new List<ConfigModel>();
             foreach (var product in products)
                 configs.AddRange(await this.configClient.GetConfigsAsync(product.ProductId, token));
+
+            if (!configs.Any())
+                this.ThrowInformalException("config", "config create");
 
             var selected = await this.prompt.ChooseFromListAsync("Choose config", configs.ToList(), c => $"{c.Name} ({c.Product.Name})", token);
             if (selected == null)
@@ -101,6 +109,9 @@ namespace ConfigCat.Cli.Services.Api
                 environments = (await this.environmentClient.GetEnvironmentsAsync(config.Product.ProductId, token)).ToList();
             }
 
+            if (!environments.Any())
+                this.ThrowInformalException("environment", "environment create");
+
             var selected = await this.prompt.ChooseFromListAsync("Choose environment", environments.ToList(), e => $"{e.Name} ({e.Product.Name})", token);
             if (selected == null)
                 this.ThrowHelpException("--environment-id");
@@ -114,6 +125,9 @@ namespace ConfigCat.Cli.Services.Api
             var tags = new List<TagModel>();
             foreach (var product in products)
                 tags.AddRange(await this.tagClient.GetTagsAsync(product.ProductId, token));
+
+            if (!tags.Any())
+                this.ThrowInformalException("tag", "tag create");
 
             var selected = await this.prompt.ChooseFromListAsync("Choose tag", tags.ToList(), t => $"{t.Name} ({t.Product.Name})", token);
             if (selected == null)
@@ -133,6 +147,9 @@ namespace ConfigCat.Cli.Services.Api
                     flags.AddRange(await this.flagClient.GetFlagsAsync(config.ConfigId, token));
             }
 
+            if (!flags.Any())
+                this.ThrowInformalException("flag", "flag create");
+
             var selected = await this.prompt.ChooseFromListAsync("Choose flag", flags.ToList(), f => $"{f.Name} ({f.ConfigName})", token);
             if (selected == null)
                 this.ThrowHelpException("--flag-id / --setting-id");
@@ -140,7 +157,7 @@ namespace ConfigCat.Cli.Services.Api
             return selected;
         }
 
-        public async Task<List<TagModel>> LoadTagsAsync(CancellationToken token, string configId = null, List<TagModel> defaultTags = null)
+        public async Task<List<TagModel>> LoadTagsAsync(CancellationToken token, string configId = null, List<TagModel> defaultTags = null, bool optional = false)
         {
             var tags = new List<TagModel>();
             if (configId == null)
@@ -155,6 +172,14 @@ namespace ConfigCat.Cli.Services.Api
                 tags = (await this.tagClient.GetTagsAsync(config.Product.ProductId, token)).ToList();
             }
 
+            if (!tags.Any())
+            {
+                if(optional)
+                    return new List<TagModel>();
+
+                this.ThrowInformalException("tag", "tag create");
+            }
+
             var selected = await this.prompt.ChooseMultipleFromListAsync("Choose tags", tags.ToList(), t => t.Name, token, defaultTags);
             if (selected == null)
                 this.ThrowHelpException("--tag-ids");
@@ -164,5 +189,8 @@ namespace ConfigCat.Cli.Services.Api
 
         private void ThrowHelpException(string argument) =>
             throw new ShowHelpException($"Required option {argument} is missing.");
+
+        private void ThrowInformalException(string resource, string argument) =>
+            throw new Exception($"No available {resource} found, to create one, use the 'configcat {argument}' command.");
     }
 }

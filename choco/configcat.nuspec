@@ -6,7 +6,7 @@
     <packageSourceUrl>https://github.com/configcat/cli</packageSourceUrl>
     <owners>ConfigCat</owners>
     <title>ConfigCat CLI</title>
-    <authors>ConfigCat</authors>
+    <authors>Peter Csajtai</authors>
     <projectUrl>https://configcat.com</projectUrl>
     <iconUrl>https://raw.githubusercontent.com/configcat/cli/main/choco/icon.png</iconUrl>
     <copyright>2021 Configcat</copyright>
