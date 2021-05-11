@@ -1,5 +1,4 @@
-﻿using ConfigCat.Cli.Commands;
-using ConfigCat.Cli.Models.Configuration;
+﻿using ConfigCat.Cli.Models.Configuration;
 using ConfigCat.Cli.Options;
 using ConfigCat.Cli.Services;
 using ConfigCat.Cli.Services.Api;
@@ -10,7 +9,6 @@ using Stashbox;
 using Stashbox.Configuration;
 using Stashbox.Lifetime;
 using System;
-using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Builder;
 using System.CommandLine.Invocation;
@@ -26,8 +24,6 @@ namespace ConfigCat.Cli
 {
     class Program
     {
-        static Option VerboseOption = new VerboseOption();
-
         static async Task<int> Main(string[] args)
         {
             await using var container = new StashboxContainer(c => c.WithDefaultLifetime(Lifetimes.Singleton));
@@ -40,15 +36,10 @@ namespace ConfigCat.Cli
             container.Register(typeof(IBotPolicy<>), typeof(BotPolicy<>), c => c.WithTransientLifetime());
             container.RegisterInstance(new HttpClient());
 
-            var root = CommandTree.Build();
-            var rootCommand = new RootCommand(root.Description);
-            rootCommand.AddGlobalOption(VerboseOption);
-            rootCommand.Configure(root.SubCommands, container);
-
-            var parser = new CommandLineBuilder(rootCommand)
+            var parser = new CommandLineBuilder(CommandBuilder.BuildRootCommand(container))
                 .UseMiddleware(async (context, next) =>
                 {
-                    var hasVerboseOption = context.ParseResult.FindResultFor(VerboseOption) is not null;
+                    var hasVerboseOption = context.ParseResult.FindResultFor(CommandBuilder.VerboseOption) is not null;
                     container.RegisterInstance(context.Console);
                     container.Register<IOutput, Output>(c => c.WithFactory<IConsole>(console => new Output(console, hasVerboseOption)));
                     await next(context);
@@ -79,6 +70,14 @@ namespace ConfigCat.Cli
                 })
                 .UseVersionOption()
                 .UseHelp()
+                .UseHelpBuilder(ctx =>
+                {
+                    int maxWidth = int.MaxValue;
+                    if (ctx.Console is SystemConsole systemConsole)
+                        maxWidth = systemConsole.GetWindowWidth();
+
+                    return new ExtendedHelpBuilder(ctx.Console, maxWidth);
+                })
                 .UseTypoCorrections()
                 .UseParseErrorReporting()
                 .UseExceptionHandler(ExceptionHandler)
@@ -90,7 +89,7 @@ namespace ConfigCat.Cli
 
         private static void ExceptionHandler(Exception exception, InvocationContext context)
         {
-            var hasVerboseOption = context.ParseResult.FindResultFor(VerboseOption) is not null;
+            var hasVerboseOption = context.ParseResult.FindResultFor(CommandBuilder.VerboseOption) is not null;
 
             if (exception is OperationCanceledException || exception is TaskCanceledException)
                 context.Console.WriteErrorOnTerminal("Terminated.");
@@ -117,40 +116,6 @@ namespace ConfigCat.Cli
                 context.Console.WriteErrorOnTerminal(hasVerboseOption ? exception.ToString() : exception.Message);
 
             context.ExitCode = ExitCodes.Error;
-        }
-    }
-
-    static class CommandExtensions
-    {
-        public static void Configure(this Command command,
-            IEnumerable<CommandDescriptor> commandDescriptors,
-            IDependencyRegistrator registrator)
-        {
-            foreach (var commandDescriptor in commandDescriptors)
-            {
-                var subCommand = new Command(commandDescriptor.Name, commandDescriptor.Description);
-
-                foreach (var option in commandDescriptor.Options)
-                    subCommand.AddOption(option);
-
-                foreach (var argument in commandDescriptor.Arguments)
-                    subCommand.AddArgument(argument);
-
-                foreach (var alias in commandDescriptor.Aliases)
-                    subCommand.AddAlias(alias);
-
-                subCommand.TreatUnmatchedTokensAsErrors = true;
-                subCommand.Configure(commandDescriptor.SubCommands, registrator);
-
-                if (commandDescriptor.Handler is not null)
-                {
-                    registrator.Register(commandDescriptor.Handler.HandlerType);
-                    registrator.RegisterInstance(commandDescriptor.Handler, subCommand.GetHashCode());
-                    subCommand.Handler = CommandHandler.Create(commandDescriptor.Handler.Method);
-                }
-
-                command.AddCommand(subCommand);
-            }
         }
     }
 }

@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConfigCat.Cli.Models", "src
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConfigCat.Cli.Services", "src\ConfigCat.Cli.Services\ConfigCat.Cli.Services.csproj", "{FD09655A-0C4A-4197-A148-636625CE9EA7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConfigCat.Cli.DocGenerator", "src\ConfigCat.Cli.DocGenerator\ConfigCat.Cli.DocGenerator.csproj", "{0F78FDC4-08AB-4C6C-9189-1D420E599054}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{FD09655A-0C4A-4197-A148-636625CE9EA7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FD09655A-0C4A-4197-A148-636625CE9EA7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FD09655A-0C4A-4197-A148-636625CE9EA7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0F78FDC4-08AB-4C6C-9189-1D420E599054}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0F78FDC4-08AB-4C6C-9189-1D420E599054}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0F78FDC4-08AB-4C6C-9189-1D420E599054}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0F78FDC4-08AB-4C6C-9189-1D420E599054}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

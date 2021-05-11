@@ -3,7 +3,7 @@ version: '#VERSION_PLACEHOLDER#'
 base: core18
 summary: Command Line Interface for ConfigCat
 description: |
-  The ConfigCat Command Line Interface allows you to interact with the ConfigCat Management API.
+  The ConfigCat Command Line Interface allows you to interact with the ConfigCat Management API via the command line.
   It supports most functionality found on the ConfigCat Dashboard. You can manage ConfigCat 
   resources like Feature Flags, Targeting / Percentage rules, Products, Configs, Environments, and more.
 license: MIT

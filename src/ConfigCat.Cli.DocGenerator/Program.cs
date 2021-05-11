@@ -1,0 +1,119 @@
+﻿using System;
+using System.Collections.Generic;
+using System.CommandLine;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ConfigCat.Cli.DocGenerator
+{
+    class Program
+    {
+        private readonly static ExposedHelpBuilder helpBuilder = new ExposedHelpBuilder();
+        private readonly static string currentPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "docs");
+
+        static async Task Main()
+        {
+            if (!Directory.Exists(currentPath))
+                Directory.CreateDirectory(currentPath);
+
+            var rootCommand = CommandBuilder.BuildRootCommand(asRootCommand: false);
+            var output = new StringBuilder();
+
+            output.AppendLine($"# Command Line Interface Reference");
+            output.AppendLine("This is a reference for the ConfigCat CLI. allows you to interact with the ConfigCat Management API via the command line. It supports most functionality found on the ConfigCat Dashboard. You can manage ConfigCat resources like Feature Flags, Targeting / Percentage rules, Products, Configs, Environments, and more.");
+            output.AppendLine("## Commands");
+            output.AppendLine("This is the complete list of the available commands provided by the CLI.");
+
+            foreach (var subCommand in rootCommand.Children.OfType<ICommand>().Where(c => !c.IsHidden))
+            {
+                output.AppendLine($"### configcat {subCommand.Name}");
+                output.AppendLine("| Command | Description |");
+                output.AppendLine("| ------ | ----------- |");
+                var generatedSubCommandDocs = new Dictionary<string, string>();
+                await GenerateDocsForSubCommand(subCommand, new Stack<ICommand>(new[] { rootCommand }), generatedSubCommandDocs);
+
+                foreach (var subCommandDoc in generatedSubCommandDocs)
+                    output.AppendLine($"| {subCommandDoc.Key} | {subCommandDoc.Value} |");
+            }
+
+            await File.WriteAllTextAsync(Path.Combine(currentPath, $"README.md"), output.ToString());
+        }
+
+        static async Task GenerateDocsForSubCommand(ICommand command, Stack<ICommand> parents, IDictionary<string, string> generatedDocs)
+        {
+            var output = new StringBuilder();
+
+            var parentNamesInOrder = parents.Reverse().Select(c => c.Name);
+            var selfName = parentNamesInOrder.Append(command.Name);
+
+            var selfLink = ProduceMarkdownLinkFromNames(selfName);
+            generatedDocs.Add(selfLink, command.Description.Replace(Environment.NewLine, "<br/>"));
+
+            output.AppendLine($"# {string.Join(' ', selfName)}");
+            output.AppendLine(command.Description.Replace(Environment.NewLine, "<br/>"));
+            output.AppendLine("## Usage");
+            output.AppendLine("```");
+            output.AppendLine(helpBuilder.ExposeGetUsage(command));
+            output.AppendLine("```");
+
+            var aliases = command.Aliases.Except(new[] { command.Name });
+            if (aliases.Any())
+            {
+                output.AppendLine("## Aliases");
+                output.AppendLine(string.Join(", ", aliases.Select(a => $"`{a}`")));
+            }
+
+            var options = command.Options.Where(o => !o.IsHidden);
+            if (options.Any())
+            {
+                output.AppendLine("## Options");
+                output.AppendLine("| Option | Description |");
+                output.AppendLine("| ------ | ----------- |");
+                foreach (var option in options)
+                    output.AppendLine($"| {string.Join(", ", option.Aliases.Select(a => $"`{a}`"))} | {option.Description.Replace(Environment.NewLine, "<br/>")} |");
+            }
+
+            var arguments = helpBuilder.ExposeGetCommandArguments(command);
+            if (arguments.Any())
+            {
+                output.AppendLine("## Arguments");
+                output.AppendLine("| Argument | Description |");
+                output.AppendLine("| ------ | ----------- |");
+                foreach (var argument in arguments)
+                    output.AppendLine($"| `{argument.Descriptor}` | {argument.Description.Replace(Environment.NewLine, "<br/>")} |");
+            }
+
+            output.AppendLine("## Parent Command");
+            output.AppendLine("| Command | Description |");
+            output.AppendLine("| ------ | ----------- |");
+            output.AppendLine($"| {ProduceMarkdownLinkFromNames(parentNamesInOrder)} | {parents.Peek().Description.Replace(Environment.NewLine, "<br/>")} |");
+
+            var subCommands = command.Children.OfType<ICommand>();
+            if (subCommands.Any())
+            {
+                output.AppendLine("## Subcommands");
+                output.AppendLine("| Command | Description |");
+                output.AppendLine("| ------ | ----------- |");
+                parents.Push(command);
+                var commandNameChain = parents.Reverse().Where(c => !c.IsHidden).Select(c => c.Name);
+
+                foreach (var subCommand in subCommands)
+                {
+                    var commandNames = commandNameChain.Append(subCommand.Name);
+                    output.AppendLine($"| {ProduceMarkdownLinkFromNames(commandNames)} | {subCommand.Description.Replace(Environment.NewLine, "<br/>")} |");
+                    await GenerateDocsForSubCommand(subCommand, parents, generatedDocs);
+                }
+
+                parents.Pop();
+            }
+            var path = Path.Combine(currentPath, $"{string.Join('-', selfName)}.md");
+            await File.WriteAllTextAsync(path, output.ToString());
+        }
+
+        private static string ProduceMarkdownLinkFromNames(IEnumerable<string> names)
+            => $"[{string.Join(' ', names)}]({(names.Count() == 1 ? "README" : string.Join('-', names))}.md)";
+    }
+}

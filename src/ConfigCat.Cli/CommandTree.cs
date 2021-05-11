@@ -1,15 +1,27 @@
 ﻿using ConfigCat.Cli.Commands;
 using ConfigCat.Cli.Options;
 using ConfigCat.Cli.Services;
+using Stashbox;
 using System.CommandLine;
 using System.IO;
 using System.Linq;
 
 namespace ConfigCat.Cli
 {
-    class CommandTree
+    public class CommandBuilder
     {
-        public static CommandDescriptor Build() =>
+        public readonly static Option VerboseOption = new VerboseOption();
+
+        public static Command BuildRootCommand(IDependencyRegistrator dependencyRegistrator = null, bool asRootCommand = true)
+        {
+            var root = BuildDescriptors();
+            var rootCommand = asRootCommand ? new RootCommand(root.Description) : new Command("configcat", root.Description);
+            rootCommand.AddGlobalOption(VerboseOption);
+            rootCommand.Configure(root.SubCommands, dependencyRegistrator);
+            return rootCommand;
+        }
+
+        private static CommandDescriptor BuildDescriptors() =>
             new CommandDescriptor(null, $"This is the Command Line Tool of ConfigCat.{System.Environment.NewLine}ConfigCat is a " +
                 $"hosted feature flag service: https://configcat.com{System.Environment.NewLine}For more information, " +
                 $"see the documentation here: https://configcat.com/docs/")
@@ -445,7 +457,7 @@ namespace ConfigCat.Cli
                         {
                             new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the flag or setting")
                             {
-                                Name = "flag-id"
+                                Name = "--flag-id"
                             },
                             new Option<string>(new[] { "--environment-id", "-e" }, "ID of the environment where the update must be applied"),
                         }
@@ -458,7 +470,7 @@ namespace ConfigCat.Cli
                         {
                             new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the flag or setting")
                             {
-                                Name = "flag-id"
+                                Name = "--flag-id"
                             },
                             new Option<string>(new[] { "--environment-id", "-e" }, "ID of the environment from where the rules must be deleted"),
                         }
@@ -494,6 +506,7 @@ namespace ConfigCat.Cli
             {
                 Aliases = new[] { "cat" },
                 Handler = CreateHandler<Cat>(nameof(Cat.InvokeAsync)),
+                IsHidden = true,
             };
 
         private static HandlerDescriptor CreateHandler<THandler>(string methodName)

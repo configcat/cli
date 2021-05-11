@@ -2,7 +2,7 @@
 
 [![ConfigCat CLI CI](https://github.com/configcat/cli/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/configcat/cli/actions/workflows/ci.yml)
 
-The ConfigCat Command Line Interface allows you to interact with the ConfigCat Management API. It supports most functionality found on the ConfigCat Dashboard. You can manage ConfigCat resources like Feature Flags, Targeting / Percentage rules, Products, Configs, Environments, and more.
+The ConfigCat Command Line Interface allows you to interact with the ConfigCat Management API via the command line. It supports most functionality found on the ConfigCat Dashboard. You can manage ConfigCat resources like Feature Flags, Targeting / Percentage rules, Products, Configs, Environments, and more.
 
 <img src="assets/teaser.gif" alt="ConfigCat CLI Feature Flag Create"/>
 

@@ -6,7 +6,7 @@ using System.Reflection;
 
 namespace ConfigCat.Cli
 {
-    class CommandDescriptor
+    public class CommandDescriptor
     {
         public CommandDescriptor(string name, string description)
         {
@@ -17,6 +17,8 @@ namespace ConfigCat.Cli
         public string Name { get; }
 
         public string Description { get; }
+
+        public bool IsHidden { get; set; }
 
         public IEnumerable<Option> Options { get; set; } = Enumerable.Empty<Option>();
 
@@ -29,7 +31,7 @@ namespace ConfigCat.Cli
         public HandlerDescriptor Handler { get; set; }
     }
 
-    class HandlerDescriptor
+    public class HandlerDescriptor
     {
         public HandlerDescriptor(Type handlerType, MethodInfo method)
         {
