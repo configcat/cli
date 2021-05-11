@@ -15,7 +15,7 @@ ConfigCat is a <a href="https://configcat.com" target="_blank">hosted feature fl
 The following instructions will guide you through the first steps to start using this tool.
 
 ### Installation
-As the development of the CLI is just in beta phase, there is no official package available yet. It'll be distributed through [snapcraft.io](https://snapcraft.io/), [Chocolatey](https://community.chocolatey.org/packages), and [Homebrew](https://brew.sh) in the future.
+As the development of the CLI is just in beta phase, there is no official package available yet. It'll be distributed through [snapcraft.io](https://snapcraft.io/), [Chocolatey](https://community.chocolatey.org/packages), [Homebrew](https://brew.sh), and [docker](https://www.docker.com/) in the future.
 
 In the meantime, you can download the binaries directly from [GitHub Releases](https://github.com/configcat/cli/releases).
 
