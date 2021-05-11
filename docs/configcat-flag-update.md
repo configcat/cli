@@ -9,7 +9,7 @@ configcat [options] flag update
 ## Options
 | Option | Description |
 | ------ | ----------- |
-| `--flag-id`, `-i`, `--setting-id`, `flag-id` | ID of the flag or setting to update |
+| `--flag-id`, `-i`, `--setting-id` | ID of the flag or setting to update |
 | `--name`, `-n` | The updated name |
 | `--hint`, `-H` | The updated hint |
 | `--tag-ids`, `-g` | The updated tag list |

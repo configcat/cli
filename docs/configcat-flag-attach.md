@@ -9,7 +9,7 @@ configcat [options] flag attach
 ## Options
 | Option | Description |
 | ------ | ----------- |
-| `--flag-id`, `-i`, `--setting-id`, `flag-id` | ID of the flag or setting to attach tags |
+| `--flag-id`, `-i`, `--setting-id` | ID of the flag or setting to attach tags |
 | `--tag-ids`, `-g` | Tag IDs to attach |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |
 | `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |

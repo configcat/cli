@@ -7,7 +7,7 @@ configcat [options] flag targeting rm
 ## Options
 | Option | Description |
 | ------ | ----------- |
-| `--flag-id`, `-i`, `--setting-id`, `flag-id` | ID of the flag or setting |
+| `--flag-id`, `-i`, `--setting-id` | ID of the flag or setting |
 | `--environment-id`, `-e` | ID of the environment from where the rule must be deleted |
 | `--position`, `-p` | The position of the targeting rule to delete |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |

@@ -277,7 +277,7 @@ namespace ConfigCat.Cli
                         {
                             new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the flag or setting to delete")
                             {
-                                Name = "flag-id"
+                                Name = "--flag-id"
                             },
                         }
                     },
@@ -289,7 +289,7 @@ namespace ConfigCat.Cli
                         {
                             new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the flag or setting to update")
                             {
-                                Name = "flag-id"
+                                Name = "--flag-id"
                             },
                             new Option<string>(new[] { "--name", "-n" }, "The updated name"),
                             new Option<string>(new[] { "--hint", "-H" }, "The updated hint"),
@@ -304,7 +304,7 @@ namespace ConfigCat.Cli
                         {
                             new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the flag or setting to attach tags")
                             {
-                                Name = "flag-id"
+                                Name = "--flag-id"
                             },
                             new Option<int[]>(new[] { "--tag-ids", "-g" }, "Tag IDs to attach"),
                         }
@@ -317,7 +317,7 @@ namespace ConfigCat.Cli
                         {
                             new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the flag or setting to detach tags")
                             {
-                                Name = "flag-id"
+                                Name = "--flag-id"
                             },
                             new Option<int[]>(new[] { "--tag-ids", "-g" }, "Tag IDs to detach"),
                         }
@@ -344,7 +344,7 @@ namespace ConfigCat.Cli
                         {
                             new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the flag or setting")
                             {
-                                Name = "flag-id"
+                                Name = "--flag-id"
                             },
                         }
                     },
@@ -356,7 +356,7 @@ namespace ConfigCat.Cli
                         {
                             new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the flag or setting")
                             {
-                                Name = "flag-id"
+                                Name = "--flag-id"
                             },
                             new Option<string>(new[] { "--environment-id", "-e" }, "ID of the environment where the update must be applied"),
                             new Option<string>(new[] { "--flag-value", "-f" }, "The value to serve, it must respect the setting type"),
@@ -379,7 +379,7 @@ namespace ConfigCat.Cli
                         {
                             new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the flag or setting")
                             {
-                                Name = "flag-id"
+                                Name = "--flag-id"
                             },
                             new Option<string>(new[] { "--environment-id", "-e" }, "ID of the environment where the rule must be created"),
                             new Option<string>(new[] { "--attribute", "-a" }, "The user attribute to compare"),
@@ -397,7 +397,7 @@ namespace ConfigCat.Cli
                         {
                             new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the flag or setting")
                             {
-                                Name = "flag-id"
+                                Name = "--flag-id"
                             },
                             new Option<string>(new[] { "--environment-id", "-e" }, "ID of the environment where the update must be applied"),
                             new Option<int?>(new[] { "--position", "-p" }, "The position of the updating targeting rule"),
@@ -415,7 +415,7 @@ namespace ConfigCat.Cli
                         {
                             new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the flag or setting")
                             {
-                                Name = "flag-id"
+                                Name = "--flag-id"
                             },
                             new Option<string>(new[] { "--environment-id", "-e" }, "ID of the environment from where the rule must be deleted"),
                             new Option<int?>(new[] { "--position", "-p" }, "The position of the targeting rule to delete"),
@@ -429,7 +429,7 @@ namespace ConfigCat.Cli
                         {
                             new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the flag or setting")
                             {
-                                Name = "flag-id"
+                                Name = "--flag-id"
                             },
                             new Option<string>(new[] { "--environment-id", "-e" }, "ID of the environment where the move must be applied"),
                             new Option<int?>(new[] { "--from" }, "The position of the targeting rule to delete"),

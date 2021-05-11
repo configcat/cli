@@ -9,7 +9,7 @@ configcat [options] flag targeting move
 ## Options
 | Option | Description |
 | ------ | ----------- |
-| `--flag-id`, `-i`, `--setting-id`, `flag-id` | ID of the flag or setting |
+| `--flag-id`, `-i`, `--setting-id` | ID of the flag or setting |
 | `--environment-id`, `-e` | ID of the environment where the move must be applied |
 | `--from` | The position of the targeting rule to delete |
 | `--to` | The desired position of the targeting rule |

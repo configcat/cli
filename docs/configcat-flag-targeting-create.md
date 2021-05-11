@@ -9,7 +9,7 @@ configcat [options] flag targeting create
 ## Options
 | Option | Description |
 | ------ | ----------- |
-| `--flag-id`, `-i`, `--setting-id`, `flag-id` | ID of the flag or setting |
+| `--flag-id`, `-i`, `--setting-id` | ID of the flag or setting |
 | `--environment-id`, `-e` | ID of the environment where the rule must be created |
 | `--attribute`, `-a` | The user attribute to compare |
 | `--comparator`, `-c` | The comparison operator |

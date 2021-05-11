@@ -9,7 +9,7 @@ configcat [options] flag targeting update
 ## Options
 | Option | Description |
 | ------ | ----------- |
-| `--flag-id`, `-i`, `--setting-id`, `flag-id` | ID of the flag or setting |
+| `--flag-id`, `-i`, `--setting-id` | ID of the flag or setting |
 | `--environment-id`, `-e` | ID of the environment where the update must be applied |
 | `--position`, `-p` | The position of the updating targeting rule |
 | `--attribute`, `-a` | The user attribute to compare |

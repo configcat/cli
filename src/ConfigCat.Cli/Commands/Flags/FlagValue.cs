@@ -16,7 +16,6 @@ namespace ConfigCat.Cli.Commands
         private readonly IFlagValueClient flagValueClient;
         private readonly IFlagClient flagClient;
         private readonly IConfigClient configClient;
-        private readonly IProductClient productClient;
         private readonly IEnvironmentClient environmentClient;
         private readonly IWorkspaceLoader workspaceLoader;
         private readonly IPrompt prompt;
@@ -25,7 +24,6 @@ namespace ConfigCat.Cli.Commands
         public FlagValue(IFlagValueClient flagValueClient,
             IFlagClient flagClient,
             IConfigClient configClient,
-            IProductClient productClient,
             IEnvironmentClient environmentClient,
             IWorkspaceLoader workspaceLoader,
             IPrompt prompt,
@@ -34,7 +32,6 @@ namespace ConfigCat.Cli.Commands
             this.flagValueClient = flagValueClient;
             this.flagClient = flagClient;
             this.configClient = configClient;
-            this.productClient = productClient;
             this.environmentClient = environmentClient;
             this.workspaceLoader = workspaceLoader;
             this.prompt = prompt;
