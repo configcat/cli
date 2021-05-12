@@ -21,7 +21,7 @@ As the development of the CLI is just in beta phase, there is no official packag
 
 In the meantime, you can download the binaries directly from [GitHub Releases](https://github.com/configcat/cli/releases).
 
-#### via Install Script
+#### Install Script
 You can install the CLI by executing an install script on Unix platforms. 
 ```bash
 curl -fsSL "https://raw.githubusercontent.com/configcat/cli/main/scripts/install.sh" | bash
