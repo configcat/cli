@@ -1,4 +1,4 @@
-# Command Line Interface for ConfigCat (beta)
+# Command Line Interface for ConfigCat
 
 [![ConfigCat CLI CI](https://github.com/configcat/cli/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/configcat/cli/actions/workflows/ci.yml)
 
@@ -17,7 +17,7 @@ ConfigCat is a <a href="https://configcat.com" target="_blank">hosted feature fl
 The following instructions will guide you through the first steps to start using this tool.
 
 ### Installation
-As the development of the CLI is just in beta phase, there is no official package available yet. It'll be distributed through <a target="_blank" href="https://snapcraft.io/">snapcraft.io</a>, <a target="_blank" href="https://community.chocolatey.org/packages">Chocolatey</a>, <a target="_blank" href="https://brew.sh">Homebrew</a>, and <a target="_blank" href="https://www.docker.com/">docker</a> in the future.
+Distribution via package managers is not yet available, however we plan publishing packages to <a target="_blank" href="https://snapcraft.io/">snapcraft.io</a>, <a target="_blank" href="https://community.chocolatey.org/packages">Chocolatey</a>, <a target="_blank" href="https://brew.sh">Homebrew</a>, and <a target="_blank" href="https://www.docker.com/">docker</a> in the future.
 
 In the meantime, you can download the binaries directly from [GitHub Releases](https://github.com/configcat/cli/releases).
 
