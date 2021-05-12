@@ -129,6 +129,6 @@ namespace ConfigCat.Cli.DocGenerator
         }
 
         private static string ProduceMarkdownLinkFromNames(IEnumerable<string> names)
-            => $"[{string.Join(' ', names)}]({(names.Count() == 1 ? "README" : string.Join('-', names))}.md)";
+            => $"[{string.Join(' ', names)}]({(names.Count() == 1 ? "index" : string.Join('-', names))}.md)";
     }
 }
