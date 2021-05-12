@@ -16,7 +16,7 @@ configcat [options] flag percentage update [<rules>...]
 ## Arguments
 | Argument | Description |
 | ------ | ----------- |
-| `<rules>` | Format: <percentage>:<value>, e.g. '30:true 70:false' |
+| `<rules>` | Format: `<percentage>:<value>`, e.g. `30:true 70:false` |
 ## Parent Command
 | Command | Description |
 | ------ | ----------- |
