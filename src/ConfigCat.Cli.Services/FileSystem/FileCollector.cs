@@ -29,7 +29,8 @@ namespace ConfigCat.Cli.Services.FileSystem
             var files = rootDirectory.GetFiles("*", new EnumerationOptions
             {
                 RecurseSubdirectories = true,
-                IgnoreInaccessible = true
+                IgnoreInaccessible = true,
+                AttributesToSkip = FileAttributes.System
             });
             var ignoreFiles = files.Where(f => f.IsIgnoreFile());
             var filesToReturn = files.Except(ignoreFiles);
