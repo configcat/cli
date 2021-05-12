@@ -1,5 +1,5 @@
 # configcat scan
-Scans files for feature flag or setting usages
+Scans files for Feature Flag or Setting usages
 ## Usage
 ```
 configcat [options] scan <directory>
@@ -7,7 +7,7 @@ configcat [options] scan <directory>
 ## Options
 | Option | Description |
 | ------ | ----------- |
-| `--config-id`, `-c` | ID of the config to scan against |
+| `--config-id`, `-c` | ID of the Config to scan against |
 | `--line-count`, `-l` | Context line count before and after the reference line |
 | `--print`, `-p` | Print found references |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |

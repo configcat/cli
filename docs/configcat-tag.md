@@ -1,5 +1,5 @@
 # configcat tag
-Manage tags
+Manage Tags. Tags are stored under a Product. You can attach a Tag to a Feature Flag or Setting.
 ## Usage
 ```
 configcat tag [command]
@@ -18,7 +18,7 @@ configcat tag [command]
 ## Subcommands
 | Command | Description |
 | ------ | ----------- |
-| [configcat tag ls](configcat-tag-ls.md) | List all tags |
-| [configcat tag create](configcat-tag-create.md) | Create tag |
-| [configcat tag rm](configcat-tag-rm.md) | Delete tag |
-| [configcat tag update](configcat-tag-update.md) | Update tag |
+| [configcat tag ls](configcat-tag-ls.md) | List all Tags that belongs to the configured user |
+| [configcat tag create](configcat-tag-create.md) | Create a new Tag in a specified Product identified by the `--product-id` option |
+| [configcat tag rm](configcat-tag-rm.md) | Remove a Tag identified by the `--tag-id` option |
+| [configcat tag update](configcat-tag-update.md) | Update a Tag identified by the `--tag-id` option |

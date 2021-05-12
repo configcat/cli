@@ -1,5 +1,5 @@
 # configcat environment
-Manage environments
+Manage Environments. More about Environments: https://configcat.com/docs/main-concepts/#environment
 ## Usage
 ```
 configcat environment [command]
@@ -18,7 +18,7 @@ configcat environment [command]
 ## Subcommands
 | Command | Description |
 | ------ | ----------- |
-| [configcat environment ls](configcat-environment-ls.md) | List all environments |
-| [configcat environment create](configcat-environment-create.md) | Create environment |
-| [configcat environment rm](configcat-environment-rm.md) | Delete environment |
+| [configcat environment ls](configcat-environment-ls.md) | List all Environments that belongs to the configured user |
+| [configcat environment create](configcat-environment-create.md) | Create a new Environment in a specified Product identified by the `--product-id` option |
+| [configcat environment rm](configcat-environment-rm.md) | Remove an Environment identified by the `--environment-id` option |
 | [configcat environment update](configcat-environment-update.md) | Update environment |

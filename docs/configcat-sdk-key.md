@@ -1,5 +1,5 @@
 # configcat sdk-key
-List sdk keys
+List SDK Keys
 ## Usage
 ```
 configcat sdk-key

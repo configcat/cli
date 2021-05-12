@@ -1,5 +1,5 @@
 # configcat environment rm
-Delete environment
+Remove an Environment identified by the `--environment-id` option
 ## Usage
 ```
 configcat [options] environment rm
@@ -7,10 +7,10 @@ configcat [options] environment rm
 ## Options
 | Option | Description |
 | ------ | ----------- |
-| `--environment-id`, `-i` | ID of the environment to delete |
+| `--environment-id`, `-i` | ID of the Environment to delete |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |
 | `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |
 ## Parent Command
 | Command | Description |
 | ------ | ----------- |
-| [configcat environment](configcat-environment.md) | Manage environments |
+| [configcat environment](configcat-environment.md) | Manage Environments. More about Environments: https://configcat.com/docs/main-concepts/#environment |

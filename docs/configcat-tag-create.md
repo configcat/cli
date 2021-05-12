@@ -1,5 +1,5 @@
 # configcat tag create
-Create tag
+Create a new Tag in a specified Product identified by the `--product-id` option
 ## Usage
 ```
 configcat [options] tag create
@@ -9,12 +9,12 @@ configcat [options] tag create
 ## Options
 | Option | Description |
 | ------ | ----------- |
-| `--product-id`, `-p` | ID of the product where the tag must be created |
-| `--name`, `-n` | The name of the new tag |
-| `--color`, `-c` | The color of the new tag |
+| `--product-id`, `-p` | ID of the Product where the Tag must be created |
+| `--name`, `-n` | The name of the new Tag |
+| `--color`, `-c` | The color of the new Tag |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |
 | `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |
 ## Parent Command
 | Command | Description |
 | ------ | ----------- |
-| [configcat tag](configcat-tag.md) | Manage tags |
+| [configcat tag](configcat-tag.md) | Manage Tags. Tags are stored under a Product. You can attach a Tag to a Feature Flag or Setting. |

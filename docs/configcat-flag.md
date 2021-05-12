@@ -1,5 +1,5 @@
 # configcat flag
-Manage flags & settings
+Manage Feature Flags & Settings
 ## Usage
 ```
 configcat flag [command]
@@ -18,12 +18,12 @@ configcat flag [command]
 ## Subcommands
 | Command | Description |
 | ------ | ----------- |
-| [configcat flag ls](configcat-flag-ls.md) | List all flags |
-| [configcat flag create](configcat-flag-create.md) | Create flag |
-| [configcat flag rm](configcat-flag-rm.md) | Delete flag |
-| [configcat flag update](configcat-flag-update.md) | Update flag |
-| [configcat flag attach](configcat-flag-attach.md) | Attach tag(s) to a flag |
-| [configcat flag detach](configcat-flag-detach.md) | Detach tag(s) from a flag |
-| [configcat flag value](configcat-flag-value.md) | Show, and update flag values in different environments |
+| [configcat flag ls](configcat-flag-ls.md) | List all Feature Flags & Settings that belongs to the configured user |
+| [configcat flag create](configcat-flag-create.md) | Create a new Feature Flag or Setting in a specified Config identified by the `--config-id` option |
+| [configcat flag rm](configcat-flag-rm.md) | Remove a Feature Flag or Setting identified by the `--flag-id` option |
+| [configcat flag update](configcat-flag-update.md) | Update a Feature Flag or Setting identified by the `--flag-id` option |
+| [configcat flag attach](configcat-flag-attach.md) | Attach Tag(s) to a Feature Flag or Setting |
+| [configcat flag detach](configcat-flag-detach.md) | Detach Tag(s) from a Feature Flag or Setting |
+| [configcat flag value](configcat-flag-value.md) | Show, and update Feature Flag or Setting values in different Environments |
 | [configcat flag targeting](configcat-flag-targeting.md) | Manage targeting rules |
 | [configcat flag percentage](configcat-flag-percentage.md) | Manage percentage rules |

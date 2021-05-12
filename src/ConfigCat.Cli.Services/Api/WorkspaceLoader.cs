@@ -188,9 +188,9 @@ namespace ConfigCat.Cli.Services.Api
         }
 
         private void ThrowHelpException(string argument) =>
-            throw new ShowHelpException($"Required option {argument} is missing.");
+            throw new ShowHelpException($"Required option `{argument}` is missing.");
 
         private void ThrowInformalException(string resource, string argument) =>
-            throw new Exception($"No available {resource} found, to create one, use the 'configcat {argument}' command.");
+            throw new Exception($"No available {resource} found, to create one, use the `configcat {argument}` command.");
     }
 }

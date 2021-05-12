@@ -1,5 +1,5 @@
 # configcat config
-Manage configs
+Manage Configs. More about Configs: https://configcat.com/docs/main-concepts/#config
 ## Usage
 ```
 configcat config [command]
@@ -18,7 +18,7 @@ configcat config [command]
 ## Subcommands
 | Command | Description |
 | ------ | ----------- |
-| [configcat config ls](configcat-config-ls.md) | List all configs |
-| [configcat config create](configcat-config-create.md) | Create config |
-| [configcat config rm](configcat-config-rm.md) | Delete config |
-| [configcat config update](configcat-config-update.md) | Update Config |
+| [configcat config ls](configcat-config-ls.md) | List all Configs that belongs to the configured user |
+| [configcat config create](configcat-config-create.md) | Create a new Config in a specified Product identified by the `--product-id` option |
+| [configcat config rm](configcat-config-rm.md) | Remove a Config identified by the `--config-id` option |
+| [configcat config update](configcat-config-update.md) | Update a Config identified by the `--config-id` option |

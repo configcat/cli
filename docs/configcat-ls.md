@@ -1,5 +1,5 @@
 # configcat ls
-List all products, configs, and environments IDs
+List all Product, Config, and Environment IDs
 ## Usage
 ```
 configcat ls

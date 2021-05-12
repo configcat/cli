@@ -14,7 +14,7 @@ configcat flag percentage [command]
 ## Parent Command
 | Command | Description |
 | ------ | ----------- |
-| [configcat flag](configcat-flag.md) | Manage flags & settings |
+| [configcat flag](configcat-flag.md) | Manage Feature Flags & Settings |
 ## Subcommands
 | Command | Description |
 | ------ | ----------- |

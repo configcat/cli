@@ -9,8 +9,8 @@ configcat [options] flag percentage update [<rules>...]
 ## Options
 | Option | Description |
 | ------ | ----------- |
-| `--flag-id`, `-i`, `--setting-id` | ID of the flag or setting |
-| `--environment-id`, `-e` | ID of the environment where the update must be applied |
+| `--flag-id`, `-i`, `--setting-id` | ID of the Feature Flag or Setting |
+| `--environment-id`, `-e` | ID of the Environment where the update must be applied |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |
 | `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |
 ## Arguments

@@ -15,52 +15,52 @@ This is the complete list of the available commands provided by the CLI.
 ### configcat ls
 | Command | Description |
 | ------ | ----------- |
-| [configcat ls](configcat-ls.md) | List all products, configs, and environments IDs |
+| [configcat ls](configcat-ls.md) | List all Product, Config, and Environment IDs |
 ### configcat product
 | Command | Description |
 | ------ | ----------- |
-| [configcat product](configcat-product.md) | Manage products |
-| [configcat product ls](configcat-product-ls.md) | List all products |
-| [configcat product create](configcat-product-create.md) | Create product |
-| [configcat product rm](configcat-product-rm.md) | Delete product |
-| [configcat product update](configcat-product-update.md) | Update product |
+| [configcat product](configcat-product.md) | Manage Products. More about Products: https://configcat.com/docs/main-concepts/#product |
+| [configcat product ls](configcat-product-ls.md) | List all Products that belongs to the configured user |
+| [configcat product create](configcat-product-create.md) | Create a new Product in a specified Organization identified by the `--organization-id` option |
+| [configcat product rm](configcat-product-rm.md) | Remove a Product identified by the `--product-id` option |
+| [configcat product update](configcat-product-update.md) | Update a Product identified by the `--product-id` option |
 ### configcat config
 | Command | Description |
 | ------ | ----------- |
-| [configcat config](configcat-config.md) | Manage configs |
-| [configcat config ls](configcat-config-ls.md) | List all configs |
-| [configcat config create](configcat-config-create.md) | Create config |
-| [configcat config rm](configcat-config-rm.md) | Delete config |
-| [configcat config update](configcat-config-update.md) | Update Config |
+| [configcat config](configcat-config.md) | Manage Configs. More about Configs: https://configcat.com/docs/main-concepts/#config |
+| [configcat config ls](configcat-config-ls.md) | List all Configs that belongs to the configured user |
+| [configcat config create](configcat-config-create.md) | Create a new Config in a specified Product identified by the `--product-id` option |
+| [configcat config rm](configcat-config-rm.md) | Remove a Config identified by the `--config-id` option |
+| [configcat config update](configcat-config-update.md) | Update a Config identified by the `--config-id` option |
 ### configcat environment
 | Command | Description |
 | ------ | ----------- |
-| [configcat environment](configcat-environment.md) | Manage environments |
-| [configcat environment ls](configcat-environment-ls.md) | List all environments |
-| [configcat environment create](configcat-environment-create.md) | Create environment |
-| [configcat environment rm](configcat-environment-rm.md) | Delete environment |
+| [configcat environment](configcat-environment.md) | Manage Environments. More about Environments: https://configcat.com/docs/main-concepts/#environment |
+| [configcat environment ls](configcat-environment-ls.md) | List all Environments that belongs to the configured user |
+| [configcat environment create](configcat-environment-create.md) | Create a new Environment in a specified Product identified by the `--product-id` option |
+| [configcat environment rm](configcat-environment-rm.md) | Remove an Environment identified by the `--environment-id` option |
 | [configcat environment update](configcat-environment-update.md) | Update environment |
 ### configcat tag
 | Command | Description |
 | ------ | ----------- |
-| [configcat tag](configcat-tag.md) | Manage tags |
-| [configcat tag ls](configcat-tag-ls.md) | List all tags |
-| [configcat tag create](configcat-tag-create.md) | Create tag |
-| [configcat tag rm](configcat-tag-rm.md) | Delete tag |
-| [configcat tag update](configcat-tag-update.md) | Update tag |
+| [configcat tag](configcat-tag.md) | Manage Tags. Tags are stored under a Product. You can attach a Tag to a Feature Flag or Setting. |
+| [configcat tag ls](configcat-tag-ls.md) | List all Tags that belongs to the configured user |
+| [configcat tag create](configcat-tag-create.md) | Create a new Tag in a specified Product identified by the `--product-id` option |
+| [configcat tag rm](configcat-tag-rm.md) | Remove a Tag identified by the `--tag-id` option |
+| [configcat tag update](configcat-tag-update.md) | Update a Tag identified by the `--tag-id` option |
 ### configcat flag
 | Command | Description |
 | ------ | ----------- |
-| [configcat flag](configcat-flag.md) | Manage flags & settings |
-| [configcat flag ls](configcat-flag-ls.md) | List all flags |
-| [configcat flag create](configcat-flag-create.md) | Create flag |
-| [configcat flag rm](configcat-flag-rm.md) | Delete flag |
-| [configcat flag update](configcat-flag-update.md) | Update flag |
-| [configcat flag attach](configcat-flag-attach.md) | Attach tag(s) to a flag |
-| [configcat flag detach](configcat-flag-detach.md) | Detach tag(s) from a flag |
-| [configcat flag value](configcat-flag-value.md) | Show, and update flag values in different environments |
-| [configcat flag value show](configcat-flag-value-show.md) | Show flag values, targeting, and percentage rules for each environment |
-| [configcat flag value update](configcat-flag-value-update.md) | Update the flag's value |
+| [configcat flag](configcat-flag.md) | Manage Feature Flags & Settings |
+| [configcat flag ls](configcat-flag-ls.md) | List all Feature Flags & Settings that belongs to the configured user |
+| [configcat flag create](configcat-flag-create.md) | Create a new Feature Flag or Setting in a specified Config identified by the `--config-id` option |
+| [configcat flag rm](configcat-flag-rm.md) | Remove a Feature Flag or Setting identified by the `--flag-id` option |
+| [configcat flag update](configcat-flag-update.md) | Update a Feature Flag or Setting identified by the `--flag-id` option |
+| [configcat flag attach](configcat-flag-attach.md) | Attach Tag(s) to a Feature Flag or Setting |
+| [configcat flag detach](configcat-flag-detach.md) | Detach Tag(s) from a Feature Flag or Setting |
+| [configcat flag value](configcat-flag-value.md) | Show, and update Feature Flag or Setting values in different Environments |
+| [configcat flag value show](configcat-flag-value-show.md) | Show Feature Flag or Setting values, targeting, and percentage rules for each environment |
+| [configcat flag value update](configcat-flag-value-update.md) | Update the value of a Feature Flag or Setting |
 | [configcat flag targeting](configcat-flag-targeting.md) | Manage targeting rules |
 | [configcat flag targeting create](configcat-flag-targeting-create.md) | Create new targeting rule |
 | [configcat flag targeting update](configcat-flag-targeting-update.md) | Update targeting rule |
@@ -72,8 +72,8 @@ This is the complete list of the available commands provided by the CLI.
 ### configcat sdk-key
 | Command | Description |
 | ------ | ----------- |
-| [configcat sdk-key](configcat-sdk-key.md) | List sdk keys |
+| [configcat sdk-key](configcat-sdk-key.md) | List SDK Keys |
 ### configcat scan
 | Command | Description |
 | ------ | ----------- |
-| [configcat scan](configcat-scan.md) | Scans files for feature flag or setting usages |
+| [configcat scan](configcat-scan.md) | Scans files for Feature Flag or Setting usages |

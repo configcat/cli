@@ -1,5 +1,5 @@
 # configcat environment create
-Create environment
+Create a new Environment in a specified Product identified by the `--product-id` option
 ## Usage
 ```
 configcat [options] environment create
@@ -9,11 +9,11 @@ configcat [options] environment create
 ## Options
 | Option | Description |
 | ------ | ----------- |
-| `--product-id`, `-p` | ID of the product where the environment must be created |
-| `--name`, `-n` | Name of the new environment |
+| `--product-id`, `-p` | ID of the Product where the Environment must be created |
+| `--name`, `-n` | Name of the new Environment |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |
 | `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |
 ## Parent Command
 | Command | Description |
 | ------ | ----------- |
-| [configcat environment](configcat-environment.md) | Manage environments |
+| [configcat environment](configcat-environment.md) | Manage Environments. More about Environments: https://configcat.com/docs/main-concepts/#environment |

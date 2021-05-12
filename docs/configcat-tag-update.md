@@ -1,5 +1,5 @@
 # configcat tag update
-Update tag
+Update a Tag identified by the `--tag-id` option
 ## Usage
 ```
 configcat [options] tag update
@@ -9,7 +9,7 @@ configcat [options] tag update
 ## Options
 | Option | Description |
 | ------ | ----------- |
-| `--tag-id`, `-i` | ID of the tag to update |
+| `--tag-id`, `-i` | ID of the Tag to update |
 | `--name`, `-n` | The updated name |
 | `--color`, `-c` | The updated color |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |
@@ -17,4 +17,4 @@ configcat [options] tag update
 ## Parent Command
 | Command | Description |
 | ------ | ----------- |
-| [configcat tag](configcat-tag.md) | Manage tags |
+| [configcat tag](configcat-tag.md) | Manage Tags. Tags are stored under a Product. You can attach a Tag to a Feature Flag or Setting. |

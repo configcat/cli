@@ -9,8 +9,8 @@ configcat [options] flag targeting update
 ## Options
 | Option | Description |
 | ------ | ----------- |
-| `--flag-id`, `-i`, `--setting-id` | ID of the flag or setting |
-| `--environment-id`, `-e` | ID of the environment where the update must be applied |
+| `--flag-id`, `-i`, `--setting-id` | ID of the Feature Flag or Setting |
+| `--environment-id`, `-e` | ID of the Environment where the update must be applied |
 | `--position`, `-p` | The position of the updating targeting rule |
 | `--attribute`, `-a` | The user attribute to compare |
 | `--comparator`, `-c` | The comparison operator |

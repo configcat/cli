@@ -1,5 +1,5 @@
 # configcat product
-Manage products
+Manage Products. More about Products: https://configcat.com/docs/main-concepts/#product
 ## Usage
 ```
 configcat product [command]
@@ -18,7 +18,7 @@ configcat product [command]
 ## Subcommands
 | Command | Description |
 | ------ | ----------- |
-| [configcat product ls](configcat-product-ls.md) | List all products |
-| [configcat product create](configcat-product-create.md) | Create product |
-| [configcat product rm](configcat-product-rm.md) | Delete product |
-| [configcat product update](configcat-product-update.md) | Update product |
+| [configcat product ls](configcat-product-ls.md) | List all Products that belongs to the configured user |
+| [configcat product create](configcat-product-create.md) | Create a new Product in a specified Organization identified by the `--organization-id` option |
+| [configcat product rm](configcat-product-rm.md) | Remove a Product identified by the `--product-id` option |
+| [configcat product update](configcat-product-update.md) | Update a Product identified by the `--product-id` option |

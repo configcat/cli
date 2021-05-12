@@ -9,8 +9,8 @@ configcat [options] flag percentage clear
 ## Options
 | Option | Description |
 | ------ | ----------- |
-| `--flag-id`, `-i`, `--setting-id` | ID of the flag or setting |
-| `--environment-id`, `-e` | ID of the environment from where the rules must be deleted |
+| `--flag-id`, `-i`, `--setting-id` | ID of the Feature Flag or Setting |
+| `--environment-id`, `-e` | ID of the Environment from where the rules must be deleted |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |
 | `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |
 ## Parent Command

@@ -1,5 +1,5 @@
 # configcat flag value
-Show, and update flag values in different environments
+Show, and update Feature Flag or Setting values in different Environments
 ## Usage
 ```
 configcat flag value [command]
@@ -14,9 +14,9 @@ configcat flag value [command]
 ## Parent Command
 | Command | Description |
 | ------ | ----------- |
-| [configcat flag](configcat-flag.md) | Manage flags & settings |
+| [configcat flag](configcat-flag.md) | Manage Feature Flags & Settings |
 ## Subcommands
 | Command | Description |
 | ------ | ----------- |
-| [configcat flag value show](configcat-flag-value-show.md) | Show flag values, targeting, and percentage rules for each environment |
-| [configcat flag value update](configcat-flag-value-update.md) | Update the flag's value |
+| [configcat flag value show](configcat-flag-value-show.md) | Show Feature Flag or Setting values, targeting, and percentage rules for each environment |
+| [configcat flag value update](configcat-flag-value-update.md) | Update the value of a Feature Flag or Setting |

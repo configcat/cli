@@ -1,5 +1,5 @@
 # configcat flag value show
-Show flag values, targeting, and percentage rules for each environment
+Show Feature Flag or Setting values, targeting, and percentage rules for each environment
 ## Usage
 ```
 configcat [options] flag value show
@@ -9,10 +9,10 @@ configcat [options] flag value show
 ## Options
 | Option | Description |
 | ------ | ----------- |
-| `--flag-id`, `-i`, `--setting-id` | ID of the flag or setting |
+| `--flag-id`, `-i`, `--setting-id` | ID of the Feature Flag or Setting |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |
 | `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |
 ## Parent Command
 | Command | Description |
 | ------ | ----------- |
-| [configcat flag value](configcat-flag-value.md) | Show, and update flag values in different environments |
+| [configcat flag value](configcat-flag-value.md) | Show, and update Feature Flag or Setting values in different Environments |

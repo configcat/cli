@@ -1,5 +1,5 @@
 # configcat flag rm
-Delete flag
+Remove a Feature Flag or Setting identified by the `--flag-id` option
 ## Usage
 ```
 configcat [options] flag rm
@@ -7,10 +7,10 @@ configcat [options] flag rm
 ## Options
 | Option | Description |
 | ------ | ----------- |
-| `--flag-id`, `-i`, `--setting-id` | ID of the flag or setting to delete |
+| `--flag-id`, `-i`, `--setting-id` | ID of the Feature Flag or Setting to delete |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |
 | `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |
 ## Parent Command
 | Command | Description |
 | ------ | ----------- |
-| [configcat flag](configcat-flag.md) | Manage flags & settings |
+| [configcat flag](configcat-flag.md) | Manage Feature Flags & Settings |

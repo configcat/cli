@@ -55,46 +55,46 @@ namespace ConfigCat.Cli
             };
 
         private static CommandDescriptor BuildListAllCommand() =>
-            new CommandDescriptor("ls", "List all products, configs, and environments IDs")
+            new CommandDescriptor("ls", "List all Product, Config, and Environment IDs")
             {
                 Handler = CreateHandler<ListAll>(nameof(ListAll.InvokeAsync))
             };
 
         private static CommandDescriptor BuildProductCommand() =>
-            new CommandDescriptor("product", "Manage products")
+            new CommandDescriptor("product", "Manage Products. More about Products: https://configcat.com/docs/main-concepts/#product")
             {
                 Aliases = new[] { "p" },
                 SubCommands = new[]
                 {
-                    new CommandDescriptor("ls", "List all products")
+                    new CommandDescriptor("ls", "List all Products that belongs to the configured user")
                     {
                         Handler = CreateHandler<Product>(nameof(Product.ListAllProductsAsync))
                     },
-                    new CommandDescriptor("create", "Create product")
+                    new CommandDescriptor("create", "Create a new Product in a specified Organization identified by the `--organization-id` option")
                     {
                         Aliases = new[] { "cr" },
                         Handler = CreateHandler<Product>(nameof(Product.CreateProductAsync)),
                         Options = new[]
                         {
-                            new Option<string>(new[] { "--organization-id", "-o" }, "The organization's ID where the product must be created"),
-                            new Option<string>(new[] { "--name", "-n" }, "Name of the new product"),
+                            new Option<string>(new[] { "--organization-id", "-o" }, "The Organization's ID where the Product must be created"),
+                            new Option<string>(new[] { "--name", "-n" }, "Name of the new Product"),
                         }
                     },
-                    new CommandDescriptor("rm", "Delete product")
+                    new CommandDescriptor("rm", "Remove a Product identified by the `--product-id` option")
                     {
                         Handler = CreateHandler<Product>(nameof(Product.DeleteProductAsync)),
                         Options = new[]
                         {
-                            new Option<string>(new[] { "--product-id", "-i" }, "ID of the product to delete"),
+                            new Option<string>(new[] { "--product-id", "-i" }, "ID of the Product to delete"),
                         }
                     },
-                    new CommandDescriptor("update", "Update product")
+                    new CommandDescriptor("update", "Update a Product identified by the `--product-id` option")
                     {
                         Aliases = new [] { "up" },
                         Handler = CreateHandler<Product>(nameof(Product.UpdateProductAsync)),
                         Options = new[]
                         {
-                            new Option<string>(new[] { "--product-id", "-i" }, "ID of the product to update"),
+                            new Option<string>(new[] { "--product-id", "-i" }, "ID of the Product to update"),
                             new Option<string>(new[] { "--name", "-n" }, "The updated name"),
                         }
                     },
@@ -102,44 +102,44 @@ namespace ConfigCat.Cli
             };
 
         private static CommandDescriptor BuildConfigCommand() =>
-            new CommandDescriptor("config", "Manage configs")
+            new CommandDescriptor("config", "Manage Configs. More about Configs: https://configcat.com/docs/main-concepts/#config")
             {
                 Aliases = new[] { "c" },
                 SubCommands = new[]
                 {
-                    new CommandDescriptor("ls", "List all configs")
+                    new CommandDescriptor("ls", "List all Configs that belongs to the configured user")
                     {
                         Options = new[]
                         {
-                            new Option<string>(new string[] { "--product-id", "-p" }, "Show only a product's configs"),
+                            new Option<string>(new string[] { "--product-id", "-p" }, "Show only a Product's Config"),
                         },
                         Handler = CreateHandler<Config>(nameof(Config.ListAllConfigsAsync))
                     },
-                    new CommandDescriptor("create", "Create config")
+                    new CommandDescriptor("create", "Create a new Config in a specified Product identified by the `--product-id` option")
                     {
                         Aliases = new[] { "cr" },
                         Handler = CreateHandler<Config>(nameof(Config.CreateConfigAsync)),
                         Options = new[]
                         {
-                            new Option<string>(new[] { "--product-id", "-p" }, "ID of the product where the config must be created"),
-                            new Option<string>(new[] { "--name", "-n" }, "Name of the new config"),
+                            new Option<string>(new[] { "--product-id", "-p" }, "ID of the Product where the Config must be created"),
+                            new Option<string>(new[] { "--name", "-n" }, "Name of the new Config"),
                         }
                     },
-                    new CommandDescriptor("rm", "Delete config")
+                    new CommandDescriptor("rm", "Remove a Config identified by the `--config-id` option")
                     {
                         Handler = CreateHandler<Config>(nameof(Config.DeleteConfigAsync)),
                         Options = new[]
                         {
-                            new Option<string>(new[] { "--config-id", "-i" }, "ID of the config to delete"),
+                            new Option<string>(new[] { "--config-id", "-i" }, "ID of the Config to delete"),
                         }
                     },
-                    new CommandDescriptor("update", "Update Config")
+                    new CommandDescriptor("update", "Update a Config identified by the `--config-id` option")
                     {
                         Aliases = new[] { "up" },
                         Handler = CreateHandler<Config>(nameof(Config.UpdateConfigAsync)),
                         Options = new[]
                         {
-                            new Option<string>(new[] { "--config-id", "-i" }, "ID of the config to update"),
+                            new Option<string>(new[] { "--config-id", "-i" }, "ID of the Config to update"),
                             new Option<string>(new[] { "--name", "-n" }, "The updated name"),
                         }
                     },
@@ -147,35 +147,35 @@ namespace ConfigCat.Cli
             };
 
         private static CommandDescriptor BuildEnvironmentCommand() =>
-            new CommandDescriptor("environment", "Manage environments")
+            new CommandDescriptor("environment", "Manage Environments. More about Environments: https://configcat.com/docs/main-concepts/#environment")
             {
                 Aliases = new[] { "e" },
                 SubCommands = new[]
                 {
-                    new CommandDescriptor("ls", "List all environments")
+                    new CommandDescriptor("ls", "List all Environments that belongs to the configured user")
                     {
                         Options = new[]
                         {
-                            new Option<string>(new string[] { "--product-id", "-p" }, "Show only a product's environments"),
+                            new Option<string>(new string[] { "--product-id", "-p" }, "Show only a Product's Environments"),
                         },
                         Handler = CreateHandler<Environment>(nameof(Environment.ListAllEnvironmentsAsync))
                     },
-                    new CommandDescriptor("create", "Create environment")
+                    new CommandDescriptor("create", "Create a new Environment in a specified Product identified by the `--product-id` option")
                     {
                         Aliases = new[] { "cr" },
                         Handler = CreateHandler<Environment>(nameof(Environment.CreateEnvironmentAsync)),
                         Options = new[]
                         {
-                            new Option<string>(new[] { "--product-id", "-p" }, "ID of the product where the environment must be created"),
-                            new Option<string>(new[] { "--name", "-n" }, "Name of the new environment"),
+                            new Option<string>(new[] { "--product-id", "-p" }, "ID of the Product where the Environment must be created"),
+                            new Option<string>(new[] { "--name", "-n" }, "Name of the new Environment"),
                         }
                     },
-                    new CommandDescriptor("rm", "Delete environment")
+                    new CommandDescriptor("rm", "Remove an Environment identified by the `--environment-id` option")
                     {
                         Handler = CreateHandler<Environment>(nameof(Environment.DeleteEnvironmentAsync)),
                         Options = new[]
                         {
-                            new Option<string>(new[] { "--environment-id", "-i" }, "ID of the environment to delete"),
+                            new Option<string>(new[] { "--environment-id", "-i" }, "ID of the Environment to delete"),
                         }
                     },
                     new CommandDescriptor("update", "Update environment")
@@ -192,45 +192,45 @@ namespace ConfigCat.Cli
             };
 
         private static CommandDescriptor BuildTagCommand() =>
-            new CommandDescriptor("tag", "Manage tags")
+            new CommandDescriptor("tag", "Manage Tags. Tags are stored under a Product. You can attach a Tag to a Feature Flag or Setting.")
             {
                 Aliases = new[] { "t" },
                 SubCommands = new[]
                 {
-                    new CommandDescriptor("ls", "List all tags")
+                    new CommandDescriptor("ls", "List all Tags that belongs to the configured user")
                     {
                         Options = new[]
                         {
-                            new Option<string>(new[] { "--product-id", "-p" }, "Show only a product's tags"),
+                            new Option<string>(new[] { "--product-id", "-p" }, "Show only a Product's tags"),
                         },
                         Handler = CreateHandler<Tag>(nameof(Tag.ListAllTagsAsync))
                     },
-                    new CommandDescriptor("create", "Create tag")
+                    new CommandDescriptor("create", "Create a new Tag in a specified Product identified by the `--product-id` option")
                     {
                         Aliases = new[] { "cr" },
                         Handler = CreateHandler<Tag>(nameof(Tag.CreateTagAsync)),
                         Options = new[]
                         {
-                            new Option<string>(new[] { "--product-id", "-p" }, "ID of the product where the tag must be created"),
-                            new Option<string>(new[] { "--name", "-n" }, "The name of the new tag"),
-                            new Option<string>(new[] { "--color", "-c" }, "The color of the new tag"),
+                            new Option<string>(new[] { "--product-id", "-p" }, "ID of the Product where the Tag must be created"),
+                            new Option<string>(new[] { "--name", "-n" }, "The name of the new Tag"),
+                            new Option<string>(new[] { "--color", "-c" }, "The color of the new Tag"),
                         }
                     },
-                    new CommandDescriptor("rm", "Delete tag")
+                    new CommandDescriptor("rm", "Remove a Tag identified by the `--tag-id` option")
                     {
                         Handler = CreateHandler<Tag>(nameof(Tag.DeleteTagAsync)),
                         Options = new[]
                         {
-                            new Option<int>(new[] { "--tag-id", "-i" }, "ID of the tag to delete"),
+                            new Option<int>(new[] { "--tag-id", "-i" }, "ID of the Tag to delete"),
                         }
                     },
-                    new CommandDescriptor("update", "Update tag")
+                    new CommandDescriptor("update", "Update a Tag identified by the `--tag-id` option")
                     {
                         Aliases = new[] { "up" },
                         Handler = CreateHandler<Tag>(nameof(Tag.UpdateTagAsync)),
                         Options = new Option[]
                         {
-                            new Option<int>(new[] { "--tag-id", "-i" }, "ID of the tag to update"),
+                            new Option<int>(new[] { "--tag-id", "-i" }, "ID of the Tag to update"),
                             new Option<string>(new[] { "--name", "-n" }, "The updated name"),
                             new Option<string>(new[] { "--color", "-c" }, "The updated color"),
                         }
@@ -240,82 +240,82 @@ namespace ConfigCat.Cli
 
 
         private static CommandDescriptor BuildFlagCommand() =>
-            new CommandDescriptor("flag", "Manage flags & settings")
+            new CommandDescriptor("flag", "Manage Feature Flags & Settings")
             {
                 Aliases = new[] { "setting", "f", "s" },
                 SubCommands = new[]
                 {
-                    new CommandDescriptor("ls", "List all flags")
+                    new CommandDescriptor("ls", "List all Feature Flags & Settings that belongs to the configured user")
                     {
                         Options = new Option[]
                         {
-                            new Option<string>(new[] { "--config-id", "-c" }, "Show only a config's flags"),
-                            new Option<string>(new[] { "--tag-name", "-n" }, "Filter by a tag's name"),
-                            new Option<int>(new[] { "--tag-id", "-t" }, "Filter by a tag's ID"),
+                            new Option<string>(new[] { "--config-id", "-c" }, "Show only a Config's Flags & Settings"),
+                            new Option<string>(new[] { "--tag-name", "-n" }, "Filter by a Tag's name"),
+                            new Option<int>(new[] { "--tag-id", "-t" }, "Filter by a Tag's ID"),
                         },
                         Handler = CreateHandler<Flag>(nameof(Flag.ListAllFlagsAsync))
                     },
-                    new CommandDescriptor("create", "Create flag")
+                    new CommandDescriptor("create", "Create a new Feature Flag or Setting in a specified Config identified by the `--config-id` option")
                     {
                         Aliases = new[] { "cr" },
                         Handler = CreateHandler<Flag>(nameof(Flag.CreateFlagAsync)),
                         Options = new Option[]
                         {
-                            new Option<string>(new[] { "--config-id", "-c" }, "ID of the config where the flag must be created"),
-                            new Option<string>(new[] { "--name", "-n" }, "Name of the new flag"),
-                            new Option<string>(new[] { "--key", "-k" }, "Key of the new flag"),
-                            new Option<string>(new[] { "--hint", "-H" }, "Hint of the new flag"),
-                            new Option<string>(new[] { "--type", "-t" }, "Type of the new flag")
+                            new Option<string>(new[] { "--config-id", "-c" }, "ID of the Config where the Flag must be created"),
+                            new Option<string>(new[] { "--name", "-n" }, "Name of the new Flag or Setting"),
+                            new Option<string>(new[] { "--key", "-k" }, "Key of the new Flag or Setting (must be unique within the given Config)"),
+                            new Option<string>(new[] { "--hint", "-H" }, "Hint of the new Flag or Setting"),
+                            new Option<string>(new[] { "--type", "-t" }, "Type of the new Flag or Setting")
                                 .AddSuggestions(SettingTypes.Collection),
                             new Option<int[]>(new[] { "--tag-ids", "-g" }, "Tags to attach"),
                         }
                     },
-                    new CommandDescriptor("rm", "Delete flag")
+                    new CommandDescriptor("rm", "Remove a Feature Flag or Setting identified by the `--flag-id` option")
                     {
                         Handler = CreateHandler<Flag>(nameof(Flag.DeleteFlagAsync)),
                         Options = new[]
                         {
-                            new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the flag or setting to delete")
+                            new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the Feature Flag or Setting to delete")
                             {
                                 Name = "--flag-id"
                             },
                         }
                     },
-                    new CommandDescriptor("update", "Update flag")
+                    new CommandDescriptor("update", "Update a Feature Flag or Setting identified by the `--flag-id` option")
                     {
                         Aliases = new[] { "up" },
                         Handler = CreateHandler<Flag>(nameof(Flag.UpdateFlagAsync)),
                         Options = new Option[]
                         {
-                            new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the flag or setting to update")
+                            new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the Feature Flag or Setting to update")
                             {
                                 Name = "--flag-id"
                             },
                             new Option<string>(new[] { "--name", "-n" }, "The updated name"),
                             new Option<string>(new[] { "--hint", "-H" }, "The updated hint"),
-                            new Option<int[]>(new[] { "--tag-ids", "-g" }, "The updated tag list"),
+                            new Option<int[]>(new[] { "--tag-ids", "-g" }, "The updated Tag list"),
                         }
                     },
-                    new CommandDescriptor("attach", "Attach tag(s) to a flag")
+                    new CommandDescriptor("attach", "Attach Tag(s) to a Feature Flag or Setting")
                     {
                         Aliases = new[] { "at" },
                         Handler = CreateHandler<Flag>(nameof(Flag.AttachTagsAsync)),
                         Options = new Option[]
                         {
-                            new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the flag or setting to attach tags")
+                            new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the Feature Flag or Setting to attach Tags")
                             {
                                 Name = "--flag-id"
                             },
                             new Option<int[]>(new[] { "--tag-ids", "-g" }, "Tag IDs to attach"),
                         }
                     },
-                    new CommandDescriptor("detach", "Detach tag(s) from a flag")
+                    new CommandDescriptor("detach", "Detach Tag(s) from a Feature Flag or Setting")
                     {
                         Aliases = new[] { "dt" },
                         Handler = CreateHandler<Flag>(nameof(Flag.DetachTagsAsync)),
                         Options = new Option[]
                         {
-                            new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the flag or setting to detach tags")
+                            new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the Feature Flag or Setting to detach Tags")
                             {
                                 Name = "--flag-id"
                             },
@@ -331,34 +331,34 @@ namespace ConfigCat.Cli
 
 
         private static CommandDescriptor BuildFlagValueCommand() =>
-            new CommandDescriptor("value", "Show, and update flag values in different environments")
+            new CommandDescriptor("value", "Show, and update Feature Flag or Setting values in different Environments")
             {
                 Aliases = new[] { "v" },
                 SubCommands = new[]
                 {
-                    new CommandDescriptor("show", "Show flag values, targeting, and percentage rules for each environment")
+                    new CommandDescriptor("show", "Show Feature Flag or Setting values, targeting, and percentage rules for each environment")
                     {
                         Aliases = new[] { "sh", "pr", "print" },
                         Handler = CreateHandler<FlagValue>(nameof(FlagValue.ListAllAsync)),
                         Options = new Option[]
                         {
-                            new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the flag or setting")
+                            new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the Feature Flag or Setting")
                             {
                                 Name = "--flag-id"
                             },
                         }
                     },
-                    new CommandDescriptor("update", "Update the flag's value")
+                    new CommandDescriptor("update", "Update the value of a Feature Flag or Setting")
                     {
                         Aliases = new[] { "up" },
                         Handler = CreateHandler<FlagValue>(nameof(FlagValue.UpdateFlagValueAsync)),
                         Options = new Option[]
                         {
-                            new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the flag or setting")
+                            new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the Feature Flag or Setting")
                             {
                                 Name = "--flag-id"
                             },
-                            new Option<string>(new[] { "--environment-id", "-e" }, "ID of the environment where the update must be applied"),
+                            new Option<string>(new[] { "--environment-id", "-e" }, "ID of the Environment where the update must be applied"),
                             new Option<string>(new[] { "--flag-value", "-f" }, "The value to serve, it must respect the setting type"),
                         }
                     }
@@ -377,11 +377,11 @@ namespace ConfigCat.Cli
                         Handler = CreateHandler<FlagTargeting>(nameof(FlagTargeting.AddTargetinRuleAsync)),
                         Options = new Option[]
                         {
-                            new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the flag or setting")
+                            new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the Feature Flag or Setting")
                             {
                                 Name = "--flag-id"
                             },
-                            new Option<string>(new[] { "--environment-id", "-e" }, "ID of the environment where the rule must be created"),
+                            new Option<string>(new[] { "--environment-id", "-e" }, "ID of the Environment where the rule must be created"),
                             new Option<string>(new[] { "--attribute", "-a" }, "The user attribute to compare"),
                             new Option<string>(new[] { "--comparator", "-c" }, "The comparison operator")
                                     .AddSuggestions(Constants.ComparatorTypes.Keys.ToArray()),
@@ -395,11 +395,11 @@ namespace ConfigCat.Cli
                         Handler = CreateHandler<FlagTargeting>(nameof(FlagTargeting.UpdateTargetinRuleAsync)),
                         Options = new Option[]
                         {
-                            new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the flag or setting")
+                            new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the Feature Flag or Setting")
                             {
                                 Name = "--flag-id"
                             },
-                            new Option<string>(new[] { "--environment-id", "-e" }, "ID of the environment where the update must be applied"),
+                            new Option<string>(new[] { "--environment-id", "-e" }, "ID of the Environment where the update must be applied"),
                             new Option<int?>(new[] { "--position", "-p" }, "The position of the updating targeting rule"),
                             new Option<string>(new[] { "--attribute", "-a" }, "The user attribute to compare"),
                             new Option<string>(new[] { "--comparator", "-c" }, "The comparison operator")
@@ -413,11 +413,11 @@ namespace ConfigCat.Cli
                         Handler = CreateHandler<FlagTargeting>(nameof(FlagTargeting.DeleteTargetinRuleAsync)),
                         Options = new Option[]
                         {
-                            new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the flag or setting")
+                            new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the Feature Flag or Setting")
                             {
                                 Name = "--flag-id"
                             },
-                            new Option<string>(new[] { "--environment-id", "-e" }, "ID of the environment from where the rule must be deleted"),
+                            new Option<string>(new[] { "--environment-id", "-e" }, "ID of the Environment from where the rule must be deleted"),
                             new Option<int?>(new[] { "--position", "-p" }, "The position of the targeting rule to delete"),
                         }
                     },
@@ -427,11 +427,11 @@ namespace ConfigCat.Cli
                         Handler = CreateHandler<FlagTargeting>(nameof(FlagTargeting.MoveTargetinRuleAsync)),
                         Options = new Option[]
                         {
-                            new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the flag or setting")
+                            new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the Feature Flag or Setting")
                             {
                                 Name = "--flag-id"
                             },
-                            new Option<string>(new[] { "--environment-id", "-e" }, "ID of the environment where the move must be applied"),
+                            new Option<string>(new[] { "--environment-id", "-e" }, "ID of the Environment where the move must be applied"),
                             new Option<int?>(new[] { "--from" }, "The position of the targeting rule to delete"),
                             new Option<int?>(new[] { "--to" }, "The desired position of the targeting rule"),
                         }
@@ -455,11 +455,11 @@ namespace ConfigCat.Cli
                         },
                         Options = new Option[]
                         {
-                            new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the flag or setting")
+                            new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the Feature Flag or Setting")
                             {
                                 Name = "--flag-id"
                             },
-                            new Option<string>(new[] { "--environment-id", "-e" }, "ID of the environment where the update must be applied"),
+                            new Option<string>(new[] { "--environment-id", "-e" }, "ID of the Environment where the update must be applied"),
                         }
                     },
                     new CommandDescriptor("clear", "Delete all percentage rules")
@@ -468,25 +468,25 @@ namespace ConfigCat.Cli
                         Handler = CreateHandler<FlagPercentage>(nameof(FlagPercentage.DeletePercentageRulesAsync)),
                         Options = new Option[]
                         {
-                            new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the flag or setting")
+                            new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the Feature Flag or Setting")
                             {
                                 Name = "--flag-id"
                             },
-                            new Option<string>(new[] { "--environment-id", "-e" }, "ID of the environment from where the rules must be deleted"),
+                            new Option<string>(new[] { "--environment-id", "-e" }, "ID of the Environment from where the rules must be deleted"),
                         }
                     },
                 }
             };
 
         private static CommandDescriptor BuildSdkKeyCommand() =>
-            new CommandDescriptor("sdk-key", "List sdk keys")
+            new CommandDescriptor("sdk-key", "List SDK Keys")
             {
                 Aliases = new[] { "k" },
                 Handler = CreateHandler<SdkKey>(nameof(SdkKey.InvokeAsync)),
             };
 
         private static CommandDescriptor BuildScanCommand() =>
-            new CommandDescriptor("scan", "Scans files for feature flag or setting usages")
+            new CommandDescriptor("scan", "Scans files for Feature Flag or Setting usages")
             {
                 Handler = CreateHandler<Scan>(nameof(Scan.InvokeAsync)),
                 Arguments = new[]
@@ -495,7 +495,7 @@ namespace ConfigCat.Cli
                 },
                 Options = new Option[]
                 {
-                    new Option<string>(new[] { "--config-id", "-c" }, "ID of the config to scan against"),
+                    new Option<string>(new[] { "--config-id", "-c" }, "ID of the Config to scan against"),
                     new Option<int>(new[] { "--line-count", "-l" }, () => 4, "Context line count before and after the reference line"),
                     new Option<bool>(new[] { "--print", "-p" }, "Print found references"),
                 }

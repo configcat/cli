@@ -1,5 +1,5 @@
 # configcat config ls
-List all configs
+List all Configs that belongs to the configured user
 ## Usage
 ```
 configcat [options] config ls
@@ -7,10 +7,10 @@ configcat [options] config ls
 ## Options
 | Option | Description |
 | ------ | ----------- |
-| `--product-id`, `-p` | Show only a product's configs |
+| `--product-id`, `-p` | Show only a Product's Config |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |
 | `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |
 ## Parent Command
 | Command | Description |
 | ------ | ----------- |
-| [configcat config](configcat-config.md) | Manage configs |
+| [configcat config](configcat-config.md) | Manage Configs. More about Configs: https://configcat.com/docs/main-concepts/#config |
