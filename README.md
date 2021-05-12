@@ -64,7 +64,7 @@ curl -fsSL "https://raw.githubusercontent.com/configcat/cli/main/scripts/install
 curl -fsSL "https://raw.githubusercontent.com/configcat/cli/main/scripts/install.sh" | bash -s -- -a=arm
 ```
 
-### Setup
+### Configuration
 After a successful installation, the CLI must be configured with your <a target="_blank" href="https://app.configcat.com/my-account/public-api-credentials">ConfigCat Management API credentials</a>.
 
 <img src="assets/setup.gif" alt="ConfigCat CLI" />
