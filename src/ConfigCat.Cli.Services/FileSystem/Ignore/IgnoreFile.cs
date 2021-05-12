@@ -21,6 +21,7 @@ namespace ConfigCat.Cli.Services.FileSystem.Ignore
         {
             this.File = ignoreFileInfo;
             this.Rank = this.File.FullName.Replace(rootDirectory.FullName, string.Empty).Count(c => c.Equals(Path.DirectorySeparatorChar));
+            this.ignoreMatcher.Add("**/.git/**");
         }
 
         public async Task LoadIgnoreFileAsync(CancellationToken token)
