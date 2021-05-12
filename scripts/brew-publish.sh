@@ -32,4 +32,4 @@ git diff-index --quiet HEAD || git commit -m "Updating ConfigCat CLI Formula due
 
 cat "$CLONE_DIR/Formula/configcat.rb"
 
-#git push "https://$GH_USER_NAME:$GH_API_TOKEN@github.com/configcat/homebrew-tap.git"
+git push "https://$GH_USER_NAME:$GH_API_TOKEN@github.com/configcat/homebrew-tap.git"

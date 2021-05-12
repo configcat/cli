@@ -62,12 +62,12 @@ jobs:
         name: snap-pack
         path: configcat_*.snap
 
-    # - name: 🚀Publish
-    #   uses: snapcore/action-publish@v1
-    #   with:
-    #     store_login: ${{ secrets.SNAP_LOGIN }}
-    #     snap: ${{ steps.build.outputs.snap }}
-    #     release: stable
+    - name: 🚀Publish
+      uses: snapcore/action-publish@v1
+      with:
+        store_login: ${{ secrets.SNAP_LOGIN }}
+        snap: ${{ steps.build.outputs.snap }}
+        release: stable
 
   chocolatey:
     runs-on: windows-latest
@@ -98,10 +98,10 @@ jobs:
         name: choco-pack
         path: configcat.*.nupkg
 
-    # - name: 🚀Publish
-    #   run: |
-    #     choco apikey --key ${{ secrets.CHOCO_API_KEY }} --source https://push.chocolatey.org/
-    #     choco push configcat.${{ env.VERSION }}.nupkg --source https://push.chocolatey.org/
+    - name: 🚀Publish
+      run: |
+        choco apikey --key ${{ secrets.CHOCO_API_KEY }} --source https://push.chocolatey.org/
+        choco push configcat.${{ env.VERSION }}.nupkg --source https://push.chocolatey.org/
 
   docker:
     runs-on: ubuntu-latest
@@ -131,7 +131,7 @@ jobs:
       uses: docker/build-push-action@v2
       with:
         context: .
-        push: false
+        push: true
         tags: |
           configcat/cli:latest
           configcat/cli:${{ env.VERSION }}
