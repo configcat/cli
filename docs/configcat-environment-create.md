@@ -16,4 +16,4 @@ configcat [options] environment create
 ## Parent Command
 | Command | Description |
 | ------ | ----------- |
-| [configcat environment](configcat-environment.md) | Manage Environments. More about Environments: https://configcat.com/docs/main-concepts/#environment |
+| [configcat environment](configcat-environment.md) | Manage Environments |

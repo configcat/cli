@@ -19,7 +19,7 @@ This is the complete list of the available commands provided by the CLI.
 ### configcat product
 | Command | Description |
 | ------ | ----------- |
-| [configcat product](configcat-product.md) | Manage Products. More about Products: https://configcat.com/docs/main-concepts/#product |
+| [configcat product](configcat-product.md) | Manage Products |
 | [configcat product ls](configcat-product-ls.md) | List all Products that belongs to the configured user |
 | [configcat product create](configcat-product-create.md) | Create a new Product in a specified Organization identified by the `--organization-id` option |
 | [configcat product rm](configcat-product-rm.md) | Remove a Product identified by the `--product-id` option |
@@ -27,7 +27,7 @@ This is the complete list of the available commands provided by the CLI.
 ### configcat config
 | Command | Description |
 | ------ | ----------- |
-| [configcat config](configcat-config.md) | Manage Configs. More about Configs: https://configcat.com/docs/main-concepts/#config |
+| [configcat config](configcat-config.md) | Manage Configs |
 | [configcat config ls](configcat-config-ls.md) | List all Configs that belongs to the configured user |
 | [configcat config create](configcat-config-create.md) | Create a new Config in a specified Product identified by the `--product-id` option |
 | [configcat config rm](configcat-config-rm.md) | Remove a Config identified by the `--config-id` option |
@@ -35,7 +35,7 @@ This is the complete list of the available commands provided by the CLI.
 ### configcat environment
 | Command | Description |
 | ------ | ----------- |
-| [configcat environment](configcat-environment.md) | Manage Environments. More about Environments: https://configcat.com/docs/main-concepts/#environment |
+| [configcat environment](configcat-environment.md) | Manage Environments |
 | [configcat environment ls](configcat-environment-ls.md) | List all Environments that belongs to the configured user |
 | [configcat environment create](configcat-environment-create.md) | Create a new Environment in a specified Product identified by the `--product-id` option |
 | [configcat environment rm](configcat-environment-rm.md) | Remove an Environment identified by the `--environment-id` option |
@@ -43,7 +43,7 @@ This is the complete list of the available commands provided by the CLI.
 ### configcat tag
 | Command | Description |
 | ------ | ----------- |
-| [configcat tag](configcat-tag.md) | Manage Tags. Tags are stored under a Product. You can attach a Tag to a Feature Flag or Setting. |
+| [configcat tag](configcat-tag.md) | Manage Tags |
 | [configcat tag ls](configcat-tag-ls.md) | List all Tags that belongs to the configured user |
 | [configcat tag create](configcat-tag-create.md) | Create a new Tag in a specified Product identified by the `--product-id` option |
 | [configcat tag rm](configcat-tag-rm.md) | Remove a Tag identified by the `--tag-id` option |

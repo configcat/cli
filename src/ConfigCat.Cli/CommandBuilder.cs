@@ -24,7 +24,7 @@ namespace ConfigCat.Cli
         private static CommandDescriptor BuildDescriptors() =>
             new CommandDescriptor(null, $"This is the Command Line Tool of ConfigCat.{System.Environment.NewLine}ConfigCat is a " +
                 $"hosted feature flag service: https://configcat.com{System.Environment.NewLine}For more information, " +
-                $"see the documentation here: https://configcat.com/docs/")
+                $"see the documentation here: https://configcat.com/docs/advanced/cli")
             {
                 SubCommands = new CommandDescriptor[]
                 {
@@ -61,7 +61,7 @@ namespace ConfigCat.Cli
             };
 
         private static CommandDescriptor BuildProductCommand() =>
-            new CommandDescriptor("product", "Manage Products. More about Products: https://configcat.com/docs/main-concepts/#product")
+            new CommandDescriptor("product", "Manage Products")
             {
                 Aliases = new[] { "p" },
                 SubCommands = new[]
@@ -102,7 +102,7 @@ namespace ConfigCat.Cli
             };
 
         private static CommandDescriptor BuildConfigCommand() =>
-            new CommandDescriptor("config", "Manage Configs. More about Configs: https://configcat.com/docs/main-concepts/#config")
+            new CommandDescriptor("config", "Manage Configs")
             {
                 Aliases = new[] { "c" },
                 SubCommands = new[]
@@ -147,7 +147,7 @@ namespace ConfigCat.Cli
             };
 
         private static CommandDescriptor BuildEnvironmentCommand() =>
-            new CommandDescriptor("environment", "Manage Environments. More about Environments: https://configcat.com/docs/main-concepts/#environment")
+            new CommandDescriptor("environment", "Manage Environments")
             {
                 Aliases = new[] { "e" },
                 SubCommands = new[]
@@ -192,7 +192,7 @@ namespace ConfigCat.Cli
             };
 
         private static CommandDescriptor BuildTagCommand() =>
-            new CommandDescriptor("tag", "Manage Tags. Tags are stored under a Product. You can attach a Tag to a Feature Flag or Setting.")
+            new CommandDescriptor("tag", "Manage Tags")
             {
                 Aliases = new[] { "t" },
                 SubCommands = new[]

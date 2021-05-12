@@ -13,4 +13,4 @@ configcat [options] tag ls
 ## Parent Command
 | Command | Description |
 | ------ | ----------- |
-| [configcat tag](configcat-tag.md) | Manage Tags. Tags are stored under a Product. You can attach a Tag to a Feature Flag or Setting. |
+| [configcat tag](configcat-tag.md) | Manage Tags |

@@ -12,4 +12,4 @@ configcat product ls
 ## Parent Command
 | Command | Description |
 | ------ | ----------- |
-| [configcat product](configcat-product.md) | Manage Products. More about Products: https://configcat.com/docs/main-concepts/#product |
+| [configcat product](configcat-product.md) | Manage Products |

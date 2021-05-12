@@ -13,7 +13,7 @@
     <licenseUrl>https://raw.githubusercontent.com/configcat/cli/main/LICENSE</licenseUrl>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <projectSourceUrl>https://github.com/configcat/cli</projectSourceUrl>
-    <docsUrl>https://github.com/configcat/cli</docsUrl>
+    <docsUrl>https://configcat.com/docs/advanced/cli</docsUrl>
     <bugTrackerUrl>https://github.com/configcat/cli/issues</bugTrackerUrl>
     <tags>configcat feature-flag feature-toggle</tags>
     <summary>Command Line Interface for ConfigCat</summary>

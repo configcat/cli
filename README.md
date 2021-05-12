@@ -80,7 +80,7 @@ Name | Description |
 
 When any of these environment variables are set, the CLI will use those over their local values set by the `configcat setup` command.
 
-## Useful links
-- [Documentation](https://configcat.com/docs)
+## Useful Links
+- [Documentation](https://configcat.com/docs/advanced/cli)
 - [ConfigCat](https://configcat.com)
 - [Blog](https://configcat.com/blog)

@@ -1,5 +1,5 @@
 # configcat tag
-Manage Tags. Tags are stored under a Product. You can attach a Tag to a Feature Flag or Setting.
+Manage Tags
 ## Usage
 ```
 configcat tag [command]
@@ -14,7 +14,7 @@ configcat tag [command]
 ## Parent Command
 | Command | Description |
 | ------ | ----------- |
-| [configcat](index.md) | This is the Command Line Tool of ConfigCat.<br/>ConfigCat is a hosted feature flag service: https://configcat.com<br/>For more information, see the documentation here: https://configcat.com/docs/ |
+| [configcat](index.md) | This is the Command Line Tool of ConfigCat.<br/>ConfigCat is a hosted feature flag service: https://configcat.com<br/>For more information, see the documentation here: https://configcat.com/docs/advanced/cli |
 ## Subcommands
 | Command | Description |
 | ------ | ----------- |

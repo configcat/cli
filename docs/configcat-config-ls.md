@@ -13,4 +13,4 @@ configcat [options] config ls
 ## Parent Command
 | Command | Description |
 | ------ | ----------- |
-| [configcat config](configcat-config.md) | Manage Configs. More about Configs: https://configcat.com/docs/main-concepts/#config |
+| [configcat config](configcat-config.md) | Manage Configs |

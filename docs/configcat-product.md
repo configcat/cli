@@ -1,5 +1,5 @@
 # configcat product
-Manage Products. More about Products: https://configcat.com/docs/main-concepts/#product
+Manage Products
 ## Usage
 ```
 configcat product [command]
@@ -14,7 +14,7 @@ configcat product [command]
 ## Parent Command
 | Command | Description |
 | ------ | ----------- |
-| [configcat](index.md) | This is the Command Line Tool of ConfigCat.<br/>ConfigCat is a hosted feature flag service: https://configcat.com<br/>For more information, see the documentation here: https://configcat.com/docs/ |
+| [configcat](index.md) | This is the Command Line Tool of ConfigCat.<br/>ConfigCat is a hosted feature flag service: https://configcat.com<br/>For more information, see the documentation here: https://configcat.com/docs/advanced/cli |
 ## Subcommands
 | Command | Description |
 | ------ | ----------- |
