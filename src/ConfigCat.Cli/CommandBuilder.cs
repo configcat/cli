@@ -42,7 +42,7 @@ namespace ConfigCat.Cli
             };
 
         private static CommandDescriptor BuildSetupCommand() =>
-            new CommandDescriptor("setup", $"Setup the CLI with Management API host and credentials." +
+            new CommandDescriptor("setup", $"Setup the CLI with Public Management API host and credentials." +
                         $"{System.Environment.NewLine}You can get your credentials from here: https://app.configcat.com/my-account/public-api-credentials")
             {
                 Options = new[]

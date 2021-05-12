@@ -11,7 +11,7 @@ This is the complete list of the available commands provided by the CLI.
 ### configcat setup
 | Command | Description |
 | ------ | ----------- |
-| [configcat setup](configcat-setup.md) | Setup the CLI with Management API host and credentials.<br/>You can get your credentials from here: https://app.configcat.com/my-account/public-api-credentials |
+| [configcat setup](configcat-setup.md) | Setup the CLI with Public Management API host and credentials.<br/>You can get your credentials from here: https://app.configcat.com/my-account/public-api-credentials |
 ### configcat ls
 | Command | Description |
 | ------ | ----------- |
