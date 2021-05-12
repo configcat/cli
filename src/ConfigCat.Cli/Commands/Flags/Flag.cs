@@ -72,7 +72,7 @@ namespace ConfigCat.Cli.Commands
             table.AddColumn(f => f.SettingId, "ID");
             table.AddColumn(f => f.Name, "NAME");
             table.AddColumn(f => f.Key, "KEY");
-            table.AddColumn(f => f.Hint.Length > 30 ? $"\"{f.Hint[0..28]}...\"" : $"\"{f.Hint}\"", "HINT");
+            table.AddColumn(f => f.Hint == null ? "\"\"" : f.Hint.Length > 30 ? $"\"{f.Hint[0..28]}...\"" : $"\"{f.Hint}\"", "HINT");
             table.AddColumn(f => f.SettingType, "TYPE");
             table.AddColumn(f => $"[{string.Join(", ", f.Tags.Select(t => $"{t.Name} ({t.TagId})"))}]", "TAGS");
             table.AddColumn(f => $"{f.OwnerUserFullName} [{f.OwnerUserEmail}]", "OWNER");
