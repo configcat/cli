@@ -1,5 +1,6 @@
 # configcat product rm
 [GitHub](https://github.com/configcat/cli) | [Documentation](https://configcat.com/docs/advanced/cli)
+
 Remove a Product identified by the `--product-id` option
 ## Usage
 ```

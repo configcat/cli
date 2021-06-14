@@ -1,5 +1,6 @@
 # configcat flag rm
 [GitHub](https://github.com/configcat/cli) | [Documentation](https://configcat.com/docs/advanced/cli)
+
 Remove a Feature Flag or Setting identified by the `--flag-id` option
 ## Usage
 ```

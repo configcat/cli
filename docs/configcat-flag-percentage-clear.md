@@ -1,5 +1,6 @@
 # configcat flag percentage clear
 [GitHub](https://github.com/configcat/cli) | [Documentation](https://configcat.com/docs/advanced/cli)
+
 Delete all percentage rules
 ## Usage
 ```

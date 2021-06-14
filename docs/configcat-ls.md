@@ -1,5 +1,6 @@
 # configcat ls
 [GitHub](https://github.com/configcat/cli) | [Documentation](https://configcat.com/docs/advanced/cli)
+
 List all Product, Config, and Environment IDs
 ## Usage
 ```

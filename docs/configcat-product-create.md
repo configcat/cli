@@ -1,5 +1,6 @@
 # configcat product create
 [GitHub](https://github.com/configcat/cli) | [Documentation](https://configcat.com/docs/advanced/cli)
+
 Create a new Product in a specified Organization identified by the `--organization-id` option
 ## Usage
 ```

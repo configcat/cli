@@ -1,5 +1,6 @@
 # configcat config ls
 [GitHub](https://github.com/configcat/cli) | [Documentation](https://configcat.com/docs/advanced/cli)
+
 List all Configs that belongs to the configured user
 ## Usage
 ```

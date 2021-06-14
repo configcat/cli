@@ -1,5 +1,6 @@
 # configcat tag ls
 [GitHub](https://github.com/configcat/cli) | [Documentation](https://configcat.com/docs/advanced/cli)
+
 List all Tags that belongs to the configured user
 ## Usage
 ```

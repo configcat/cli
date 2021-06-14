@@ -1,5 +1,6 @@
 # configcat environment rm
 [GitHub](https://github.com/configcat/cli) | [Documentation](https://configcat.com/docs/advanced/cli)
+
 Remove an Environment identified by the `--environment-id` option
 ## Usage
 ```

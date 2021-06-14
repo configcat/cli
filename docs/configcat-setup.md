@@ -1,5 +1,6 @@
 # configcat setup
 [GitHub](https://github.com/configcat/cli) | [Documentation](https://configcat.com/docs/advanced/cli)
+
 Setup the CLI with Public Management API host and credentials.<br/>You can get your credentials from here: https://app.configcat.com/my-account/public-api-credentials
 ## Usage
 ```
