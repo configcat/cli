@@ -1,4 +1,5 @@
 # configcat config update
+[GitHub](https://github.com/configcat/cli) | [Documentation](https://configcat.com/docs/advanced/cli)
 Update a Config identified by the `--config-id` option
 ## Usage
 ```

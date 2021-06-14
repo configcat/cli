@@ -1,4 +1,5 @@
 # configcat environment create
+[GitHub](https://github.com/configcat/cli) | [Documentation](https://configcat.com/docs/advanced/cli)
 Create a new Environment in a specified Product identified by the `--product-id` option
 ## Usage
 ```

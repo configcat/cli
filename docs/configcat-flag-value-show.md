@@ -1,4 +1,5 @@
 # configcat flag value show
+[GitHub](https://github.com/configcat/cli) | [Documentation](https://configcat.com/docs/advanced/cli)
 Show Feature Flag or Setting values, targeting, and percentage rules for each environment
 ## Usage
 ```

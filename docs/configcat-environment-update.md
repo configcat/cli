@@ -1,4 +1,5 @@
 # configcat environment update
+[GitHub](https://github.com/configcat/cli) | [Documentation](https://configcat.com/docs/advanced/cli)
 Update environment
 ## Usage
 ```

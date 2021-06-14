@@ -2,7 +2,7 @@
 
 [![ConfigCat CLI CI](https://github.com/configcat/cli/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/configcat/cli/actions/workflows/ci.yml)
 
-The ConfigCat Command Line Interface allows you to interact with the ConfigCat Management API via the command line. It supports most functionality found on the ConfigCat Dashboard. You can manage ConfigCat resources like Feature Flags, Targeting / Percentage rules, Products, Configs, Environments, and more.
+The ConfigCat Command Line Interface allows you to interact with the <a target="_blank" href="https://configcat.com/docs/advanced/public-api">Public Management API</a> via the command line. It supports most functionality found on the ConfigCat Dashboard. You can manage ConfigCat resources like Feature Flags, Targeting / Percentage rules, Products, Configs, Environments, and more.
 
 <img src="assets/teaser.gif" alt="ConfigCat CLI Feature Flag Create"/>
 
@@ -17,12 +17,31 @@ ConfigCat is a <a href="https://configcat.com" target="_blank">hosted feature fl
 The following instructions will guide you through the first steps to start using this tool.
 
 ### Installation
-Distribution via package managers is not yet available, however we plan publishing packages to <a target="_blank" href="https://snapcraft.io/">snapcraft.io</a>, <a target="_blank" href="https://community.chocolatey.org/packages">Chocolatey</a>, <a target="_blank" href="https://brew.sh">Homebrew</a>, and <a target="_blank" href="https://www.docker.com/">docker</a> in the future.
+You can install the CLI on multiple operating systems using the following sources.
 
-In the meantime, you can download the binaries directly from [GitHub Releases](https://github.com/configcat/cli/releases).
+#### Homebrew (macOS / Linux)
+```bash
+brew tap configcat/tap
+brew install configcat
+```
+
+#### Snap (Linux)
+```bash
+sudo snap install configcat
+```
+
+#### Chocolatey (Windows)
+```powershell
+choco install configcat
+```
+
+#### Docker
+```bash
+docker pull configcat/cli
+```
 
 #### Install Script
-You can install the CLI by executing an install script on Unix platforms. 
+On Unix platforms, you can install the CLI by executing an install script.
 ```bash
 curl -fsSL "https://raw.githubusercontent.com/configcat/cli/main/scripts/install.sh" | bash
 ```
@@ -47,7 +66,7 @@ The possible **architecture** values for Linux: `x64`, `musl-x64`, `arm`, `arm64
 
 > For macOS, the architecture is fixed to `x64`, but we plan the support of Apple silicon in the future.
 
-**Usage examples**:
+**Examples**:
 
 *Custom installation directory*:
 ```bash
@@ -64,13 +83,18 @@ curl -fsSL "https://raw.githubusercontent.com/configcat/cli/main/scripts/install
 curl -fsSL "https://raw.githubusercontent.com/configcat/cli/main/scripts/install.sh" | bash -s -- -a=arm
 ```
 
+#### Manual
+You can download the binaries directly from [GitHub Releases](https://github.com/configcat/cli/releases).
+
 ### Configuration
 After a successful installation, the CLI must be configured with your <a target="_blank" href="https://app.configcat.com/my-account/public-api-credentials">ConfigCat Management API credentials</a>.
+
+You can do this by using the `configcat setup` command.
 
 <img src="assets/setup.gif" alt="ConfigCat CLI" />
 
 #### Environment Variables
-The CLI can read your credentials from the following environment variables.
+Besides the configuration command above, the CLI can read your credentials from the following environment variables.
 
 Name | Description |
 --------- | ----------- |
@@ -78,7 +102,7 @@ Name | Description |
 `CONFIGCAT_API_USER` | The Management API basic authentication username. |
 `CONFIGCAT_API_PASS` | The Management API basic authentication password. | 
 
-When any of these environment variables are set, the CLI will use those over their local values set by the `configcat setup` command.
+> When any of these environment variables are set, the CLI will use them over the local values set by the `configcat setup` command.
 
 ## Useful Links
 - [Documentation](https://configcat.com/docs/advanced/cli)

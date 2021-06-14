@@ -1,4 +1,5 @@
 # configcat flag percentage update
+[GitHub](https://github.com/configcat/cli) | [Documentation](https://configcat.com/docs/advanced/cli)
 Update percentage rules
 ## Usage
 ```

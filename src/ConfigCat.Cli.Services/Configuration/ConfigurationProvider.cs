@@ -33,7 +33,7 @@ namespace ConfigCat.Cli.Services.Configuration
 
             if ((pass is null && config?.Auth?.Password is null) ||
                 (user is null && config?.Auth?.UserName is null))
-                throw new ShowHelpException($"The CLI is not configured properly, please execute the 'configcat setup' command, or set the {Constants.ApiUserNameEnvironmentVariableName} and {Constants.ApiPasswordEnvironmentVariableName} environment variables.");
+                throw new ShowHelpException($"The CLI is not configured properly, please execute the `configcat setup` command, or set the {Constants.ApiUserNameEnvironmentVariableName} and {Constants.ApiPasswordEnvironmentVariableName} environment variables.");
 
             var fromHost = host is not null ? $"(from env:{Constants.ApiHostEnvironmentVariableName})"
                 : config.Auth.ApiHost is not null

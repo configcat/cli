@@ -1,4 +1,5 @@
 # configcat flag create
+[GitHub](https://github.com/configcat/cli) | [Documentation](https://configcat.com/docs/advanced/cli)
 Create a new Feature Flag or Setting in a specified Config identified by the `--config-id` option
 ## Usage
 ```

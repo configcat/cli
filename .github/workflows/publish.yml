@@ -89,6 +89,14 @@ jobs:
       run: ((Get-Content -path choco\configcat.nuspec -Raw) -replace '#VERSION_PLACEHOLDER#','${{ env.VERSION }}') | Set-Content -Path choco\configcat.nuspec
       shell: powershell
 
+    - name: Update version in VERIFICATION.txt
+      run: ((Get-Content -path choco\VERIFICATION.txt -Raw) -replace '#VERSION_PLACEHOLDER#','${{ env.VERSION }}') | Set-Content -Path choco\VERIFICATION.txt
+      shell: powershell
+
+    - name: Copy LICENSE to choco folder
+      run: Copy-Item LICENSE -destination choco\LICENSE.txt
+      shell: powershell
+
     - name: Pack
       run: choco pack choco\configcat.nuspec
 

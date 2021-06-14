@@ -1,4 +1,5 @@
 # configcat environment ls
+[GitHub](https://github.com/configcat/cli) | [Documentation](https://configcat.com/docs/advanced/cli)
 List all Environments that belongs to the configured user
 ## Usage
 ```

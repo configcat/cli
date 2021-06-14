@@ -1,4 +1,5 @@
 # configcat flag value
+[GitHub](https://github.com/configcat/cli) | [Documentation](https://configcat.com/docs/advanced/cli)
 Show, and update Feature Flag or Setting values in different Environments
 ## Usage
 ```

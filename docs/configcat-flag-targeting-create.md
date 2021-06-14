@@ -1,4 +1,5 @@
 # configcat flag targeting create
+[GitHub](https://github.com/configcat/cli) | [Documentation](https://configcat.com/docs/advanced/cli)
 Create new targeting rule
 ## Usage
 ```

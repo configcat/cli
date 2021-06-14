@@ -1,4 +1,5 @@
 # configcat flag detach
+[GitHub](https://github.com/configcat/cli) | [Documentation](https://configcat.com/docs/advanced/cli)
 Detach Tag(s) from a Feature Flag or Setting
 ## Usage
 ```

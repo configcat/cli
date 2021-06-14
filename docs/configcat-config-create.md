@@ -1,4 +1,5 @@
 # configcat config create
+[GitHub](https://github.com/configcat/cli) | [Documentation](https://configcat.com/docs/advanced/cli)
 Create a new Config in a specified Product identified by the `--product-id` option
 ## Usage
 ```
