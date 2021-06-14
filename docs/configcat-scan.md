@@ -1,6 +1,4 @@
 # configcat scan
-[GitHub](https://github.com/configcat/cli) | [Documentation](https://configcat.com/docs/advanced/cli)
-
 Scans files for Feature Flag or Setting usages
 ## Usage
 ```

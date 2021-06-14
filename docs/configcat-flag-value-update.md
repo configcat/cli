@@ -1,6 +1,4 @@
 # configcat flag value update
-[GitHub](https://github.com/configcat/cli) | [Documentation](https://configcat.com/docs/advanced/cli)
-
 Update the value of a Feature Flag or Setting
 ## Usage
 ```

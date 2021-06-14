@@ -1,6 +1,4 @@
 # configcat flag ls
-[GitHub](https://github.com/configcat/cli) | [Documentation](https://configcat.com/docs/advanced/cli)
-
 List all Feature Flags & Settings that belongs to the configured user
 ## Usage
 ```

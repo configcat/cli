@@ -1,6 +1,4 @@
 # configcat flag targeting move
-[GitHub](https://github.com/configcat/cli) | [Documentation](https://configcat.com/docs/advanced/cli)
-
 Move a targeting rule into a different position
 ## Usage
 ```

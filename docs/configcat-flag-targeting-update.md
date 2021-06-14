@@ -1,6 +1,4 @@
 # configcat flag targeting update
-[GitHub](https://github.com/configcat/cli) | [Documentation](https://configcat.com/docs/advanced/cli)
-
 Update targeting rule
 ## Usage
 ```

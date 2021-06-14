@@ -1,6 +1,4 @@
 # configcat product update
-[GitHub](https://github.com/configcat/cli) | [Documentation](https://configcat.com/docs/advanced/cli)
-
 Update a Product identified by the `--product-id` option
 ## Usage
 ```

@@ -1,6 +1,4 @@
 # configcat flag attach
-[GitHub](https://github.com/configcat/cli) | [Documentation](https://configcat.com/docs/advanced/cli)
-
 Attach Tag(s) to a Feature Flag or Setting
 ## Usage
 ```

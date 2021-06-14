@@ -1,6 +1,4 @@
 # configcat config rm
-[GitHub](https://github.com/configcat/cli) | [Documentation](https://configcat.com/docs/advanced/cli)
-
 Remove a Config identified by the `--config-id` option
 ## Usage
 ```
