@@ -1,4 +1,5 @@
-﻿using ConfigCat.Cli.Models.Api;
+﻿using ConfigCat.Cli.Models;
+using ConfigCat.Cli.Models.Api;
 using ConfigCat.Cli.Services;
 using ConfigCat.Cli.Services.Api;
 using ConfigCat.Cli.Services.Rendering;
@@ -16,18 +17,21 @@ namespace ConfigCat.Cli.Commands
         private readonly IEnvironmentClient environmentClient;
         private readonly ISdkKeyClient sdkKeyClient;
         private readonly IOutput output;
+        private readonly CliOptions options;
 
         public SdkKey(IProductClient productClient,
             IConfigClient configClient,
             IEnvironmentClient environmentClient,
             ISdkKeyClient sdkKeyClient,
-            IOutput output)
+            IOutput output,
+            CliOptions options)
         {
             this.productClient = productClient;
             this.configClient = configClient;
             this.environmentClient = environmentClient;
             this.sdkKeyClient = sdkKeyClient;
             this.output = output;
+            this.options = options;
         }
 
         public async Task<int> InvokeAsync(CancellationToken token)
@@ -47,6 +51,12 @@ namespace ConfigCat.Cli.Commands
                             Environment = environment,
                             SdkKey = await this.sdkKeyClient.GetSdkKeyAsync(config.ConfigId, environment.EnvironmentId, token)
                         });
+            }
+
+            if (options.IsJsonOutputEnabled)
+            {
+                this.output.RenderJson(items);
+                return ExitCodes.Ok;
             }
 
             var table = new TableView<SdkKeyTableItem>() { Items = items };

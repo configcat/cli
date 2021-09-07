@@ -1,4 +1,5 @@
-﻿using ConfigCat.Cli.Models.Configuration;
+﻿using ConfigCat.Cli.Models;
+using ConfigCat.Cli.Models.Configuration;
 using ConfigCat.Cli.Options;
 using ConfigCat.Cli.Services;
 using ConfigCat.Cli.Services.Api;
@@ -29,7 +30,6 @@ namespace ConfigCat.Cli
             await using var container = new StashboxContainer(c => c.WithDefaultLifetime(Lifetimes.Singleton));
 
             container.RegisterAssemblyContaining<ApiClient>(
-                type => type != typeof(Output),
                 serviceTypeSelector: Rules.ServiceRegistrationFilters.Interfaces,
                 registerSelf: false);
 
@@ -40,8 +40,9 @@ namespace ConfigCat.Cli
                 .UseMiddleware(async (context, next) =>
                 {
                     var hasVerboseOption = context.ParseResult.FindResultFor(CommandBuilder.VerboseOption) is not null;
+                    var hasJsonOption = context.ParseResult.FindResultFor(CommandBuilder.JsonOutputOption) is not null;
                     container.RegisterInstance(context.Console);
-                    container.Register<IOutput, Output>(c => c.WithFactory<IConsole>(console => new Output(console, hasVerboseOption)));
+                    container.RegisterInstance(new CliOptions { IsVerboseEnabled = hasVerboseOption, IsJsonOutputEnabled = hasJsonOption });
                     await next(context);
                 })
                 .UseMiddleware(async (context, next) =>

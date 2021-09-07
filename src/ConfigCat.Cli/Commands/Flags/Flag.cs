@@ -1,4 +1,5 @@
-﻿using ConfigCat.Cli.Models.Api;
+﻿using ConfigCat.Cli.Models;
+using ConfigCat.Cli.Models.Api;
 using ConfigCat.Cli.Services;
 using ConfigCat.Cli.Services.Api;
 using ConfigCat.Cli.Services.Exceptions;
@@ -21,13 +22,15 @@ namespace ConfigCat.Cli.Commands
         private readonly IWorkspaceLoader workspaceLoader;
         private readonly IPrompt prompt;
         private readonly IOutput output;
+        private readonly CliOptions options;
 
         public Flag(IFlagClient flagClient,
             IConfigClient configClient,
             IProductClient productClient,
             IWorkspaceLoader workspaceLoader,
             IPrompt prompt,
-            IOutput output)
+            IOutput output,
+            CliOptions options)
         {
             this.flagClient = flagClient;
             this.configClient = configClient;
@@ -35,6 +38,7 @@ namespace ConfigCat.Cli.Commands
             this.workspaceLoader = workspaceLoader;
             this.prompt = prompt;
             this.output = output;
+            this.options = options;
         }
 
         public async Task<int> ListAllFlagsAsync(string configId, string tagName, int? tagId, CancellationToken token)
@@ -66,6 +70,12 @@ namespace ConfigCat.Cli.Commands
 
                     return result;
                 }).ToList();
+            }
+
+            if (options.IsJsonOutputEnabled)
+            {
+                this.output.RenderJson(flags);
+                return ExitCodes.Ok;
             }
 
             var table = new TableView<FlagModel>() { Items = flags };

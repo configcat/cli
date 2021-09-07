@@ -1,4 +1,5 @@
-﻿using ConfigCat.Cli.Models.Api;
+﻿using ConfigCat.Cli.Models;
+using ConfigCat.Cli.Models.Api;
 using ConfigCat.Cli.Services;
 using ConfigCat.Cli.Services.Api;
 using ConfigCat.Cli.Services.Rendering;
@@ -17,18 +18,21 @@ namespace ConfigCat.Cli.Commands
         private readonly IProductClient productClient;
         private readonly IPrompt prompt;
         private readonly IOutput output;
+        private readonly CliOptions options;
 
         public Config(IConfigClient configClient,
             IWorkspaceLoader workspaceLoader,
             IProductClient productClient, 
             IPrompt prompt,
-            IOutput output)
+            IOutput output,
+            CliOptions options)
         {
             this.configClient = configClient;
             this.workspaceLoader = workspaceLoader;
             this.productClient = productClient;
             this.prompt = prompt;
             this.output = output;
+            this.options = options;
         }
 
         public async Task<int> ListAllConfigsAsync(string productId, CancellationToken token)
@@ -41,6 +45,12 @@ namespace ConfigCat.Cli.Commands
                 var products = await this.productClient.GetProductsAsync(token);
                 foreach (var product in products)
                     configs.AddRange(await this.configClient.GetConfigsAsync(product.ProductId, token));
+            }
+
+            if (options.IsJsonOutputEnabled)
+            {
+                this.output.RenderJson(configs);
+                return ExitCodes.Ok;
             }
 
             var table = new TableView<ConfigModel>() { Items = configs };

@@ -12,11 +12,14 @@ namespace ConfigCat.Cli
     {
         public readonly static Option VerboseOption = new VerboseOption();
 
+        public readonly static Option JsonOutputOption = new JsonOutputOption();
+
         public static Command BuildRootCommand(IDependencyRegistrator dependencyRegistrator = null, bool asRootCommand = true)
         {
             var root = BuildDescriptors();
             var rootCommand = asRootCommand ? new RootCommand(root.Description) : new Command("configcat", root.Description);
             rootCommand.AddGlobalOption(VerboseOption);
+            rootCommand.AddGlobalOption(JsonOutputOption);
             rootCommand.Configure(root.SubCommands, dependencyRegistrator);
             return rootCommand;
         }
@@ -339,7 +342,7 @@ namespace ConfigCat.Cli
                     new CommandDescriptor("show", "Show Feature Flag or Setting values, targeting, and percentage rules for each environment")
                     {
                         Aliases = new[] { "sh", "pr", "print" },
-                        Handler = CreateHandler<FlagValue>(nameof(FlagValue.ListAllAsync)),
+                        Handler = CreateHandler<FlagValue>(nameof(FlagValue.ShowValueAsync)),
                         Options = new Option[]
                         {
                             new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the Feature Flag or Setting")

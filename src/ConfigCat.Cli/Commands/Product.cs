@@ -1,4 +1,5 @@
-﻿using ConfigCat.Cli.Models.Api;
+﻿using ConfigCat.Cli.Models;
+using ConfigCat.Cli.Models.Api;
 using ConfigCat.Cli.Services;
 using ConfigCat.Cli.Services.Api;
 using ConfigCat.Cli.Services.Rendering;
@@ -16,21 +17,30 @@ namespace ConfigCat.Cli.Commands
         private readonly IWorkspaceLoader workspaceLoader;
         private readonly IPrompt prompt;
         private readonly IOutput output;
+        private readonly CliOptions options;
 
         public Product(IProductClient productClient,
             IWorkspaceLoader workspaceLoader,
             IPrompt prompt,
-            IOutput output)
+            IOutput output,
+            CliOptions options)
         {
             this.productClient = productClient;
             this.workspaceLoader = workspaceLoader;
             this.prompt = prompt;
             this.output = output;
+            this.options = options;
         }
 
         public async Task<int> ListAllProductsAsync(CancellationToken token)
         {
             var products = await this.productClient.GetProductsAsync(token);
+
+            if (options.IsJsonOutputEnabled)
+            {
+                this.output.RenderJson(products);
+                return ExitCodes.Ok;
+            }
 
             var table = new TableView<ProductModel>() { Items = products.ToList() };
             table.AddColumn(p => p.ProductId, "ID");

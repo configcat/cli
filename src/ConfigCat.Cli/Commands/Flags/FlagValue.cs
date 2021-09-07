@@ -1,4 +1,6 @@
-﻿using ConfigCat.Cli.Services;
+﻿using ConfigCat.Cli.Models;
+using ConfigCat.Cli.Models.Api;
+using ConfigCat.Cli.Services;
 using ConfigCat.Cli.Services.Api;
 using ConfigCat.Cli.Services.Exceptions;
 using ConfigCat.Cli.Services.Json;
@@ -20,6 +22,7 @@ namespace ConfigCat.Cli.Commands
         private readonly IWorkspaceLoader workspaceLoader;
         private readonly IPrompt prompt;
         private readonly IOutput output;
+        private readonly CliOptions options;
 
         public FlagValue(IFlagValueClient flagValueClient,
             IFlagClient flagClient,
@@ -27,7 +30,8 @@ namespace ConfigCat.Cli.Commands
             IEnvironmentClient environmentClient,
             IWorkspaceLoader workspaceLoader,
             IPrompt prompt,
-            IOutput output)
+            IOutput output,
+            CliOptions options)
         {
             this.flagValueClient = flagValueClient;
             this.flagClient = flagClient;
@@ -36,9 +40,10 @@ namespace ConfigCat.Cli.Commands
             this.workspaceLoader = workspaceLoader;
             this.prompt = prompt;
             this.output = output;
+            this.options = options;
         }
 
-        public async Task<int> ListAllAsync(int? flagId, CancellationToken token)
+        public async Task<int> ShowValueAsync(int? flagId, CancellationToken token)
         {
             var flag = flagId is null
                 ? await this.workspaceLoader.LoadFlagAsync(token)
@@ -46,6 +51,32 @@ namespace ConfigCat.Cli.Commands
 
             var config = await this.configClient.GetConfigAsync(flag.ConfigId, token);
             var environments = await this.environmentClient.GetEnvironmentsAsync(config.Product.ProductId, token);
+
+            if (options.IsJsonOutputEnabled)
+            {
+                var valuesInJson = new List<ValueInEnvironmentJsonOutput>();
+                foreach (var environment in environments)
+                {
+                    var value = await this.flagValueClient.GetValueAsync(flag.SettingId, environment.EnvironmentId, token);
+                    valuesInJson.Add(new ValueInEnvironmentJsonOutput
+                    {
+                        EnvironmentId = environment.EnvironmentId,
+                        EnvironmentName = environment.Name,
+                        PercentageRules = value.PercentageRules,
+                        TargetingRules = value.TargetingRules,
+                        Value = value.Value
+                    });
+                }
+
+                this.output.RenderJson(new FlagValueJsonOutput
+                {
+                    Setting = flag,
+                    Values = valuesInJson
+                });
+
+                return ExitCodes.Ok;
+            }
+
             var separatorLength = flag.Name.Length + flag.Key.Length + flag.SettingId.ToString().Length + 9;
 
             this.output.WriteColored(new string('-', separatorLength), ForegroundColorSpan.DarkGray());
@@ -140,5 +171,25 @@ namespace ConfigCat.Cli.Commands
             await this.flagValueClient.UpdateValueAsync(flag.SettingId, environmentId, jsonPatchDocument.Operations, token);
             return ExitCodes.Ok;
         }
+    }
+
+    class FlagValueJsonOutput
+    {
+        public FlagModel Setting { get; set; }
+
+        public IEnumerable<ValueInEnvironmentJsonOutput> Values { get; set; }
+    }
+
+    class ValueInEnvironmentJsonOutput
+    {
+        public string EnvironmentId { get; set; }
+
+        public string EnvironmentName { get; set; }
+
+        public List<PercentageModel> PercentageRules { get; set; }
+
+        public List<TargetingModel> TargetingRules { get; set; }
+
+        public object Value { get; set; }
     }
 }

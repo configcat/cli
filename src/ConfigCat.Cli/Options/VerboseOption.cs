@@ -4,7 +4,7 @@ namespace ConfigCat.Cli.Options
 {
     class VerboseOption : Option
     {
-        public VerboseOption() : base(new []
+        public VerboseOption() : base(new[]
         {
             "--verbose",
             "-v",

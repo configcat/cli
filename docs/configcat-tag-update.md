@@ -13,6 +13,7 @@ configcat [options] tag update
 | `--name`, `-n` | The updated name |
 | `--color`, `-c` | The updated color |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |
+| `--json` | Format the output in JSON |
 | `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |
 ## Parent Command
 | Command | Description |

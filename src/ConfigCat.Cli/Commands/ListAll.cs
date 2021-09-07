@@ -1,4 +1,5 @@
-﻿using ConfigCat.Cli.Models.Api;
+﻿using ConfigCat.Cli.Models;
+using ConfigCat.Cli.Models.Api;
 using ConfigCat.Cli.Services;
 using ConfigCat.Cli.Services.Api;
 using ConfigCat.Cli.Services.Rendering;
@@ -15,23 +16,48 @@ namespace ConfigCat.Cli.Commands
         private readonly IConfigClient configClient;
         private readonly IEnvironmentClient environmentClient;
         private readonly IOutput output;
+        private readonly CliOptions options;
 
         public ListAll(IProductClient productClient,
             IConfigClient configClient,
             IEnvironmentClient environmentClient,
-            IOutput output)
+            IOutput output,
+            CliOptions options)
         {
             this.productClient = productClient;
             this.configClient = configClient;
             this.environmentClient = environmentClient;
             this.output = output;
+            this.options = options;
         }
 
         public async Task<int> InvokeAsync(CancellationToken token)
         {
-            var items = new List<ConfigEnvironment>();
+            
             var products = await this.productClient.GetProductsAsync(token);
 
+            if (options.IsJsonOutputEnabled)
+            {
+                var jsonOutput = new List<ProductJsonOutput>();
+                foreach (var product in products)
+                {
+                    var configs = await this.configClient.GetConfigsAsync(product.ProductId, token);
+                    var environments = await this.environmentClient.GetEnvironmentsAsync(product.ProductId, token);
+                    jsonOutput.Add(new ProductJsonOutput
+                    {
+                        Configs = configs,
+                        Environments = environments,
+                        Name = product.Name,
+                        ProductId = product.ProductId,
+                        Organization = product.Organization
+                    });
+                }
+
+                this.output.RenderJson(jsonOutput);
+                return ExitCodes.Ok;
+            }
+
+            var items = new List<ConfigEnvironment>();
             foreach (var product in products)
             {
                 var configs = await this.configClient.GetConfigsAsync(product.ProductId, token);
@@ -62,6 +88,18 @@ namespace ConfigCat.Cli.Commands
             public ConfigModel Config { get; set; }
 
             public EnvironmentModel Environment { get; set; }
+        }
+
+        class OrganizationJsonOutput : OrganizationModel
+        {
+            public IEnumerable<ProductJsonOutput> Products { get; set; }
+        }
+
+        class ProductJsonOutput : ProductModel
+        {
+            public IEnumerable<EnvironmentModel> Environments { get; set; }
+
+            public IEnumerable<ConfigModel> Configs { get; set; }
         }
     }
 }

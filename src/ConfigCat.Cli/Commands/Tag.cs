@@ -1,7 +1,7 @@
-﻿using ConfigCat.Cli.Models.Api;
+﻿using ConfigCat.Cli.Models;
+using ConfigCat.Cli.Models.Api;
 using ConfigCat.Cli.Services;
 using ConfigCat.Cli.Services.Api;
-using ConfigCat.Cli.Services.Configuration;
 using ConfigCat.Cli.Services.Rendering;
 using System;
 using System.Collections.Generic;
@@ -18,21 +18,21 @@ namespace ConfigCat.Cli.Commands
         private readonly IWorkspaceLoader workspaceLoader;
         private readonly IPrompt prompt;
         private readonly IOutput output;
-        private readonly IConfigurationProvider configurationProvider;
+        private readonly CliOptions options;
 
         public Tag(ITagClient tagClient, 
             IProductClient productClient,
             IWorkspaceLoader workspaceLoader,
             IPrompt prompt, 
-            IOutput output, 
-            IConfigurationProvider configurationProvider)
+            IOutput output,
+            CliOptions options)
         {
             this.tagClient = tagClient;
             this.productClient = productClient;
             this.workspaceLoader = workspaceLoader;
             this.prompt = prompt;
             this.output = output;
-            this.configurationProvider = configurationProvider;
+            this.options = options;
         }
 
         public async Task<int> ListAllTagsAsync(string productId, CancellationToken token)
@@ -47,6 +47,12 @@ namespace ConfigCat.Cli.Commands
                     tags.AddRange(await this.tagClient.GetTagsAsync(product.ProductId, token));
             }
 
+            if(options.IsJsonOutputEnabled)
+            {
+                this.output.RenderJson(tags);
+                return ExitCodes.Ok;
+            }
+
             var table = new TableView<TagModel>() { Items = tags };
             table.AddColumn(p => p.TagId, "ID");
             table.AddColumn(p => p.Name, "NAME");
@@ -54,7 +60,6 @@ namespace ConfigCat.Cli.Commands
             table.AddColumn(p => $"{p.Product.Name} [{p.Product.ProductId}]", "PRODUCT");
 
             this.output.RenderView(table);
-
             return ExitCodes.Ok;
         }
 

@@ -1,10 +1,13 @@
-﻿using System;
+﻿using ConfigCat.Cli.Models;
+using System;
+using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.IO;
 using System.CommandLine.Rendering;
 using System.CommandLine.Rendering.Views;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -49,6 +52,7 @@ namespace ConfigCat.Cli.Services.Rendering
         Spinner CreateSpinner(CancellationToken token);
         CursorHider CreateCursorHider();
         void RenderView(View view);
+        void RenderJson(object toRender);
     }
 
     public class Output : IOutput
@@ -65,11 +69,11 @@ namespace ConfigCat.Cli.Services.Rendering
 
         private readonly bool showVerboseOutput;
 
-        public Output(IConsole console, bool showVerboseOutput)
+        public Output(IConsole console, CliOptions options)
         {
             this.console = console.GetTerminal() ?? console;
             this.originalConsole = console;
-            this.showVerboseOutput = showVerboseOutput;
+            this.showVerboseOutput = options.IsVerboseEnabled;
         }
 
         public void Verbose(string text, ForegroundColorSpan color = null)
@@ -281,5 +285,8 @@ namespace ConfigCat.Cli.Services.Rendering
             var lineCount = (intial + textLength) / Console.BufferWidth;
             return this.CursorTop - lineCount + whichLine;
         }
+
+        public void RenderJson(object toRender) =>
+            this.Write(JsonSerializer.Serialize(toRender, Constants.CamelCaseOptions));
     }
 }

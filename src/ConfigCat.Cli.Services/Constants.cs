@@ -45,7 +45,8 @@ namespace ConfigCat.Cli.Services
 
         public static JsonSerializerOptions CamelCaseOptions = new JsonSerializerOptions
         {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            WriteIndented = true
         };
     }
 

@@ -14,6 +14,7 @@ configcat [options] flag update
 | `--hint`, `-H` | The updated hint |
 | `--tag-ids`, `-g` | The updated Tag list |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |
+| `--json` | Format the output in JSON |
 | `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |
 ## Parent Command
 | Command | Description |

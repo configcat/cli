@@ -9,6 +9,7 @@ configcat [options] tag ls
 | ------ | ----------- |
 | `--product-id`, `-p` | Show only a Product's tags |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |
+| `--json` | Format the output in JSON |
 | `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |
 ## Parent Command
 | Command | Description |

@@ -6,10 +6,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Moq" Version="4.16.1" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\ConfigCat.Cli\ConfigCat.Cli.csproj" />
   </ItemGroup>
 
