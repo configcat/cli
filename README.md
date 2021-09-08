@@ -43,7 +43,7 @@ sudo snap install configcat
 <details>
   <summary><strong>Scoop (Windows)</strong></summary>
 
-Install the CLI from [ConfigCat bucket](https://github.com/configcat/homebrew-tap) with [Scoop](https://scoop.sh) by executing the following command:
+Install the CLI from [ConfigCat bucket](https://github.com/configcat/scoop-configcat) with [Scoop](https://scoop.sh) by executing the following command:
 ```bash
 scoop bucket add configcat https://github.com/configcat/scoop-configcat
 scoop install configcat
