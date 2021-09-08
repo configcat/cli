@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Rendering;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -44,6 +45,9 @@ namespace ConfigCat.Cli.Commands
 
             var flags = await this.flagClient.GetFlagsAsync(configId, token);
             var deletedFlags = await this.flagClient.GetDeletedFlagsAsync(configId, token);
+            deletedFlags = deletedFlags
+                .Where(d => !flags.Any(f => f.Key == d.Key))
+                .Distinct(new FlagModelEqualityComparer());
 
             var files = await this.fileCollector.CollectAsync(directory, token);
             var flagReferences = await this.referenceCollector.CollectAsync(flags.Concat(deletedFlags), files, lineCount, token);
@@ -51,9 +55,9 @@ namespace ConfigCat.Cli.Commands
             var liveFlagReferences = flagReferences.Where(f => f.References.Where(r => r.FoundFlag is not DeletedFlagModel).Any());
             var deletedFlagReferences = flagReferences.Where(f => f.References.Where(r => r.FoundFlag is DeletedFlagModel).Any());
 
-            this.output.Write("Found "); 
+            this.output.Write("Found ");
             this.output.WriteColored(liveFlagReferences.Sum(f => f.References.Where(r => r.FoundFlag is not DeletedFlagModel).Count()).ToString(), ForegroundColorSpan.LightCyan());
-            this.output.Write($" feature flag/setting reference(s) in "); 
+            this.output.Write($" feature flag/setting reference(s) in ");
             this.output.WriteColored(liveFlagReferences.Count().ToString(), ForegroundColorSpan.LightCyan());
             this.output.Write(" file(s). " +
                 $"Keys: [{string.Join(", ", liveFlagReferences.SelectMany(r => r.References.Where(r => r.FoundFlag is not DeletedFlagModel)).Select(r => r.FoundFlag.Key).Distinct())}]");
@@ -79,7 +83,7 @@ namespace ConfigCat.Cli.Commands
 
         private void PrintReferences(IEnumerable<FlagReferenceResult> references, Func<Reference, bool> filter)
         {
-            if(!references.Any())
+            if (!references.Any())
                 return;
 
             this.output.WriteLine();
@@ -139,6 +143,22 @@ namespace ConfigCat.Cli.Commands
             this.output.Write(preText);
             this.output.WriteColoredWithBackground(key, ForegroundColorSpan.Rgb(255, 255, 255), BackgroundColorSpan.Magenta());
             this.SearchKeyInText(postText, key);
+        }
+    }
+
+    class FlagModelEqualityComparer : IEqualityComparer<DeletedFlagModel>
+    {
+        public bool Equals([AllowNull] DeletedFlagModel x, [AllowNull] DeletedFlagModel y)
+        {
+            if (x is null || y is null)
+                return false;
+
+            return x.Key == y.Key;
+        }
+
+        public int GetHashCode([DisallowNull] DeletedFlagModel obj)
+        {
+            return obj.Key.GetHashCode();
         }
     }
 }

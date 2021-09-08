@@ -17,7 +17,10 @@ ConfigCat is a <a href="https://configcat.com" target="_blank">hosted feature fl
 The following instructions will guide you through the first steps to start using this tool.
 
 ### Installation
-You can install the CLI on multiple operating systems using the following sources.
+You can install the CLI on multiple operating systems using the following methods.
+
+<details>
+  <summary>Homebrew (macOS / Linux)</summary>
 
 #### Homebrew (macOS / Linux)
 ```bash
@@ -25,20 +28,40 @@ brew tap configcat/tap
 brew install configcat
 ```
 
+</details>
+
+<details>
+  <summary>Snap (Linux)</summary>
+
 #### Snap (Linux)
 ```bash
 sudo snap install configcat
 ```
+
+</details>
+
+<details>
+  <summary>Chocolatey (Windows)</summary>
 
 #### Chocolatey (Windows)
 ```powershell
 choco install configcat
 ```
 
+</details>
+
+<details>
+  <summary>Docker</summary>
+
 #### Docker
 ```bash
 docker pull configcat/cli
 ```
+
+</details>
+
+<details>
+  <summary>Install Script</summary>
 
 #### Install Script
 On Unix platforms, you can install the CLI by executing an install script.
@@ -83,8 +106,15 @@ curl -fsSL "https://raw.githubusercontent.com/configcat/cli/main/scripts/install
 curl -fsSL "https://raw.githubusercontent.com/configcat/cli/main/scripts/install.sh" | bash -s -- -a=arm
 ```
 
-#### Manual
+</details>
+
+<details>
+  <summary>Standalone executables</summary>
+
+#### Standalone executables
 You can download the binaries directly from [GitHub Releases](https://github.com/configcat/cli/releases).
+
+</details>
 
 ### Configuration
 After a successful installation, the CLI must be configured with your <a target="_blank" href="https://app.configcat.com/my-account/public-api-credentials">ConfigCat Management API credentials</a>.

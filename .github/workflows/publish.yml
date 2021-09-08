@@ -188,6 +188,14 @@ jobs:
           configcat-cli_${{ env.VERSION }}_linux-x64.tar.gz
           configcat-cli_${{ env.VERSION }}_osx-x64.tar.gz
 
+    - name: Archive zips for scoop
+      uses: actions/upload-artifact@v2
+      with:
+        name: scoop-pack
+        path: |
+          configcat-cli_${{ env.VERSION }}_win-x64.zip
+          configcat-cli_${{ env.VERSION }}_win-x86.zip
+
     - name: 🚀Update release
       uses: ncipollo/release-action@v1
       with:
@@ -217,6 +225,30 @@ jobs:
       run: |
         chmod +x scripts/brew-publish.sh
         ./scripts/brew-publish.sh
+      env:
+        GH_USER_EMAIL: ${{ secrets.GH_USER_EMAIL }}
+        GH_USER_NAME: ${{ secrets.GH_USER_NAME }}
+        GH_API_TOKEN: ${{ secrets.GH_API_TOKEN }}
+
+  scoop:
+    runs-on: ubuntu-latest
+    needs: github-release
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Download archives
+      uses: actions/download-artifact@v2
+      with:
+        name: scoop-pack
+
+    - name: Get version from tag
+      run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
+
+    - name: Execute scoop publish script
+      run: |
+        chmod +x scripts/scoop-publish.sh
+        ./scripts/scoop-publish.sh
       env:
         GH_USER_EMAIL: ${{ secrets.GH_USER_EMAIL }}
         GH_USER_NAME: ${{ secrets.GH_USER_NAME }}
