@@ -6,20 +6,16 @@
   "architecture": {
     "64bit": {
       "url": "#WIN-64-PATH#",
-      "hash": "#WIN-64-SUM#"
+      "hash": "#WIN-64-SUM#",
+      "extract_dir": "win-x64"
     },
     "32bit": {
       "url": "#WIN-32-PATH#",
-      "hash": "#WIN-32-SUM#"
+      "hash": "#WIN-32-SUM#",
+      "extract_dir": "win-x86"
     }
   },
   "bin": "configcat.exe",
-  "shortcuts": [
-    [
-      "configcat.exe",
-      "configcat"
-    ]
-  ],
   "checkver": {
     "github": "https://github.com/configcat/cli"
   },
