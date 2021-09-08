@@ -40,9 +40,8 @@ namespace ConfigCat.Cli
                 .UseMiddleware(async (context, next) =>
                 {
                     var hasVerboseOption = context.ParseResult.FindResultFor(CommandBuilder.VerboseOption) is not null;
-                    var hasJsonOption = context.ParseResult.FindResultFor(CommandBuilder.JsonOutputOption) is not null;
                     container.RegisterInstance(context.Console);
-                    container.RegisterInstance(new CliOptions { IsVerboseEnabled = hasVerboseOption, IsJsonOutputEnabled = hasJsonOption });
+                    container.RegisterInstance(new CliOptions { IsVerboseEnabled = hasVerboseOption });
                     await next(context);
                 })
                 .UseMiddleware(async (context, next) =>

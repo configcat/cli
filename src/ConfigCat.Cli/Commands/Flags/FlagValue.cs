@@ -22,7 +22,6 @@ namespace ConfigCat.Cli.Commands
         private readonly IWorkspaceLoader workspaceLoader;
         private readonly IPrompt prompt;
         private readonly IOutput output;
-        private readonly CliOptions options;
 
         public FlagValue(IFlagValueClient flagValueClient,
             IFlagClient flagClient,
@@ -30,8 +29,7 @@ namespace ConfigCat.Cli.Commands
             IEnvironmentClient environmentClient,
             IWorkspaceLoader workspaceLoader,
             IPrompt prompt,
-            IOutput output,
-            CliOptions options)
+            IOutput output)
         {
             this.flagValueClient = flagValueClient;
             this.flagClient = flagClient;
@@ -40,10 +38,9 @@ namespace ConfigCat.Cli.Commands
             this.workspaceLoader = workspaceLoader;
             this.prompt = prompt;
             this.output = output;
-            this.options = options;
         }
 
-        public async Task<int> ShowValueAsync(int? flagId, CancellationToken token)
+        public async Task<int> ShowValueAsync(int? flagId, bool json, CancellationToken token)
         {
             var flag = flagId is null
                 ? await this.workspaceLoader.LoadFlagAsync(token)
@@ -52,7 +49,7 @@ namespace ConfigCat.Cli.Commands
             var config = await this.configClient.GetConfigAsync(flag.ConfigId, token);
             var environments = await this.environmentClient.GetEnvironmentsAsync(config.Product.ProductId, token);
 
-            if (options.IsJsonOutputEnabled)
+            if (json)
             {
                 var valuesInJson = new List<ValueInEnvironmentJsonOutput>();
                 foreach (var environment in environments)

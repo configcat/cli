@@ -13,7 +13,6 @@ configcat [options] tag create
 | `--name`, `-n` | The name of the new Tag |
 | `--color`, `-c` | The color of the new Tag |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |
-| `--json` | Format the output in JSON |
 | `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |
 ## Parent Command
 | Command | Description |

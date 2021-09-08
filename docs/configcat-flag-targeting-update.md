@@ -17,7 +17,6 @@ configcat [options] flag targeting update
 | `--compare-to`, `-t` | The value to compare against |
 | `--flag-value`, `-f` | The value to serve when the comparison matches, it must respect the setting type |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |
-| `--json` | Format the output in JSON |
 | `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |
 ## Parent Command
 | Command | Description |

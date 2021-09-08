@@ -12,7 +12,6 @@ configcat [options] environment create
 | `--product-id`, `-p` | ID of the Product where the Environment must be created |
 | `--name`, `-n` | Name of the new Environment |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |
-| `--json` | Format the output in JSON |
 | `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |
 ## Parent Command
 | Command | Description |

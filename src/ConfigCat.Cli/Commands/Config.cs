@@ -18,24 +18,21 @@ namespace ConfigCat.Cli.Commands
         private readonly IProductClient productClient;
         private readonly IPrompt prompt;
         private readonly IOutput output;
-        private readonly CliOptions options;
 
         public Config(IConfigClient configClient,
             IWorkspaceLoader workspaceLoader,
             IProductClient productClient, 
             IPrompt prompt,
-            IOutput output,
-            CliOptions options)
+            IOutput output)
         {
             this.configClient = configClient;
             this.workspaceLoader = workspaceLoader;
             this.productClient = productClient;
             this.prompt = prompt;
             this.output = output;
-            this.options = options;
         }
 
-        public async Task<int> ListAllConfigsAsync(string productId, CancellationToken token)
+        public async Task<int> ListAllConfigsAsync(string productId, bool json, CancellationToken token)
         {
             var configs = new List<ConfigModel>();
             if (!productId.IsEmpty())
@@ -47,7 +44,7 @@ namespace ConfigCat.Cli.Commands
                     configs.AddRange(await this.configClient.GetConfigsAsync(product.ProductId, token));
             }
 
-            if (options.IsJsonOutputEnabled)
+            if (json)
             {
                 this.output.RenderJson(configs);
                 return ExitCodes.Ok;

@@ -12,7 +12,6 @@ configcat [options] flag attach
 | `--flag-id`, `-i`, `--setting-id` | ID of the Feature Flag or Setting to attach Tags |
 | `--tag-ids`, `-g` | Tag IDs to attach |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |
-| `--json` | Format the output in JSON |
 | `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |
 ## Parent Command
 | Command | Description |

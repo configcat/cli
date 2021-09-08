@@ -2,13 +2,13 @@
 List all Product, Config, and Environment IDs
 ## Usage
 ```
-configcat ls
+configcat [options] ls
 ```
 ## Options
 | Option | Description |
 | ------ | ----------- |
-| `--verbose`, `-v`, `/v` | Print detailed execution information |
 | `--json` | Format the output in JSON |
+| `--verbose`, `-v`, `/v` | Print detailed execution information |
 | `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |
 ## Parent Command
 | Command | Description |

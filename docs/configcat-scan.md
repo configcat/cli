@@ -8,10 +8,9 @@ configcat [options] scan <directory>
 | Option | Description |
 | ------ | ----------- |
 | `--config-id`, `-c` | ID of the Config to scan against |
-| `--line-count`, `-l` | Context line count before and after the reference line |
+| `--line-count`, `-l` | Context line count before and after the reference line (min: 1, max: 10) |
 | `--print`, `-p` | Print found references |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |
-| `--json` | Format the output in JSON |
 | `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |
 ## Arguments
 | Argument | Description |

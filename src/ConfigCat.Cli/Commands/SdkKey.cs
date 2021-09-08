@@ -17,24 +17,21 @@ namespace ConfigCat.Cli.Commands
         private readonly IEnvironmentClient environmentClient;
         private readonly ISdkKeyClient sdkKeyClient;
         private readonly IOutput output;
-        private readonly CliOptions options;
 
         public SdkKey(IProductClient productClient,
             IConfigClient configClient,
             IEnvironmentClient environmentClient,
             ISdkKeyClient sdkKeyClient,
-            IOutput output,
-            CliOptions options)
+            IOutput output)
         {
             this.productClient = productClient;
             this.configClient = configClient;
             this.environmentClient = environmentClient;
             this.sdkKeyClient = sdkKeyClient;
             this.output = output;
-            this.options = options;
         }
 
-        public async Task<int> InvokeAsync(CancellationToken token)
+        public async Task<int> InvokeAsync(bool json, CancellationToken token)
         {
             var items = new List<SdkKeyTableItem>();
             var products = await this.productClient.GetProductsAsync(token);
@@ -53,7 +50,7 @@ namespace ConfigCat.Cli.Commands
                         });
             }
 
-            if (options.IsJsonOutputEnabled)
+            if (json)
             {
                 this.output.RenderJson(items);
                 return ExitCodes.Ok;

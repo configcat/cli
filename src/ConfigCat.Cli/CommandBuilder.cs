@@ -12,14 +12,11 @@ namespace ConfigCat.Cli
     {
         public readonly static Option VerboseOption = new VerboseOption();
 
-        public readonly static Option JsonOutputOption = new JsonOutputOption();
-
         public static Command BuildRootCommand(IDependencyRegistrator dependencyRegistrator = null, bool asRootCommand = true)
         {
             var root = BuildDescriptors();
             var rootCommand = asRootCommand ? new RootCommand(root.Description) : new Command("configcat", root.Description);
             rootCommand.AddGlobalOption(VerboseOption);
-            rootCommand.AddGlobalOption(JsonOutputOption);
             rootCommand.Configure(root.SubCommands, dependencyRegistrator);
             return rootCommand;
         }
@@ -60,7 +57,11 @@ namespace ConfigCat.Cli
         private static CommandDescriptor BuildListAllCommand() =>
             new CommandDescriptor("ls", "List all Product, Config, and Environment IDs")
             {
-                Handler = CreateHandler<ListAll>(nameof(ListAll.InvokeAsync))
+                Handler = CreateHandler<ListAll>(nameof(ListAll.InvokeAsync)),
+                Options = new[]
+                {
+                    new Option<bool>(new[] { "--json" }, "Format the output in JSON"),
+                }
             };
 
         private static CommandDescriptor BuildProductCommand() =>
@@ -71,7 +72,11 @@ namespace ConfigCat.Cli
                 {
                     new CommandDescriptor("ls", "List all Products that belongs to the configured user")
                     {
-                        Handler = CreateHandler<Product>(nameof(Product.ListAllProductsAsync))
+                        Handler = CreateHandler<Product>(nameof(Product.ListAllProductsAsync)),
+                        Options = new[]
+                        {
+                            new Option<bool>(new[] { "--json" }, "Format the output in JSON"),
+                        }
                     },
                     new CommandDescriptor("create", "Create a new Product in a specified Organization identified by the `--organization-id` option")
                     {
@@ -112,9 +117,10 @@ namespace ConfigCat.Cli
                 {
                     new CommandDescriptor("ls", "List all Configs that belongs to the configured user")
                     {
-                        Options = new[]
+                        Options = new Option[]
                         {
                             new Option<string>(new string[] { "--product-id", "-p" }, "Show only a Product's Config"),
+                            new Option<bool>(new[] { "--json" }, "Format the output in JSON"),
                         },
                         Handler = CreateHandler<Config>(nameof(Config.ListAllConfigsAsync))
                     },
@@ -157,9 +163,10 @@ namespace ConfigCat.Cli
                 {
                     new CommandDescriptor("ls", "List all Environments that belongs to the configured user")
                     {
-                        Options = new[]
+                        Options = new Option[]
                         {
                             new Option<string>(new string[] { "--product-id", "-p" }, "Show only a Product's Environments"),
+                            new Option<bool>(new[] { "--json" }, "Format the output in JSON"),
                         },
                         Handler = CreateHandler<Environment>(nameof(Environment.ListAllEnvironmentsAsync))
                     },
@@ -202,9 +209,10 @@ namespace ConfigCat.Cli
                 {
                     new CommandDescriptor("ls", "List all Tags that belongs to the configured user")
                     {
-                        Options = new[]
+                        Options = new Option[]
                         {
                             new Option<string>(new[] { "--product-id", "-p" }, "Show only a Product's tags"),
+                            new Option<bool>(new[] { "--json" }, "Format the output in JSON"),
                         },
                         Handler = CreateHandler<Tag>(nameof(Tag.ListAllTagsAsync))
                     },
@@ -255,6 +263,7 @@ namespace ConfigCat.Cli
                             new Option<string>(new[] { "--config-id", "-c" }, "Show only a Config's Flags & Settings"),
                             new Option<string>(new[] { "--tag-name", "-n" }, "Filter by a Tag's name"),
                             new Option<int>(new[] { "--tag-id", "-t" }, "Filter by a Tag's ID"),
+                            new Option<bool>(new[] { "--json" }, "Format the output in JSON"),
                         },
                         Handler = CreateHandler<Flag>(nameof(Flag.ListAllFlagsAsync))
                     },
@@ -349,6 +358,7 @@ namespace ConfigCat.Cli
                             {
                                 Name = "--flag-id"
                             },
+                            new Option<bool>(new[] { "--json" }, "Format the output in JSON"),
                         }
                     },
                     new CommandDescriptor("update", "Update the value of a Feature Flag or Setting")
@@ -486,6 +496,10 @@ namespace ConfigCat.Cli
             {
                 Aliases = new[] { "k" },
                 Handler = CreateHandler<SdkKey>(nameof(SdkKey.InvokeAsync)),
+                Options = new[]
+                {
+                    new Option<bool>(new[] { "--json" }, "Format the output in JSON"),
+                }
             };
 
         private static CommandDescriptor BuildScanCommand() =>
@@ -499,7 +513,7 @@ namespace ConfigCat.Cli
                 Options = new Option[]
                 {
                     new Option<string>(new[] { "--config-id", "-c" }, "ID of the Config to scan against"),
-                    new Option<int>(new[] { "--line-count", "-l" }, () => 4, "Context line count before and after the reference line"),
+                    new Option<int>(new[] { "--line-count", "-l" }, () => 4, "Context line count before and after the reference line (min: 1, max: 10)"),
                     new Option<bool>(new[] { "--print", "-p" }, "Print found references"),
                 }
             };

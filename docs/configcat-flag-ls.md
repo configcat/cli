@@ -10,8 +10,8 @@ configcat [options] flag ls
 | `--config-id`, `-c` | Show only a Config's Flags & Settings |
 | `--tag-name`, `-n` | Filter by a Tag's name |
 | `--tag-id`, `-t` | Filter by a Tag's ID |
-| `--verbose`, `-v`, `/v` | Print detailed execution information |
 | `--json` | Format the output in JSON |
+| `--verbose`, `-v`, `/v` | Print detailed execution information |
 | `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |
 ## Parent Command
 | Command | Description |

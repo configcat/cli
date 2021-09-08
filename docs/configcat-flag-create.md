@@ -16,7 +16,6 @@ configcat [options] flag create
 | `--type`, `-t` | Type of the new Flag or Setting |
 | `--tag-ids`, `-g` | Tags to attach |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |
-| `--json` | Format the output in JSON |
 | `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |
 ## Parent Command
 | Command | Description |

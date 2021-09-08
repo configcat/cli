@@ -6,7 +6,6 @@ This is a reference for the ConfigCat CLI. It allows you to interact with the Co
 | Option | Description |
 | ------ | ----------- |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |
-| `--json` | Format the output in JSON |
 | `--version` | Show version information |
 | `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |
 ## Commands

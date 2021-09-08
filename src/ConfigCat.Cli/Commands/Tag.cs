@@ -18,24 +18,21 @@ namespace ConfigCat.Cli.Commands
         private readonly IWorkspaceLoader workspaceLoader;
         private readonly IPrompt prompt;
         private readonly IOutput output;
-        private readonly CliOptions options;
 
-        public Tag(ITagClient tagClient, 
+        public Tag(ITagClient tagClient,
             IProductClient productClient,
             IWorkspaceLoader workspaceLoader,
-            IPrompt prompt, 
-            IOutput output,
-            CliOptions options)
+            IPrompt prompt,
+            IOutput output)
         {
             this.tagClient = tagClient;
             this.productClient = productClient;
             this.workspaceLoader = workspaceLoader;
             this.prompt = prompt;
             this.output = output;
-            this.options = options;
         }
 
-        public async Task<int> ListAllTagsAsync(string productId, CancellationToken token)
+        public async Task<int> ListAllTagsAsync(string productId, bool json, CancellationToken token)
         {
             var tags = new List<TagModel>();
             if (!productId.IsEmpty())
@@ -47,7 +44,7 @@ namespace ConfigCat.Cli.Commands
                     tags.AddRange(await this.tagClient.GetTagsAsync(product.ProductId, token));
             }
 
-            if(options.IsJsonOutputEnabled)
+            if (json)
             {
                 this.output.RenderJson(tags);
                 return ExitCodes.Ok;
@@ -91,12 +88,12 @@ namespace ConfigCat.Cli.Commands
 
         public async Task<int> UpdateTagAsync(int? tagId, string name, string color, CancellationToken token)
         {
-            var tag = tagId is null 
+            var tag = tagId is null
                 ? await this.workspaceLoader.LoadTagAsync(token)
                 : await this.tagClient.GetTagAsync(tagId.Value, token);
 
             if (tagId is null)
-            { 
+            {
                 if (name.IsEmpty())
                     name = await this.prompt.GetStringAsync("Name", token, tag.Name);
 

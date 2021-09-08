@@ -22,15 +22,13 @@ namespace ConfigCat.Cli.Commands
         private readonly IWorkspaceLoader workspaceLoader;
         private readonly IPrompt prompt;
         private readonly IOutput output;
-        private readonly CliOptions options;
 
         public Flag(IFlagClient flagClient,
             IConfigClient configClient,
             IProductClient productClient,
             IWorkspaceLoader workspaceLoader,
             IPrompt prompt,
-            IOutput output,
-            CliOptions options)
+            IOutput output)
         {
             this.flagClient = flagClient;
             this.configClient = configClient;
@@ -38,10 +36,9 @@ namespace ConfigCat.Cli.Commands
             this.workspaceLoader = workspaceLoader;
             this.prompt = prompt;
             this.output = output;
-            this.options = options;
         }
 
-        public async Task<int> ListAllFlagsAsync(string configId, string tagName, int? tagId, CancellationToken token)
+        public async Task<int> ListAllFlagsAsync(string configId, string tagName, int? tagId, bool json, CancellationToken token)
         {
             var flags = new List<FlagModel>();
             if (!configId.IsEmpty())
@@ -72,7 +69,7 @@ namespace ConfigCat.Cli.Commands
                 }).ToList();
             }
 
-            if (options.IsJsonOutputEnabled)
+            if (json)
             {
                 this.output.RenderJson(flags);
                 return ExitCodes.Ok;

@@ -17,26 +17,23 @@ namespace ConfigCat.Cli.Commands
         private readonly IWorkspaceLoader workspaceLoader;
         private readonly IPrompt prompt;
         private readonly IOutput output;
-        private readonly CliOptions options;
 
         public Product(IProductClient productClient,
             IWorkspaceLoader workspaceLoader,
             IPrompt prompt,
-            IOutput output,
-            CliOptions options)
+            IOutput output)
         {
             this.productClient = productClient;
             this.workspaceLoader = workspaceLoader;
             this.prompt = prompt;
             this.output = output;
-            this.options = options;
         }
 
-        public async Task<int> ListAllProductsAsync(CancellationToken token)
+        public async Task<int> ListAllProductsAsync(bool json, CancellationToken token)
         {
             var products = await this.productClient.GetProductsAsync(token);
 
-            if (options.IsJsonOutputEnabled)
+            if (json)
             {
                 this.output.RenderJson(products);
                 return ExitCodes.Ok;

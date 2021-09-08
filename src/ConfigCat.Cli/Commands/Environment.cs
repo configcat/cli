@@ -18,24 +18,21 @@ namespace ConfigCat.Cli.Commands
         private readonly IProductClient productClient;
         private readonly IPrompt prompt;
         private readonly IOutput output;
-        private readonly CliOptions options;
 
         public Environment(IEnvironmentClient environmentClient,
             IWorkspaceLoader workspaceLoader,
             IProductClient productClient,
             IPrompt prompt,
-            IOutput output,
-            CliOptions options)
+            IOutput output)
         {
             this.environmentClient = environmentClient;
             this.workspaceLoader = workspaceLoader;
             this.productClient = productClient;
             this.prompt = prompt;
             this.output = output;
-            this.options = options;
         }
 
-        public async Task<int> ListAllEnvironmentsAsync(string productId, CancellationToken token)
+        public async Task<int> ListAllEnvironmentsAsync(string productId, bool json, CancellationToken token)
         {
             var environments = new List<EnvironmentModel>();
             if (!productId.IsEmpty())
@@ -47,7 +44,7 @@ namespace ConfigCat.Cli.Commands
                     environments.AddRange(await this.environmentClient.GetEnvironmentsAsync(product.ProductId, token));
             }
 
-            if (options.IsJsonOutputEnabled)
+            if (json)
             {
                 this.output.RenderJson(environments);
                 return ExitCodes.Ok;

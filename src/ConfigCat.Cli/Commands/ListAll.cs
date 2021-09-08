@@ -16,27 +16,24 @@ namespace ConfigCat.Cli.Commands
         private readonly IConfigClient configClient;
         private readonly IEnvironmentClient environmentClient;
         private readonly IOutput output;
-        private readonly CliOptions options;
 
         public ListAll(IProductClient productClient,
             IConfigClient configClient,
             IEnvironmentClient environmentClient,
-            IOutput output,
-            CliOptions options)
+            IOutput output)
         {
             this.productClient = productClient;
             this.configClient = configClient;
             this.environmentClient = environmentClient;
             this.output = output;
-            this.options = options;
         }
 
-        public async Task<int> InvokeAsync(CancellationToken token)
+        public async Task<int> InvokeAsync(bool json, CancellationToken token)
         {
             
             var products = await this.productClient.GetProductsAsync(token);
 
-            if (options.IsJsonOutputEnabled)
+            if (json)
             {
                 var jsonOutput = new List<ProductJsonOutput>();
                 foreach (var product in products)

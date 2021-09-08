@@ -8,8 +8,8 @@ configcat [options] config ls
 | Option | Description |
 | ------ | ----------- |
 | `--product-id`, `-p` | Show only a Product's Config |
-| `--verbose`, `-v`, `/v` | Print detailed execution information |
 | `--json` | Format the output in JSON |
+| `--verbose`, `-v`, `/v` | Print detailed execution information |
 | `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |
 ## Parent Command
 | Command | Description |
