@@ -79,7 +79,7 @@ namespace ConfigCat.Cli.Commands
             this.output.WriteColored(new string('-', separatorLength), ForegroundColorSpan.DarkGray());
             this.output.WriteLine();
             this.output.Write(" ");
-            this.output.WriteColoredWithBackground($" {flag.Name} ", ForegroundColorSpan.Rgb(255, 255, 255), BackgroundColorSpan.Green());
+            this.output.WriteNonAnsiColor($" {flag.Name} ", ConsoleColor.White, ConsoleColor.DarkGreen);
             this.output.WriteStandout($" ({flag.Key}) ");
             this.output.WriteColored($"[{flag.SettingId}]", ForegroundColorSpan.DarkGray());
             this.output.WriteLine();

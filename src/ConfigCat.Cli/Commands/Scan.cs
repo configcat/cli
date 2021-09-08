@@ -142,7 +142,7 @@ namespace ConfigCat.Cli.Commands
             var preText = text[0..keyIndex];
             var postText = text[(keyIndex + key.Length)..text.Length];
             this.output.Write(preText);
-            this.output.WriteColoredWithBackground(key, ForegroundColorSpan.Rgb(255, 255, 255), BackgroundColorSpan.Magenta());
+            this.output.WriteNonAnsiColor(key, ConsoleColor.White, ConsoleColor.DarkMagenta);
             this.SearchKeyInText(postText, key);
         }
     }
