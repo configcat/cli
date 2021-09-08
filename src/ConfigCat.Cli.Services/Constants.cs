@@ -46,7 +46,6 @@ namespace ConfigCat.Cli.Services
         public static JsonSerializerOptions CamelCaseOptions = new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            WriteIndented = true
         };
     }
 
@@ -60,11 +59,11 @@ namespace ConfigCat.Cli.Services
     {
         public static string[] Collection = new[]
         {
-                Boolean,
-                String,
-                Int,
-                Double
-            };
+            Boolean,
+            String,
+            Int,
+            Double
+        };
 
         public const string Boolean = "boolean";
         public const string String = "string";

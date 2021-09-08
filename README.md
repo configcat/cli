@@ -20,9 +20,9 @@ The following instructions will guide you through the first steps to start using
 You can install the CLI on multiple operating systems using the following methods.
 
 <details>
-  <summary>Homebrew (macOS / Linux)</summary>
+  <summary><strong>Homebrew (macOS / Linux)</strong></summary>
 
-#### Homebrew (macOS / Linux)
+Install the CLI from [ConfigCat tap](https://github.com/configcat/homebrew-tap) with [Homebrew](https://brew.sh) by executing the following command:
 ```bash
 brew tap configcat/tap
 brew install configcat
@@ -31,9 +31,9 @@ brew install configcat
 </details>
 
 <details>
-  <summary>Snap (Linux)</summary>
+  <summary><strong>Snap (Linux)</strong></summary>
 
-#### Snap (Linux)
+Install the CLI from [Snapcraft](https://snapcraft.io/) by executing the following command:
 ```bash
 sudo snap install configcat
 ```
@@ -41,9 +41,9 @@ sudo snap install configcat
 </details>
 
 <details>
-  <summary>Chocolatey (Windows)</summary>
+  <summary><strong>Chocolatey (Windows)</strong></summary>
 
-#### Chocolatey (Windows)
+Install the CLI from [Chocolatey](https://chocolatey.org/) by executing the following command:
 ```powershell
 choco install configcat
 ```
@@ -51,19 +51,27 @@ choco install configcat
 </details>
 
 <details>
-  <summary>Docker</summary>
+  <summary><strong>Docker</strong></summary>
 
-#### Docker
+The CLI can be executed from a [Docker](https://www.docker.com/) image.
 ```bash
 docker pull configcat/cli
+```
+An example of how to scan a repository for feature flag & setting references with the docker image.
+```bash
+docker run --rm \
+    --env CONFIGCAT_API_HOST=<API-HOST> \
+    --env CONFIGCAT_API_USER=<API-USER> \
+    --env CONFIGCAT_API_PASS=<API-PASSWORD> \
+    -v /path/to/repository:/repository \
+  configcat/cli scan "/repository" --print --config-id <CONFIG-ID>
 ```
 
 </details>
 
 <details>
-  <summary>Install Script</summary>
+  <summary><strong>Install Script</strong></summary>
 
-#### Install Script
 On Unix platforms, you can install the CLI by executing an install script.
 ```bash
 curl -fsSL "https://raw.githubusercontent.com/configcat/cli/main/scripts/install.sh" | bash
@@ -109,10 +117,9 @@ curl -fsSL "https://raw.githubusercontent.com/configcat/cli/main/scripts/install
 </details>
 
 <details>
-  <summary>Standalone executables</summary>
+  <summary><strong>Standalone executables</strong></summary>
 
-#### Standalone executables
-You can download the binaries directly from [GitHub Releases](https://github.com/configcat/cli/releases).
+You can download the executables directly from [GitHub Releases](https://github.com/configcat/cli/releases) for your desired platform.
 
 </details>
 

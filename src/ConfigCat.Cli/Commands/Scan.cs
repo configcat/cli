@@ -7,7 +7,6 @@ using ConfigCat.Cli.Services.Rendering;
 using ConfigCat.Cli.Services.Scan;
 using System;
 using System.Collections.Generic;
-using System.CommandLine;
 using System.CommandLine.Rendering;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -42,6 +41,8 @@ namespace ConfigCat.Cli.Commands
         {
             if (configId.IsEmpty())
                 configId = (await this.workspaceLoader.LoadConfigAsync(token)).ConfigId;
+
+            lineCount = lineCount < 0 || lineCount > 10 ? 4 : lineCount;
 
             var flags = await this.flagClient.GetFlagsAsync(configId, token);
             var deletedFlags = await this.flagClient.GetDeletedFlagsAsync(configId, token);
