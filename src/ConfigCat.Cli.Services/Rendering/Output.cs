@@ -30,7 +30,7 @@ namespace ConfigCat.Cli.Services.Rendering
         void WriteColored(string text, ForegroundColorSpan color);
         void WriteColoredWithBackground(string text, ForegroundColorSpan foreground, BackgroundColorSpan background);
         void WriteNonAnsiColor(string text, ConsoleColor foreground, ConsoleColor? background = null);
-        void WriteNoChange();
+        void WriteNoChange(string noChangeText = "No changes detected... ");
         void WriteSuccess();
 
         void MoveCursorLeft();
@@ -139,11 +139,11 @@ namespace ConfigCat.Cli.Services.Rendering
         public void WriteColoredWithBackground(string text, ForegroundColorSpan foreground, BackgroundColorSpan background) =>
             this.console.WriteStyle(text.ColorWithBackground(foreground, background), text);
 
-        public void WriteNoChange()
+        public void WriteNoChange(string noChangeText = "No changes detected... ")
         {
             lock (this.consoleLock)
             {
-                this.Write($"No changes detected... ");
+                this.Write(noChangeText);
                 this.WriteYellow("Skipped.");
             }
         }

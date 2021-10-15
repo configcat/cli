@@ -2,7 +2,9 @@
 using ConfigCat.Cli.Models.Scan;
 using ConfigCat.Cli.Services;
 using ConfigCat.Cli.Services.Api;
+using ConfigCat.Cli.Services.Exceptions;
 using ConfigCat.Cli.Services.FileSystem;
+using ConfigCat.Cli.Services.Git;
 using ConfigCat.Cli.Services.Rendering;
 using ConfigCat.Cli.Services.Scan;
 using System;
@@ -11,6 +13,7 @@ using System.CommandLine.Rendering;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -18,71 +21,129 @@ namespace ConfigCat.Cli.Commands
 {
     class Scan
     {
+        private static readonly Lazy<string> Version = new(() => Assembly.GetEntryAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion);
+
         private readonly IWorkspaceLoader workspaceLoader;
         private readonly IFlagClient flagClient;
+        private readonly ICodeReferenceClient codeReferenceClient;
         private readonly IFileCollector fileCollector;
         private readonly IReferenceCollector referenceCollector;
+        private readonly IGitClient gitClient;
         private readonly IOutput output;
 
         public Scan(IWorkspaceLoader workspaceLoader,
             IFlagClient flagClient,
+            ICodeReferenceClient codeReferenceClient,
             IFileCollector fileCollector,
             IReferenceCollector referenceCollector,
+            IGitClient gitClient,
             IOutput output)
         {
             this.workspaceLoader = workspaceLoader;
             this.flagClient = flagClient;
+            this.codeReferenceClient = codeReferenceClient;
             this.fileCollector = fileCollector;
             this.referenceCollector = referenceCollector;
+            this.gitClient = gitClient;
             this.output = output;
         }
 
-        public async Task<int> InvokeAsync(DirectoryInfo directory, string configId, int lineCount, bool print, CancellationToken token)
+        public async Task<int> InvokeAsync(ScanArguments scanArguments, CancellationToken token)
         {
-            if (configId.IsEmpty())
-                configId = (await this.workspaceLoader.LoadConfigAsync(token)).ConfigId;
+            if (scanArguments.ConfigId.IsEmpty())
+                scanArguments.ConfigId = (await this.workspaceLoader.LoadConfigAsync(token)).ConfigId;
 
-            lineCount = lineCount < 0 || lineCount > 10 ? 4 : lineCount;
+            scanArguments.LineCount = scanArguments.LineCount < 0 || scanArguments.LineCount > 10 ? 4 : scanArguments.LineCount;
 
-            var flags = await this.flagClient.GetFlagsAsync(configId, token);
-            var deletedFlags = await this.flagClient.GetDeletedFlagsAsync(configId, token);
+            var flags = await this.flagClient.GetFlagsAsync(scanArguments.ConfigId, token);
+            var deletedFlags = await this.flagClient.GetDeletedFlagsAsync(scanArguments.ConfigId, token);
             deletedFlags = deletedFlags
                 .Where(d => !flags.Any(f => f.Key == d.Key))
                 .Distinct(new FlagModelEqualityComparer());
 
-            var files = await this.fileCollector.CollectAsync(directory, token);
-            var flagReferences = await this.referenceCollector.CollectAsync(flags.Concat(deletedFlags), files, lineCount, token);
+            var files = await this.fileCollector.CollectAsync(scanArguments.Directory, token);
+            var flagReferences = await this.referenceCollector.CollectAsync(flags.Concat(deletedFlags), files, scanArguments.LineCount, token);
 
-            var liveFlagReferences = flagReferences.Where(f => f.References.Where(r => r.FoundFlag is not DeletedFlagModel).Any());
-            var deletedFlagReferences = flagReferences.Where(f => f.References.Where(r => r.FoundFlag is DeletedFlagModel).Any());
+            var aliveFlagReferences = Filter(flagReferences, r => r.FoundFlag is not DeletedFlagModel);
+            var deletedFlagReferences = Filter(flagReferences, r => r.FoundFlag is DeletedFlagModel);
 
             this.output.Write("Found ");
-            this.output.WriteColored(liveFlagReferences.Sum(f => f.References.Where(r => r.FoundFlag is not DeletedFlagModel).Count()).ToString(), ForegroundColorSpan.LightCyan());
+            this.output.WriteColored(aliveFlagReferences.Sum(f => f.References.Count()).ToString(), ForegroundColorSpan.LightCyan());
             this.output.Write($" feature flag/setting reference(s) in ");
-            this.output.WriteColored(liveFlagReferences.Count().ToString(), ForegroundColorSpan.LightCyan());
+            this.output.WriteColored(aliveFlagReferences.Count().ToString(), ForegroundColorSpan.LightCyan());
             this.output.Write(" file(s). " +
-                $"Keys: [{string.Join(", ", liveFlagReferences.SelectMany(r => r.References.Where(r => r.FoundFlag is not DeletedFlagModel)).Select(r => r.FoundFlag.Key).Distinct())}]");
+                $"Keys: [{string.Join(", ", aliveFlagReferences.SelectMany(r => r.References).Select(r => r.FoundFlag.Key).Distinct())}]");
             this.output.WriteLine();
 
-            if (print)
-                this.PrintReferences(liveFlagReferences, r => r.FoundFlag is not DeletedFlagModel);
+            if (scanArguments.Print)
+                this.PrintReferences(aliveFlagReferences);
 
             if (deletedFlagReferences.Any())
-                this.output.WriteWarning($"{deletedFlagReferences.Sum(f => f.References.Where(r => r.FoundFlag is DeletedFlagModel).Count())} deleted feature flag/setting " +
+                this.output.WriteWarning($"{deletedFlagReferences.Sum(f => f.References.Count())} deleted feature flag/setting " +
                     $"reference(s) found in {deletedFlagReferences.Count()} file(s). " +
-                    $"Keys: [{string.Join(", ", deletedFlagReferences.SelectMany(r => r.References.Where(r => r.FoundFlag is DeletedFlagModel)).Select(r => r.FoundFlag.Key).Distinct())}]");
+                    $"Keys: [{string.Join(", ", deletedFlagReferences.SelectMany(r => r.References).Select(r => r.FoundFlag.Key).Distinct())}]");
             else
                 this.output.WriteGreen("OK. Didn't find any deleted feature flag/setting references.");
 
             this.output.WriteLine();
 
-            if (print)
-                this.PrintReferences(deletedFlagReferences, r => r.FoundFlag is DeletedFlagModel);
+            if (scanArguments.Print)
+                this.PrintReferences(deletedFlagReferences);
+
+            if (scanArguments.Upload)
+            {
+                this.output.WriteLine("Initiating code reference upload...");
+
+                if (scanArguments.Repo.IsEmpty())
+                    throw new ShowHelpException("For upload, the --repo argument is required.");
+
+                var gitInfo = this.gitClient.GatherGitInfo(scanArguments.Directory.FullName);
+
+                if(gitInfo == null || gitInfo.Branch.IsEmpty() && scanArguments.Branch.IsEmpty())
+                    throw new ShowHelpException("Could not determine the current branch name, make sure the scanned folder is inside a git repository, or use the --branch argument.");
+
+                var branch = gitInfo == null || gitInfo.Branch.IsEmpty() ? scanArguments.Branch : gitInfo.Branch;
+                this.output.WriteLine($"Repository: {scanArguments.Repo}");
+                this.output.WriteLine($"Branch: {branch}");
+                var repositoryDirectory = gitInfo == null || gitInfo.WorkingDirectory.IsEmpty() ? scanArguments.Directory.FullName : gitInfo.WorkingDirectory;
+                await this.codeReferenceClient.UploadAsync(new CodeReferenceRequest
+                {
+                    FlagReferences = aliveFlagReferences
+                    .SelectMany(files => files.References, (file, reference) => new { file.File, reference })
+                    .GroupBy(r => r.reference.FoundFlag)
+                    .Select(r => new FlagReference
+                    {
+                        SettingId = r.Key.SettingId,
+                        References = r.Select(item => new ReferenceLines
+                        {
+                            File = item.File.FullName.Replace(repositoryDirectory, string.Empty).AsSlash(),
+                            FileUrl = gitInfo != null && !scanArguments.FileUrlTemplate.IsEmpty()
+                                ? scanArguments.FileUrlTemplate
+                                    .Replace("{branch}", branch)
+                                    .Replace("{filePath}", item.File.FullName.Replace(repositoryDirectory, string.Empty).AsSlash())
+                                    .Replace("{lineNumber}", item.reference.ReferenceLine.LineNumber.ToString())
+                                : null,
+                            PostLines = item.reference.PostLines,
+                            PreLines = item.reference.PreLines,
+                            ReferenceLine = item.reference.ReferenceLine
+                        }).ToList()
+                    }).ToList(),
+                    Repository = scanArguments.Repo,
+                    Branch = branch,
+                    CommitHash = gitInfo?.CurrentCommitHash ?? scanArguments.CommitHash,
+                    CommitUrl = (gitInfo?.CurrentCommitHash != null || scanArguments.CommitHash != null) && !scanArguments.CommitUrlTemplate.IsEmpty()
+                        ? scanArguments.CommitUrlTemplate.Replace("{commitHash}", gitInfo?.CurrentCommitHash ?? scanArguments.CommitHash)
+                        : null,
+                    ActiveBranches = gitInfo?.ActiveBranches,
+                    ConfigId = scanArguments.ConfigId,
+                    Uploader = scanArguments.Runner ?? $"ConfigCat CLI {Version.Value}",
+                }, token);
+            }
 
             return ExitCodes.Ok;
         }
 
-        private void PrintReferences(IEnumerable<FlagReferenceResult> references, Func<Reference, bool> filter)
+        private void PrintReferences(IEnumerable<FlagReferenceResult> references)
         {
             if (!references.Any())
                 return;
@@ -92,7 +153,7 @@ namespace ConfigCat.Cli.Commands
             {
                 this.output.WriteColored(fileReference.File.FullName, ForegroundColorSpan.LightYellow());
                 this.output.WriteLine();
-                foreach (var reference in fileReference.References.Where(filter))
+                foreach (var reference in fileReference.References)
                 {
                     var maxDigitCount = reference.PostLines.Count > 0
                         ? reference.PostLines.Max(pl => pl.LineNumber).GetDigitCount()
@@ -145,6 +206,29 @@ namespace ConfigCat.Cli.Commands
             this.output.WriteNonAnsiColor(key, ConsoleColor.White, ConsoleColor.DarkMagenta);
             this.SearchKeyInText(postText, key);
         }
+
+        private IEnumerable<FlagReferenceResult> Filter(IEnumerable<FlagReferenceResult> source, Predicate<Reference> filter)
+        {
+            foreach (var item in source)
+            {
+                var references = FilterReference(item.References, filter);
+                if(!references.Any())
+                    continue;
+
+                yield return item;
+            }
+
+            IEnumerable<Reference> FilterReference(IEnumerable<Reference> references, Predicate<Reference> filter)
+            {
+                foreach (var item in references)
+                {
+                    if(!filter(item))
+                        continue;
+
+                    yield return item;
+                }
+            }
+        }
     }
 
     class FlagModelEqualityComparer : IEqualityComparer<DeletedFlagModel>
@@ -161,5 +245,20 @@ namespace ConfigCat.Cli.Commands
         {
             return obj.Key.GetHashCode();
         }
+    }
+
+    class ScanArguments
+    {
+        public DirectoryInfo Directory { get; set; }
+        public string ConfigId { get; set; }
+        public int LineCount { get; set; }
+        public bool Print { get; set; }
+        public bool Upload { get; set; }
+        public string Repo { get; set; }
+        public string Branch { get; set; }
+        public string CommitHash { get; set; }
+        public string FileUrlTemplate { get; set; }
+        public string CommitUrlTemplate { get; set; }
+        public string Runner { get; set; }
     }
 }

@@ -1,6 +1,7 @@
 #!/usr/bin/pwsh
 
 $cliPath = $args[0]
+$scanPath = $args[1]
 
 function Invoke-ConfigCat {
 	param(
@@ -228,5 +229,23 @@ Describe "Flag value / Rule Tests" {
     It "Bool can have 2 rules only" {
         $result = Invoke-ConfigCat "flag", "percentage", "update", "-i", $flagId, "-e", $environmentId, "20:true", "30:false", "50:false" 
         $result | Should -Match "only have 2 percentage rules"
+    }
+}
+
+Describe "Scan Tests" {
+    BeforeAll {
+        $flagIdToScan = Invoke-ConfigCat "flag", "create", "-c", $configId, "-n", "Flag-To-Scan", "-k", "flag_to_scan", "-H", "hint", "-t", "boolean"
+    }
+
+    AfterAll {
+        Invoke-ConfigCat "flag", "rm", "-i", $flagIdToScan
+    }
+
+    It "Scan" {
+        $result = Invoke-ConfigCat "scan", $scanPath, "-c", $configId, "-r", "cli", "--upload", "--print"
+        $result | Should -Match "Repository: cli"
+        $result | Should -Match "Uploading code references... Ok."
+        $result | Should -Match "'flag_to_scan'"
+        $result | Should -Match "'bool_flag'"
     }
 }

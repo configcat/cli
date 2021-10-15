@@ -8,7 +8,7 @@
     <title>ConfigCat CLI</title>
     <authors>ConfigCat</authors>
     <projectUrl>https://configcat.com</projectUrl>
-    <iconUrl>https://raw.githubusercontent.com/configcat/cli/main/choco/icon.png</iconUrl>
+    <iconUrl>https://configcat.com/images/shared/configcat-logo-cat-canvas-128.png</iconUrl>
     <copyright>2021 Configcat</copyright>
     <licenseUrl>https://raw.githubusercontent.com/configcat/cli/main/LICENSE</licenseUrl>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>

@@ -2,19 +2,18 @@
 
   <PropertyGroup>
     <LangVersion>latest</LangVersion>
-    <Product>ConfigCat CLI</Product>    
+    <Product>ConfigCat CLI</Product>
     <Company>ConfigCat</Company>
     <Description>Command Line Interface for ConfigCat.</Description>
     <Copyright>Copyright © ConfigCat 2021</Copyright>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <AssemblyName>configcat</AssemblyName>
     <AssemblyTitle>ConfigCat CLI</AssemblyTitle>
     <InvariantGlobalization>true</InvariantGlobalization>
     <PublishTrimmed>true</PublishTrimmed>
-    <TrimMode>link</TrimMode>
+    <TrimmerDefaultAction>link</TrimmerDefaultAction>
     <Version>0.0.0</Version>
-    <SuppressTrimAnalysisWarnings>false</SuppressTrimAnalysisWarnings>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,14 +24,14 @@
   <ItemGroup>
     <TrimmerRootAssembly Include="System.ComponentModel.TypeConverter" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <PackageReference Include="Stashbox" Version="3.6.4" />
     <PackageReference Include="System.CommandLine" Version="2.0.0-beta1.21308.1" />
     <PackageReference Include="System.CommandLine.Rendering" Version="0.3.0-alpha.21216.1" />
     <PackageReference Include="System.Text.Json" Version="5.0.2" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <ProjectReference Include="..\ConfigCat.Cli.Models\ConfigCat.Cli.Models.csproj" />
     <ProjectReference Include="..\ConfigCat.Cli.Services\ConfigCat.Cli.Services.csproj" />

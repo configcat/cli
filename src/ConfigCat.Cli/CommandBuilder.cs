@@ -514,7 +514,15 @@ namespace ConfigCat.Cli
                 {
                     new Option<string>(new[] { "--config-id", "-c" }, "ID of the Config to scan against"),
                     new Option<int>(new[] { "--line-count", "-l" }, () => 4, "Context line count before and after the reference line (min: 1, max: 10)"),
-                    new Option<bool>(new[] { "--print", "-p" }, "Print found references"),
+                    new Option<bool>(new[] { "--print", "-p" }, "Print found references to output"),
+                    new Option<bool>(new[] { "--upload", "-u" }, "Upload references to ConfigCat"),
+                    new Option<string>(new[] { "--repo", "-r" }, "Repository name, required for upload"),
+                    new Option<string>(new[] { "--branch", "-b" }, "Branch name, required for upload in case when the scanned folder is not a git repo. Otherwise, it's collected from git"),
+                    new Option<string>(new[] { "--commit-hash", "-cm" }, "Commit hash, in case when the scanned folder is not a git repo. Otherwise, it's collected from from git"),
+                    new Option<string>(new[] { "--file-url-template", "-f" }, "Template url used to generate VCS file links. Available template parameters: `branch`, `filePath`, `lineNumber`. Example: https://github.com/my/repo/blob/{branch}/{filePath}#L{lineNumber}"),
+                    new Option<string>(new[] { "--commit-url-template", "-ct" }, "Template url used to generate VCS commit links. Available template parameters: `commitHash`. Example: https://github.com/my/repo/commit/{commitHash}"),
+                    new Option<string>(new[] { "--runner", "-ru" }, "Runner name override, default: `ConfigCat CLI {version}`"),
+
                 }
             };
 

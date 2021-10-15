@@ -74,5 +74,7 @@ cp "$UCPATH/configcat" "${DIR}"
 echo "==> Deleting '${UCPATH}'."
 rm -rf "$UCPATH"
 
-echo "==> ConfigCat CLI v${VERSION} successfully installed. Happy Feature Flagging!"
 configcat cat
+
+echo
+echo "==> ConfigCat CLI v${VERSION} successfully installed. Happy Feature Flagging!"

@@ -5,7 +5,6 @@ using ConfigCat.Cli.Services;
 using ConfigCat.Cli.Services.Api;
 using ConfigCat.Cli.Services.Configuration;
 using ConfigCat.Cli.Services.Exceptions;
-using ConfigCat.Cli.Services.Rendering;
 using Stashbox;
 using Stashbox.Configuration;
 using Stashbox.Lifetime;
