@@ -147,8 +147,7 @@ jobs:
 
     - name: Execute tests
       shell: pwsh
-      run: |
-        ./test/integ.ps1 'docker run --rm \
+      run: ./test/integ.ps1 'docker run --rm \
         --env CONFIGCAT_API_HOST=${{ env.CONFIGCAT_API_HOST }} \
         --env CONFIGCAT_API_USER=${{ env.CONFIGCAT_API_USER }} \
         --env CONFIGCAT_API_PASS=${{ env.CONFIGCAT_API_PASS }} \
