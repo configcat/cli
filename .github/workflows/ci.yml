@@ -22,7 +22,7 @@ jobs:
     - name: Setup dotnet
       uses: actions/setup-dotnet@v1.7.2
       with:
-        dotnet-version: '5.0.x'
+        dotnet-version: '5.x'
         
     - name: Publish ${{ matrix.arch }}
       run: | 
@@ -153,8 +153,8 @@ jobs:
         --env CONFIGCAT_API_USER=${{ env.CONFIGCAT_API_USER }} \
         --env CONFIGCAT_API_PASS=${{ env.CONFIGCAT_API_PASS }} \
         -v $(pwd):/repo \
-        configcat/cli:dev \
-        /repo/test"
+        configcat/cli:dev" \
+        /repo/test
       env:
         CONFIGCAT_API_HOST: ${{ secrets.CONFIGCAT_API_HOST }}
         CONFIGCAT_API_USER: ${{ secrets.CONFIGCAT_API_USER }}
