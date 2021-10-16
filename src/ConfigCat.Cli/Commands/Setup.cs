@@ -51,19 +51,15 @@ namespace ConfigCat.Cli.Commands
             };
             await this.configurationStorage.WriteConfigAsync(this.cliConfig, token);
 
-            this.output.WriteSuccess();
-            this.output.WriteLine();
-            this.output.Write($"Verifying your credentials against '{arguments.ApiHost}'... ");
+            this.output.WriteSuccess().WriteLine().Write($"Verifying your credentials against '{arguments.ApiHost}'... ");
 
             var me = await this.meClient.GetMeAsync(token);
 
-            this.output.WriteSuccess();
-            this.output.Write($" Welcome, {me.FullName}.");
-            this.output.WriteLine();
-            this.output.WriteLine();
-            this.output.WriteGreen("Setup complete.");
-            this.output.WriteLine();
-            this.output.WriteLine();
+            this.output.WriteSuccess()
+                .Write($" Welcome, {me.FullName}.")
+                .WriteLine().WriteLine()
+                .WriteGreen("Setup complete.")
+                .WriteLine().WriteLine();
 
             return ExitCodes.Ok;
         }

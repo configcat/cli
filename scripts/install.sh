@@ -76,5 +76,4 @@ rm -rf "$UCPATH"
 
 configcat cat
 
-echo
 echo "==> ConfigCat CLI v${VERSION} successfully installed. Happy Feature Flagging!"

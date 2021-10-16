@@ -67,13 +67,13 @@ namespace ConfigCat.Cli.Commands
             var aliveFlagReferences = Filter(flagReferences, r => r.FoundFlag is not DeletedFlagModel);
             var deletedFlagReferences = Filter(flagReferences, r => r.FoundFlag is DeletedFlagModel);
 
-            this.output.Write("Found ");
-            this.output.WriteColored(aliveFlagReferences.Sum(f => f.References.Count()).ToString(), ForegroundColorSpan.LightCyan());
-            this.output.Write($" feature flag / setting reference(s) in ");
-            this.output.WriteColored(aliveFlagReferences.Count().ToString(), ForegroundColorSpan.LightCyan());
-            this.output.Write(" file(s). " +
-                $"Keys: [{string.Join(", ", aliveFlagReferences.SelectMany(r => r.References).Select(r => r.FoundFlag.Key).Distinct())}]");
-            this.output.WriteLine();
+            this.output.Write("Found ")
+                .WriteColored(aliveFlagReferences.Sum(f => f.References.Count()).ToString(), ForegroundColorSpan.LightCyan())
+                .Write($" feature flag / setting reference(s) in ")
+                .WriteColored(aliveFlagReferences.Count().ToString(), ForegroundColorSpan.LightCyan())
+                .Write(" file(s). " +
+                    $"Keys: [{string.Join(", ", aliveFlagReferences.SelectMany(r => r.References).Select(r => r.FoundFlag.Key).Distinct())}]")
+                .WriteLine();
 
             if (scanArguments.Print)
                 this.PrintReferences(aliveFlagReferences);
@@ -104,9 +104,9 @@ namespace ConfigCat.Cli.Commands
 
                 var branch = gitInfo == null || gitInfo.Branch.IsEmpty() ? scanArguments.Branch : gitInfo.Branch;
                 var commitHash = gitInfo?.CurrentCommitHash ?? scanArguments.CommitHash;
-                this.output.WriteUnderline("Repository").Write(":").WriteColored($" {scanArguments.Repo}", ForegroundColorSpan.LightCyan()).WriteLine();
-                this.output.WriteUnderline("Branch").Write(":").WriteColored($" {branch}", ForegroundColorSpan.LightCyan()).WriteLine();
-                this.output.WriteUnderline("Commit").Write(":").WriteColored($" {commitHash}", ForegroundColorSpan.LightCyan()).WriteLine();
+                this.output.WriteUnderline("Repository").Write(":").WriteColored($" {scanArguments.Repo}", ForegroundColorSpan.LightCyan()).WriteLine()
+                    .WriteUnderline("Branch").Write(":").WriteColored($" {branch}", ForegroundColorSpan.LightCyan()).WriteLine()
+                    .WriteUnderline("Commit").Write(":").WriteColored($" {commitHash}", ForegroundColorSpan.LightCyan()).WriteLine();
                 var repositoryDirectory = gitInfo == null || gitInfo.WorkingDirectory.IsEmpty() ? scanArguments.Directory.FullName : gitInfo.WorkingDirectory;
                 await this.codeReferenceClient.UploadAsync(new CodeReferenceRequest
                 {
