@@ -32,7 +32,7 @@ namespace ConfigCat.Cli.Services.Scan
             this.fileScanner = fileScanner;
             this.botPolicy = botPolicy;
             this.output = output;
-            this.botPolicy.Configure(p => p.Timeout(t => t.After(TimeSpan.FromSeconds(300))));
+            this.botPolicy.Configure(p => p.Timeout(t => t.After(TimeSpan.FromSeconds(600))));
         }
 
         public async Task<IEnumerable<FlagReferenceResult>> CollectAsync(IEnumerable<FlagModel> flags,

@@ -53,6 +53,8 @@ namespace ConfigCat.Cli.Commands
             var table = new TableView<EnvironmentModel>() { Items = environments };
             table.AddColumn(e => e.EnvironmentId, "ID");
             table.AddColumn(e => e.Name, "NAME");
+            table.AddColumn(e => e.Description ?? string.Empty, "DESCRIPTION");
+            table.AddColumn(e => e.Color ?? string.Empty, "COLOR");
             table.AddColumn(e => $"{e.Product.Name} [{e.Product.ProductId}]", "PRODUCT");
 
             this.output.RenderView(table);
@@ -60,7 +62,7 @@ namespace ConfigCat.Cli.Commands
             return ExitCodes.Ok;
         }
 
-        public async Task<int> CreateEnvironmentAsync(string productId, string name, CancellationToken token)
+        public async Task<int> CreateEnvironmentAsync(string productId, string name, string description, string color, CancellationToken token)
         {
             if (productId.IsEmpty())
                 productId = (await this.workspaceLoader.LoadProductAsync(token)).ProductId;
@@ -68,7 +70,13 @@ namespace ConfigCat.Cli.Commands
             if (name.IsEmpty())
                 name = await this.prompt.GetStringAsync("Name", token);
 
-            var result = await this.environmentClient.CreateEnvironmentAsync(productId, name, token);
+            if (description.IsEmpty())
+                description = await this.prompt.GetStringAsync("Description", token);
+
+            if (color.IsEmpty())
+                color = await this.prompt.GetStringAsync("Color", token);
+
+            var result = await this.environmentClient.CreateEnvironmentAsync(productId, name, description, color, token);
             this.output.Write(result.EnvironmentId);
 
             return ExitCodes.Ok;
@@ -83,7 +91,7 @@ namespace ConfigCat.Cli.Commands
             return ExitCodes.Ok;
         }
 
-        public async Task<int> UpdateEnvironmentAsync(string environmentId, string name, CancellationToken token)
+        public async Task<int> UpdateEnvironmentAsync(string environmentId, string name, string description, string color, CancellationToken token)
         {
             var environment = environmentId.IsEmpty()
                 ? await this.workspaceLoader.LoadEnvironmentAsync(token)
@@ -92,13 +100,21 @@ namespace ConfigCat.Cli.Commands
             if (name.IsEmpty())
                 name = await this.prompt.GetStringAsync("Name", token, environment.Name);
 
-            if (name.IsEmptyOrEquals(environment.Name))
+            if (description.IsEmpty())
+                description = await this.prompt.GetStringAsync("Description", token, environment.Description);
+
+            if (color.IsEmpty())
+                color = await this.prompt.GetStringAsync("Color", token, environment.Color);
+
+            if (name.IsEmptyOrEquals(environment.Name) && 
+                description.IsEmptyOrEquals(environment.Description) && 
+                color.IsEmptyOrEquals(environment.Color))
             {
                 this.output.WriteNoChange();
                 return ExitCodes.Ok;
             }
 
-            await this.environmentClient.UpdateEnvironmentAsync(environment.EnvironmentId, name, token);
+            await this.environmentClient.UpdateEnvironmentAsync(environment.EnvironmentId, name, description, color, token);
             return ExitCodes.Ok;
         }
     }

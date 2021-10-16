@@ -42,6 +42,7 @@ namespace ConfigCat.Cli.Commands
             var table = new TableView<ProductModel>() { Items = products.ToList() };
             table.AddColumn(p => p.ProductId, "ID");
             table.AddColumn(p => p.Name, "NAME");
+            table.AddColumn(p => p.Description ?? string.Empty, "DESCRIPTION");
             table.AddColumn(p => $"{p.Organization.Name} [{p.Organization.OrganizationId}]", "ORGANIZATION");
 
             this.output.RenderView(table);
@@ -49,7 +50,7 @@ namespace ConfigCat.Cli.Commands
             return ExitCodes.Ok;
         }
 
-        public async Task<int> CreateProductAsync(string organizationId, string name, CancellationToken token)
+        public async Task<int> CreateProductAsync(string organizationId, string name, string description, CancellationToken token)
         {
             if (organizationId.IsEmpty())
                 organizationId = (await this.workspaceLoader.LoadOrganizationAsync(token)).OrganizationId;
@@ -57,7 +58,10 @@ namespace ConfigCat.Cli.Commands
             if (name.IsEmpty())
                 name = await this.prompt.GetStringAsync("Name", token);
 
-            var result = await this.productClient.CreateProductAsync(organizationId, name, token);
+            if (description.IsEmpty())
+                description = await this.prompt.GetStringAsync("Description", token);
+
+            var result = await this.productClient.CreateProductAsync(organizationId, name, description, token);
             this.output.Write(result.ProductId);
 
             return ExitCodes.Ok;
@@ -72,7 +76,7 @@ namespace ConfigCat.Cli.Commands
             return ExitCodes.Ok;
         }
 
-        public async Task<int> UpdateProductAsync(string productId, string name, CancellationToken token)
+        public async Task<int> UpdateProductAsync(string productId, string name, string description, CancellationToken token)
         {
             var product = productId.IsEmpty()
                 ? await this.workspaceLoader.LoadProductAsync(token)
@@ -81,13 +85,16 @@ namespace ConfigCat.Cli.Commands
             if (name.IsEmpty())
                 name = await this.prompt.GetStringAsync("Name", token, product.Name);
 
-            if (name.IsEmptyOrEquals(product.Name))
+            if (description.IsEmpty())
+                description = await this.prompt.GetStringAsync("Description", token, product.Description);
+
+            if (name.IsEmptyOrEquals(product.Name) && description.IsEmptyOrEquals(product.Description))
             {
                 this.output.WriteNoChange();
                 return ExitCodes.Ok;
             }
 
-            await this.productClient.UpdateProductAsync(product.ProductId, name, token);
+            await this.productClient.UpdateProductAsync(product.ProductId, name, description, token);
             return ExitCodes.Ok;
         }
     }

@@ -53,6 +53,7 @@ namespace ConfigCat.Cli.Commands
             var table = new TableView<ConfigModel>() { Items = configs };
             table.AddColumn(c => c.ConfigId, "ID");
             table.AddColumn(c => c.Name, "NAME");
+            table.AddColumn(c => c.Description ?? string.Empty, "DESCRIPTION");
             table.AddColumn(c => $"{c.Product.Name} [{c.Product.ProductId}]", "PRODUCT");
 
             this.output.RenderView(table);
@@ -60,7 +61,7 @@ namespace ConfigCat.Cli.Commands
             return ExitCodes.Ok;
         }
 
-        public async Task<int> CreateConfigAsync(string productId, string name, CancellationToken token)
+        public async Task<int> CreateConfigAsync(string productId, string name, string description, CancellationToken token)
         {
             if (productId.IsEmpty())
                 productId = (await this.workspaceLoader.LoadProductAsync(token)).ProductId;
@@ -68,7 +69,10 @@ namespace ConfigCat.Cli.Commands
             if (name.IsEmpty())
                 name = await this.prompt.GetStringAsync("Name", token);
 
-            var result = await this.configClient.CreateConfigAsync(productId, name, token);
+            if (description.IsEmpty())
+                description = await this.prompt.GetStringAsync("Description", token);
+
+            var result = await this.configClient.CreateConfigAsync(productId, name, description, token);
             this.output.Write(result.ConfigId);
             return ExitCodes.Ok;
         }
@@ -82,7 +86,7 @@ namespace ConfigCat.Cli.Commands
             return ExitCodes.Ok;
         }
 
-        public async Task<int> UpdateConfigAsync(string configId, string name, CancellationToken token)
+        public async Task<int> UpdateConfigAsync(string configId, string name, string description, CancellationToken token)
         {
             var config = configId.IsEmpty() 
                 ? await this.workspaceLoader.LoadConfigAsync(token)
@@ -91,13 +95,16 @@ namespace ConfigCat.Cli.Commands
             if (name.IsEmpty())
                 name = await this.prompt.GetStringAsync("Name", token, config.Name);
 
-            if (name.IsEmptyOrEquals(config.Name))
+            if (description.IsEmpty())
+                description = await this.prompt.GetStringAsync("Description", token, config.Description);
+
+            if (name.IsEmptyOrEquals(config.Name) && description.IsEmptyOrEquals(config.Description))
             {
                 this.output.WriteNoChange();
                 return ExitCodes.Ok;
             }
 
-            await this.configClient.UpdateConfigAsync(config.ConfigId, name, token);
+            await this.configClient.UpdateConfigAsync(config.ConfigId, name, description, token);
             return ExitCodes.Ok;
         }
     }

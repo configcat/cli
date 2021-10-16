@@ -149,17 +149,43 @@ namespace ConfigCat.Cli.Commands
                     updateFlagModel.TagIds = (await this.workspaceLoader.LoadTagsAsync(token, flag.ConfigId, flag.Tags, optional: true)).Select(t => t.TagId);
             }
 
+            var originalTagIds = flag.Tags?.Select(t => t.TagId)?.ToList() ?? new List<int>();
+
             if (updateFlagModel.Hint.IsEmptyOrEquals(flag.Hint) &&
                 updateFlagModel.Name.IsEmptyOrEquals(flag.Name) &&
                 (updateFlagModel.TagIds is null || 
                 !updateFlagModel.TagIds.Any() || 
-                Enumerable.SequenceEqual(updateFlagModel.TagIds, flag.Tags.Select(t => t.TagId))))
+                Enumerable.SequenceEqual(updateFlagModel.TagIds, originalTagIds)))
             {
                 this.output.WriteNoChange();
                 return ExitCodes.Ok;
             }
 
+            var updatedTagIds = updateFlagModel.TagIds.ToList();
+
+            // prevent auto json patch generation for tag ids, we'll set them manually
+            flag.Tags = null;
+            updateFlagModel.TagIds = null;
+
             var patchDocument = JsonPatch.GenerateDocument(flag.ToUpdateModel(), updateFlagModel);
+
+            var tagsToDelete = originalTagIds.Except(updatedTagIds).ToList();
+            var tagsToAdd = updatedTagIds.Except(originalTagIds).ToList();
+
+            var tagIndexes = new List<int>();
+            foreach (var deleteItem in tagsToDelete)
+            {
+                var tagIndex = originalTagIds.IndexOf(deleteItem);
+                tagIndexes.Add(tagIndex);
+                originalTagIds.RemoveAt(tagIndex);
+            }
+
+            foreach (var deleteIndex in tagIndexes)
+                patchDocument.Remove($"/tags/{deleteIndex}");
+
+            foreach (var tagIdToAdd in tagsToAdd)
+                patchDocument.Add("/tags/-", tagIdToAdd);
+
             await this.flagClient.UpdateFlagAsync(flag.SettingId, patchDocument.Operations, token);
             return ExitCodes.Ok;
         }
@@ -198,12 +224,10 @@ namespace ConfigCat.Cli.Commands
                 ? await this.workspaceLoader.LoadFlagAsync(token)
                 : await this.flagClient.GetFlagAsync(flagId.Value, token);
 
-            var tagsCopy = flag.Tags.ToList();
-
             if (flagId is null && tagIds is null || !tagIds.Any())
-                tagIds = (await this.prompt.ChooseMultipleFromListAsync("Choose tags to detach", tagsCopy, t => t.Name, token)).Select(t => t.TagId);
+                tagIds = (await this.prompt.ChooseMultipleFromListAsync("Choose tags to detach", flag.Tags, t => t.Name, token)).Select(t => t.TagId);
 
-            var relevantTags = tagsCopy.Where(t => tagIds.Contains(t.TagId)).ToList();
+            var relevantTags = flag.Tags.Where(t => tagIds.Contains(t.TagId)).ToList();
             if (relevantTags.Count == 0)
             {
                 this.output.WriteNoChange();
@@ -214,9 +238,9 @@ namespace ConfigCat.Cli.Commands
             var tagIndexes = new List<int>();
             foreach (var relevantTag in relevantTags)
             {
-                var index = tagsCopy.IndexOf(relevantTag);
+                var index = flag.Tags.IndexOf(relevantTag);
                 tagIndexes.Add(index);
-                tagsCopy.RemoveAt(index);
+                flag.Tags.RemoveAt(index);
             }
 
             var patchDocument = new JsonPatchDocument();

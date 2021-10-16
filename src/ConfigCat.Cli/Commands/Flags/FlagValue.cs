@@ -77,69 +77,62 @@ namespace ConfigCat.Cli.Commands
             var separatorLength = flag.Name.Length + flag.Key.Length + flag.SettingId.ToString().Length + 9;
 
             this.output.WriteColored(new string('-', separatorLength), ForegroundColorSpan.DarkGray());
-            this.output.WriteLine();
-            this.output.Write(" ");
+            this.output.WriteLine().Write(" ");
             this.output.WriteNonAnsiColor($" {flag.Name} ", ConsoleColor.White, ConsoleColor.DarkGreen);
             this.output.WriteStandout($" ({flag.Key}) ");
-            this.output.WriteColored($"[{flag.SettingId}]", ForegroundColorSpan.DarkGray());
-            this.output.WriteLine();
-            this.output.WriteColored(new string('-', separatorLength), ForegroundColorSpan.DarkGray());
-            this.output.WriteLine();
+            this.output.WriteColored($"[{flag.SettingId}]", ForegroundColorSpan.DarkGray()).WriteLine();
+            this.output.WriteColored(new string('-', separatorLength), ForegroundColorSpan.DarkGray()).WriteLine();
 
             foreach (var environment in environments)
             {
                 var value = await this.flagValueClient.GetValueAsync(flag.SettingId, environment.EnvironmentId, token);
 
-                this.output.WriteColored($"| ", ForegroundColorSpan.DarkGray());
-                this.output.WriteUnderline(environment.Name);
-                this.output.WriteColored($" [{environment.EnvironmentId}]", ForegroundColorSpan.DarkGray());
+                this.output.WriteColored($"| ", ForegroundColorSpan.DarkGray())
+                    .WriteUnderline(environment.Name)
+                    .WriteColored($" [{environment.EnvironmentId}]", ForegroundColorSpan.DarkGray());
 
                 if (value.TargetingRules.Count > 0)
                 {
-                    this.output.WriteLine();
-                    this.output.WriteColored($"|", ForegroundColorSpan.DarkGray());
+                    this.output.WriteLine().WriteColored($"|", ForegroundColorSpan.DarkGray());
                     foreach (var targeting in value.TargetingRules)
                     {
                         var comparatorName = Constants.ComparatorTypes.GetValueOrDefault(targeting.Comparator) ?? targeting.Comparator.ToUpperInvariant();
-                        this.output.WriteLine();
-                        this.output.WriteColored($"| ", ForegroundColorSpan.DarkGray());
-                        this.output.Write($"{value.TargetingRules.IndexOf(targeting) + 1}.");
-                        this.output.WriteColored($" When ", ForegroundColorSpan.DarkGray());
-                        this.output.WriteColored($"{targeting.ComparisonAttribute} ", ForegroundColorSpan.LightCyan());
-                        this.output.WriteColored($"{comparatorName} ", ForegroundColorSpan.LightYellow());
-                        this.output.WriteColored($"{targeting.ComparisonValue} ", ForegroundColorSpan.LightCyan());
-                        this.output.WriteColored("then ", ForegroundColorSpan.DarkGray());
-                        this.output.WriteColored(targeting.Value.ToString(), ForegroundColorSpan.LightMagenta());
+                        this.output.WriteLine()
+                            .WriteColored($"| ", ForegroundColorSpan.DarkGray())
+                            .Write($"{value.TargetingRules.IndexOf(targeting) + 1}.")
+                            .WriteColored($" When ", ForegroundColorSpan.DarkGray())
+                            .WriteColored($"{targeting.ComparisonAttribute} ", ForegroundColorSpan.LightCyan())
+                            .WriteColored($"{comparatorName} ", ForegroundColorSpan.LightYellow())
+                            .WriteColored($"{targeting.ComparisonValue} ", ForegroundColorSpan.LightCyan())
+                            .WriteColored("then ", ForegroundColorSpan.DarkGray())
+                            .WriteColored(targeting.Value.ToString(), ForegroundColorSpan.LightMagenta());
                     }
                 }
 
                 if (value.PercentageRules.Count > 0)
                 {
-                    this.output.WriteLine();
-                    this.output.WriteColored($"|", ForegroundColorSpan.DarkGray());
+                    this.output.WriteLine().WriteColored($"|", ForegroundColorSpan.DarkGray());
                     foreach (var percentage in value.PercentageRules)
                     {
-                        this.output.WriteLine();
-                        this.output.WriteColored("| ", ForegroundColorSpan.DarkGray());
-                        this.output.WriteColored($"{percentage.Percentage}%", ForegroundColorSpan.LightCyan());
-                        this.output.WriteColored(" -> ", ForegroundColorSpan.DarkGray());
-                        this.output.WriteColored(percentage.Value.ToString(), ForegroundColorSpan.LightMagenta());
+                        this.output.WriteLine()
+                            .WriteColored("| ", ForegroundColorSpan.DarkGray())
+                            .WriteColored($"{percentage.Percentage}%", ForegroundColorSpan.LightCyan())
+                            .WriteColored(" -> ", ForegroundColorSpan.DarkGray())
+                            .WriteColored(percentage.Value.ToString(), ForegroundColorSpan.LightMagenta());
                     }
-                    this.output.WriteLine();
-                    this.output.WriteColored($"|", ForegroundColorSpan.DarkGray());
+                    this.output.WriteLine().WriteColored($"|", ForegroundColorSpan.DarkGray());
                 }
                 else
                 {
-                    this.output.WriteLine();
-                    this.output.WriteColored($"|", ForegroundColorSpan.DarkGray());
+                    this.output.WriteLine().WriteColored($"|", ForegroundColorSpan.DarkGray());
                 }
 
-                this.output.WriteLine();
-                this.output.WriteColored($"| Default: ", ForegroundColorSpan.DarkGray());
-                this.output.WriteColored(value.Value.ToString(), ForegroundColorSpan.LightMagenta());
-                this.output.WriteLine();
-                this.output.WriteColored(new string('-', separatorLength), ForegroundColorSpan.DarkGray());
-                this.output.WriteLine();
+                this.output.WriteLine()
+                    .WriteColored($"| Default: ", ForegroundColorSpan.DarkGray())
+                    .WriteColored(value.Value.ToString(), ForegroundColorSpan.LightMagenta())
+                    .WriteLine()
+                    .WriteColored(new string('-', separatorLength), ForegroundColorSpan.DarkGray())
+                    .WriteLine();
             }
 
             return ExitCodes.Ok;

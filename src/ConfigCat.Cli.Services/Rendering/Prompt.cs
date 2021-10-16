@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.CommandLine.Rendering;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -31,6 +32,8 @@ namespace ConfigCat.Cli.Services.Rendering
 
     public class Prompt : IPrompt
     {
+        private const int DefaultPageSize = 15;
+
         private readonly IOutput output;
 
         public Prompt(IOutput output)
@@ -46,9 +49,9 @@ namespace ConfigCat.Cli.Services.Rendering
                 output.IsOutputRedirected)
                 return defaultValue;
 
-            label = defaultValue is not null ? $"{label} [default: '{defaultValue}']" : label;
-            this.output.WriteUnderline(label);
-            this.output.Write(": ");
+            this.output.WriteUnderline(label)
+                .WriteColored(!defaultValue.IsEmpty() ? $" [default: '{defaultValue}']" : "", ForegroundColorSpan.DarkGray())
+                .Write(": ");
 
             var result = await output.ReadLineAsync(token);
             this.output.WriteLine();
@@ -63,9 +66,9 @@ namespace ConfigCat.Cli.Services.Rendering
                 output.IsOutputRedirected)
                 return defaultValue;
 
-            label = defaultValue is not null ? $"{label} [default: {defaultValue}]" : label;
-            this.output.WriteUnderline(label);
-            this.output.Write(": ");
+            this.output.WriteUnderline(label)
+                .WriteColored(!defaultValue.IsEmpty() ? $" [default: '{defaultValue}']" : "", ForegroundColorSpan.DarkGray())
+                .Write(": ");
 
             var result = await output.ReadLineAsync(token, true);
             this.output.WriteLine();
@@ -83,64 +86,77 @@ namespace ConfigCat.Cli.Services.Rendering
 
             using var _ = this.output.CreateCursorHider();
 
-            this.output.WriteUnderline(label);
-            this.output.Write(":");
-            this.output.WriteLine();
+            this.output.WriteUnderline(label).Write(":").WriteLine();
 
-            this.output.WriteColored("(Use the ", ForegroundColorSpan.DarkGray());
-            this.output.WriteColored("UP", ForegroundColorSpan.LightCyan());
-            this.output.WriteColored(" and ", ForegroundColorSpan.DarkGray());
-            this.output.WriteColored("DOWN", ForegroundColorSpan.LightCyan());
-            this.output.WriteColored(" keys to navigate)", ForegroundColorSpan.DarkGray());
-            this.output.WriteLine();
-            this.output.WriteLine();
+            this.output.WriteColored("(Use the ", ForegroundColorSpan.DarkGray())
+                .WriteColored("UP", ForegroundColorSpan.LightCyan())
+                .WriteColored(" and ", ForegroundColorSpan.DarkGray())
+                .WriteColored("DOWN", ForegroundColorSpan.LightCyan())
+                .WriteColored(" keys to navigate)", ForegroundColorSpan.DarkGray())
+                .WriteLine().WriteLine();
 
-            int index = selectedValue is null || selectedValue.Equals(default) ? 0 : items.IndexOf(selectedValue);
-
-            this.PrintChooseSection(index, items, labelSelector);
-            this.output.SetCursorPosition(0, this.output.CursorTop - items.Count + index);
-
+            var pages = this.GetPages(items);
+            var pageIndex = selectedValue is null || selectedValue.Equals(default) ? 0 : pages.PageIndexOf(selectedValue);
+            var page = pages[pageIndex];
+            int index = this.PrintChooseSection(page, selectedValue, labelSelector, pageIndex, pages.Count);
             ConsoleKeyInfo key;
             try
             {
                 do
                 {
                     key = await this.output.ReadKeyAsync(token, true);
-                    if (key.Key == ConsoleKey.UpArrow)
+                    switch(key.Key)
                     {
-                        if (index <= 0)
-                            continue;
+                        case ConsoleKey.UpArrow:
+                            if (index <= 0)
+                                continue;
 
-                        this.output.ClearCurrentLine();
-                        this.PrintNonSelected(items[index], labelSelector);
-                        this.output.MoveCursorUp(0);
-                        this.output.ClearCurrentLine();
-                        this.PrintSelected(items[--index], labelSelector, false);
-                    }
-                    else if (key.Key == ConsoleKey.DownArrow)
-                    {
-                        if (index >= items.Count - 1)
-                            continue;
+                            this.output.ClearCurrentLine();
+                            this.PrintNonSelected(page[index], labelSelector);
+                            this.output.MoveCursorUp(0).ClearCurrentLine();
+                            this.PrintSelected(page[--index], labelSelector, false);
+                            break;
 
-                        this.output.ClearCurrentLine();
-                        this.PrintNonSelected(items[index], labelSelector);
-                        this.output.MoveCursorDown(0);
-                        this.output.ClearCurrentLine();
-                        this.PrintSelected(items[++index], labelSelector, false);
+                        case ConsoleKey.DownArrow:
+                            if (index >= page.Count - 1 || page[index + 1] is null || page[index + 1].Equals(default))
+                                continue;
+
+                            this.output.ClearCurrentLine();
+                            this.PrintNonSelected(page[index], labelSelector);
+                            this.output.MoveCursorDown(0).ClearCurrentLine();
+                            this.PrintSelected(page[++index], labelSelector, false);
+                            break;
+
+                        case ConsoleKey.LeftArrow:
+                            if(pageIndex <= 0)
+                                continue;
+
+                            this.output.SetCursorPosition(0, this.output.CursorTop - index);
+                            page = pages[--pageIndex];
+                            index = this.PrintChooseSection(page, selectedValue, labelSelector, pageIndex, pages.Count);
+                            break;
+
+                        case ConsoleKey.RightArrow:
+                            if (pageIndex >= pages.Count - 1)
+                                continue;
+
+                            this.output.SetCursorPosition(0, this.output.CursorTop - index);
+                            page = pages[++pageIndex];
+                            index = this.PrintChooseSection(page, selectedValue, labelSelector, pageIndex, pages.Count);
+                            break;
                     }
                 } while (!token.IsCancellationRequested &&
                      key.Key != ConsoleKey.Enter);
 
                 this.output.ClearCurrentLine();
-                this.PrintSelected(items[index], labelSelector, true);
-                this.output.SetCursorPosition(0, this.output.CursorTop + items.Count - index);
-                this.output.WriteLine();
+                this.PrintSelected(page[index], labelSelector, true);
+                this.output.SetCursorPosition(0, this.output.CursorTop + page.Count - index).WriteLine().ClearCurrentLine();
 
-                return items[index];
+                return page[index];
             }
             catch (OperationCanceledException)
             {
-                this.output.SetCursorPosition(0, this.output.CursorTop + items.Count - index);
+                this.output.SetCursorPosition(0, this.output.CursorTop + page.Count - index).ClearCurrentLine();
                 throw;
             }
         }
@@ -156,93 +172,122 @@ namespace ConfigCat.Cli.Services.Rendering
 
             using var _ = this.output.CreateCursorHider();
 
-            this.output.WriteUnderline(label);
-            this.output.Write(":");
-            this.output.WriteLine();
+            this.output.WriteUnderline(label).Write(":").WriteLine();
 
-            this.output.WriteColored("(Use the ", ForegroundColorSpan.DarkGray());
-            this.output.WriteColored("UP", ForegroundColorSpan.LightCyan());
-            this.output.WriteColored(" and ", ForegroundColorSpan.DarkGray());
-            this.output.WriteColored("DOWN", ForegroundColorSpan.LightCyan());
-            this.output.WriteColored(" keys to navigate, and ", ForegroundColorSpan.DarkGray());
-            this.output.WriteColored("SPACE", ForegroundColorSpan.LightCyan());
-            this.output.WriteColored(" to select)", ForegroundColorSpan.DarkGray());
-            this.output.WriteLine();
-            this.output.WriteLine();
+            this.output.WriteColored("(Use the ", ForegroundColorSpan.DarkGray())
+                .WriteColored("UP", ForegroundColorSpan.LightCyan())
+                .WriteColored(" and ", ForegroundColorSpan.DarkGray())
+                .WriteColored("DOWN", ForegroundColorSpan.LightCyan())
+                .WriteColored(" keys to navigate, and ", ForegroundColorSpan.DarkGray())
+                .WriteColored("SPACE", ForegroundColorSpan.LightCyan())
+                .WriteColored(" to select)", ForegroundColorSpan.DarkGray())
+                .WriteLine().WriteLine();
 
-            int index = 0;
+            int index = 0, pageIndex = 0;
+            var selectedItems = preSelectedItems?.ToList() ?? new List<TItem>();
 
-            var selectedItems = preSelectedItems ?? new List<TItem>();
-            this.PrintMultiChooseSection(items, labelSelector, selectedItems);
-            this.output.SetCursorPosition(0, this.output.CursorTop - items.Count + index);
+            var pages = this.GetPages(items);
+            var page = pages[pageIndex];
+            this.PrintMultiChooseSection(page, labelSelector, selectedItems, pageIndex, pages.Count);
             ConsoleKeyInfo key;
             try
             {
                 do
                 {
                     key = await this.output.ReadKeyAsync(token, true);
-                    if (key.Key == ConsoleKey.UpArrow)
-                    {
-                        if (index <= 0)
-                            continue;
 
-                        this.output.ClearCurrentLine();
-                        this.PrintNonSelectedInMulti(items[index], labelSelector, selectedItems);
-                        this.output.MoveCursorUp(0);
-                        this.output.ClearCurrentLine();
-                        this.PrintSelectedInMulti(items[--index], labelSelector, selectedItems);
-                    }
-                    else if (key.Key == ConsoleKey.DownArrow)
+                    switch(key.Key)
                     {
-                        if (index >= items.Count - 1)
-                            continue;
+                        case ConsoleKey.UpArrow:
+                            if (index <= 0)
+                                continue;
 
-                        this.output.ClearCurrentLine();
-                        this.PrintNonSelectedInMulti(items[index], labelSelector, selectedItems);
-                        this.output.MoveCursorDown(0);
-                        this.output.ClearCurrentLine();
-                        this.PrintSelectedInMulti(items[++index], labelSelector, selectedItems);
-                    }
-                    else if (key.Key == ConsoleKey.Spacebar)
-                    {
-                        var item = items[index];
-                        if (selectedItems.Contains(item))
-                        {
-                            selectedItems.Remove(item);
                             this.output.ClearCurrentLine();
-                            this.PrintSelected(item, labelSelector, false);
-                        }
-                        else
-                        {
-                            selectedItems.Add(item);
+                            this.PrintNonSelectedInMulti(page[index], labelSelector, selectedItems);
+                            this.output.MoveCursorUp(0).ClearCurrentLine();
+                            this.PrintSelectedInMulti(page[--index], labelSelector, selectedItems);
+                            break;
+
+                        case ConsoleKey.DownArrow:
+                            if (index >= page.Count - 1 || page[index + 1] is null || page[index + 1].Equals(default))
+                                continue;
+
                             this.output.ClearCurrentLine();
-                            this.PrintSelectedInMulti(item, labelSelector, selectedItems);
-                        }
+                            this.PrintNonSelectedInMulti(page[index], labelSelector, selectedItems);
+                            this.output.MoveCursorDown(0).ClearCurrentLine();
+                            this.PrintSelectedInMulti(page[++index], labelSelector, selectedItems);
+                            break;
+
+                        case ConsoleKey.LeftArrow:
+                            if (pageIndex <= 0)
+                                continue;
+
+                            this.output.SetCursorPosition(0, this.output.CursorTop - index);
+                            page = pages[--pageIndex];
+                            index = 0;
+                            this.PrintMultiChooseSection(page, labelSelector, selectedItems, pageIndex, pages.Count);
+                            break;
+
+                        case ConsoleKey.RightArrow:
+                            if (pageIndex >= pages.Count - 1)
+                                continue;
+
+                            this.output.SetCursorPosition(0, this.output.CursorTop - index);
+                            page = pages[++pageIndex];
+                            index = 0;
+                            this.PrintMultiChooseSection(page, labelSelector, selectedItems, pageIndex, pages.Count);
+                            break;
+
+                        case ConsoleKey.Spacebar:
+                            var item = page[index];
+                            if (selectedItems.Contains(item))
+                            {
+                                selectedItems.Remove(item);
+                                this.output.ClearCurrentLine();
+                                this.PrintSelected(item, labelSelector, false);
+                            }
+                            else
+                            {
+                                selectedItems.Add(item);
+                                this.output.ClearCurrentLine();
+                                this.PrintSelectedInMulti(item, labelSelector, selectedItems);
+                            }
+                            break;
                     }
                 } while (!token.IsCancellationRequested &&
                      key.Key != ConsoleKey.Enter);
 
                 this.output.ClearCurrentLine();
-                this.PrintNonSelectedInMulti(items[index], labelSelector, selectedItems);
-                this.output.SetCursorPosition(0, this.output.CursorTop + items.Count - index);
-                this.output.WriteLine();
+                this.PrintNonSelectedInMulti(page[index], labelSelector, selectedItems);
+                this.output.SetCursorPosition(0, this.output.CursorTop + page.Count - index + (pages.Count > 1 ? 1 : 0)).ClearCurrentLine().WriteLine();
 
                 return selectedItems;
             }
             catch (OperationCanceledException)
             {
-                this.output.SetCursorPosition(0, this.output.CursorTop + items.Count - index);
+                this.output.SetCursorPosition(0, this.output.CursorTop + page.Count - index + (pages.Count > 1 ? 1 : 0)).ClearCurrentLine();
                 throw;
             }
         }
 
-        private void PrintChooseSection<TItem>(
-            int index,
-            List<TItem> items,
-            Func<TItem, string> labelSelector)
+        private List<List<T>> GetPages<T>(List<T> source)
         {
+            var bufferHeight = this.output.BufferHeight - 4;
+            var pageSize = DefaultPageSize > bufferHeight ? bufferHeight : DefaultPageSize;
+            return source.SplitFilled(pageSize);
+        }
+
+        private int PrintChooseSection<TItem>(
+            List<TItem> items,
+            TItem selectedItem,
+            Func<TItem, string> labelSelector,
+            int pageIndex,
+            int pageLength)
+        {
+            var index = selectedItem is null || selectedItem.Equals(default) ? 0 : items.IndexOf(selectedItem);
             foreach (var item in items)
             {
+                this.output.ClearCurrentLine();
                 if (items.IndexOf(item) == index)
                     this.PrintSelected(item, labelSelector, false);
                 else
@@ -250,15 +295,28 @@ namespace ConfigCat.Cli.Services.Rendering
 
                 this.output.WriteLine();
             }
+
+            if (pageLength > 1)
+            {
+                this.RenderPageSection(pageIndex, pageLength);
+                this.output.SetCursorPosition(0, this.output.CursorTop - items.Count - 2 + index);
+                return index;
+            }
+
+            this.output.SetCursorPosition(0, this.output.CursorTop - items.Count + index);
+            return index;
         }
 
         private void PrintMultiChooseSection<TItem>(
             List<TItem> items,
             Func<TItem, string> labelSelector,
-            List<TItem> preSelectedItems)
+            List<TItem> preSelectedItems,
+            int pageIndex,
+            int pageLength)
         {
             foreach (var item in items)
             {
+                this.output.ClearCurrentLine();
                 int index = items.IndexOf(item);
                 if (preSelectedItems.Contains(item))
                     this.PrintSelected(item, labelSelector, true, index == 0);
@@ -269,6 +327,28 @@ namespace ConfigCat.Cli.Services.Rendering
 
                 this.output.WriteLine();
             }
+
+            if (pageLength > 1)
+            {
+                this.RenderPageSection(pageIndex, pageLength);
+                this.output.SetCursorPosition(0, this.output.CursorTop - items.Count - 2);
+                return;
+            }
+
+            this.output.SetCursorPosition(0, this.output.CursorTop - items.Count);
+        }
+
+        private void RenderPageSection(int pageIndex, int pageLength)
+        {
+            this.output.WriteLine()
+                    .WriteNonAnsiColor("Page: ", ConsoleColor.DarkGray)
+                    .WriteNonAnsiColor($"{pageIndex + 1} / {pageLength}", ConsoleColor.Green)
+                    .WriteNonAnsiColor(" (Use the ", ConsoleColor.DarkGray)
+                    .WriteNonAnsiColor("<", ConsoleColor.Cyan)
+                    .WriteNonAnsiColor(" and ", ConsoleColor.DarkGray)
+                    .WriteNonAnsiColor(">", ConsoleColor.Cyan)
+                    .WriteNonAnsiColor(" keys to scroll between pages)", ConsoleColor.DarkGray)
+                    .WriteLine();
         }
 
         private void PrintSelected<TItem>(TItem item,
@@ -282,13 +362,17 @@ namespace ConfigCat.Cli.Services.Rendering
                 return;
             }
 
-            this.output.WriteNonAnsiColor("|", ConsoleColor.DarkGray);
-            this.output.WriteNonAnsiColor($" > ", ConsoleColor.Magenta);
-            this.output.Write(labelSelector(item));
+            this.output.WriteNonAnsiColor("|", ConsoleColor.DarkGray).WriteNonAnsiColor($" > ", ConsoleColor.Magenta).Write(labelSelector(item));
         }
 
         private void PrintNonSelected<TItem>(TItem item, Func<TItem, string> labelSelector)
         {
+            if(item is null || item.Equals(default))
+            {
+                this.output.WriteNonAnsiColor($"|", ConsoleColor.DarkGray);
+                return;
+            }
+
             this.output.WriteNonAnsiColor($"|   {labelSelector(item)}", ConsoleColor.DarkGray);
         }
 

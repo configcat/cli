@@ -69,7 +69,7 @@ namespace ConfigCat.Cli.Commands
 
             this.output.Write("Found ");
             this.output.WriteColored(aliveFlagReferences.Sum(f => f.References.Count()).ToString(), ForegroundColorSpan.LightCyan());
-            this.output.Write($" feature flag/setting reference(s) in ");
+            this.output.Write($" feature flag / setting reference(s) in ");
             this.output.WriteColored(aliveFlagReferences.Count().ToString(), ForegroundColorSpan.LightCyan());
             this.output.Write(" file(s). " +
                 $"Keys: [{string.Join(", ", aliveFlagReferences.SelectMany(r => r.References).Select(r => r.FoundFlag.Key).Distinct())}]");
@@ -83,7 +83,7 @@ namespace ConfigCat.Cli.Commands
                     $"reference(s) found in {deletedFlagReferences.Count()} file(s). " +
                     $"Keys: [{string.Join(", ", deletedFlagReferences.SelectMany(r => r.References).Select(r => r.FoundFlag.Key).Distinct())}]");
             else
-                this.output.WriteGreen("OK. Didn't find any deleted feature flag/setting references.");
+                this.output.WriteGreen("OK. Didn't find any deleted feature flag / setting references.");
 
             this.output.WriteLine();
 
@@ -95,16 +95,18 @@ namespace ConfigCat.Cli.Commands
                 this.output.WriteLine("Initiating code reference upload...");
 
                 if (scanArguments.Repo.IsEmpty())
-                    throw new ShowHelpException("For upload, the --repo argument is required.");
+                    throw new ShowHelpException("The --repo argument is required for code reference upload.");
 
                 var gitInfo = this.gitClient.GatherGitInfo(scanArguments.Directory.FullName);
 
-                if(gitInfo == null || gitInfo.Branch.IsEmpty() && scanArguments.Branch.IsEmpty())
-                    throw new ShowHelpException("Could not determine the current branch name, make sure the scanned folder is inside a git repository, or use the --branch argument.");
+                if((gitInfo == null || gitInfo.Branch.IsEmpty()) && scanArguments.Branch.IsEmpty())
+                    throw new ShowHelpException("Could not determine the current branch name, make sure the scanned folder is inside a Git repository, or use the --branch argument.");
 
                 var branch = gitInfo == null || gitInfo.Branch.IsEmpty() ? scanArguments.Branch : gitInfo.Branch;
-                this.output.WriteLine($"Repository: {scanArguments.Repo}");
-                this.output.WriteLine($"Branch: {branch}");
+                var commitHash = gitInfo?.CurrentCommitHash ?? scanArguments.CommitHash;
+                this.output.WriteUnderline("Repository").Write(":").WriteColored($" {scanArguments.Repo}", ForegroundColorSpan.LightCyan()).WriteLine();
+                this.output.WriteUnderline("Branch").Write(":").WriteColored($" {branch}", ForegroundColorSpan.LightCyan()).WriteLine();
+                this.output.WriteUnderline("Commit").Write(":").WriteColored($" {commitHash}", ForegroundColorSpan.LightCyan()).WriteLine();
                 var repositoryDirectory = gitInfo == null || gitInfo.WorkingDirectory.IsEmpty() ? scanArguments.Directory.FullName : gitInfo.WorkingDirectory;
                 await this.codeReferenceClient.UploadAsync(new CodeReferenceRequest
                 {
@@ -116,11 +118,11 @@ namespace ConfigCat.Cli.Commands
                         SettingId = r.Key.SettingId,
                         References = r.Select(item => new ReferenceLines
                         {
-                            File = item.File.FullName.Replace(repositoryDirectory, string.Empty).AsSlash(),
-                            FileUrl = gitInfo != null && !scanArguments.FileUrlTemplate.IsEmpty()
+                            File = item.File.FullName.Replace(repositoryDirectory, string.Empty).AsSlash().Trim('/'),
+                            FileUrl = !scanArguments.FileUrlTemplate.IsEmpty()
                                 ? scanArguments.FileUrlTemplate
                                     .Replace("{branch}", branch)
-                                    .Replace("{filePath}", item.File.FullName.Replace(repositoryDirectory, string.Empty).AsSlash())
+                                    .Replace("{filePath}", item.File.FullName.Replace(repositoryDirectory, string.Empty).AsSlash().Trim('/'))
                                     .Replace("{lineNumber}", item.reference.ReferenceLine.LineNumber.ToString())
                                 : null,
                             PostLines = item.reference.PostLines,
@@ -130,8 +132,8 @@ namespace ConfigCat.Cli.Commands
                     }).ToList(),
                     Repository = scanArguments.Repo,
                     Branch = branch,
-                    CommitHash = gitInfo?.CurrentCommitHash ?? scanArguments.CommitHash,
-                    CommitUrl = (gitInfo?.CurrentCommitHash != null || scanArguments.CommitHash != null) && !scanArguments.CommitUrlTemplate.IsEmpty()
+                    CommitHash = commitHash,
+                    CommitUrl = commitHash != null && !scanArguments.CommitUrlTemplate.IsEmpty()
                         ? scanArguments.CommitUrlTemplate.Replace("{commitHash}", gitInfo?.CurrentCommitHash ?? scanArguments.CommitHash)
                         : null,
                     ActiveBranches = gitInfo?.ActiveBranches,
@@ -151,8 +153,7 @@ namespace ConfigCat.Cli.Commands
             this.output.WriteLine();
             foreach (var fileReference in references)
             {
-                this.output.WriteColored(fileReference.File.FullName, ForegroundColorSpan.LightYellow());
-                this.output.WriteLine();
+                this.output.WriteColored(fileReference.File.FullName, ForegroundColorSpan.LightYellow()).WriteLine();
                 foreach (var reference in fileReference.References)
                 {
                     var maxDigitCount = reference.PostLines.Count > 0
@@ -174,17 +175,17 @@ namespace ConfigCat.Cli.Commands
         private void PrintRegularLine(Line line, int maxDigitCount)
         {
             var spaces = maxDigitCount - line.LineNumber.GetDigitCount();
-            this.output.WriteColored($"{line.LineNumber}:", ForegroundColorSpan.LightCyan());
-            this.output.Write($"{new string(' ', spaces)} ");
-            this.output.WriteColored(line.LineText, ForegroundColorSpan.DarkGray());
-            this.output.WriteLine();
+            this.output.WriteColored($"{line.LineNumber}:", ForegroundColorSpan.LightCyan())
+                .Write($"{new string(' ', spaces)} ")
+                .WriteColored(line.LineText, ForegroundColorSpan.DarkGray())
+                .WriteLine();
         }
 
         private void PrintSelectedLine(Line line, int maxDigitCount, string key)
         {
             var spaces = maxDigitCount - line.LineNumber.GetDigitCount();
-            this.output.WriteColored($"{line.LineNumber}:", ForegroundColorSpan.LightCyan());
-            this.output.Write($"{new string(' ', spaces)} ");
+            this.output.WriteColored($"{line.LineNumber}:", ForegroundColorSpan.LightCyan())
+                .Write($"{new string(' ', spaces)} ");
 
             this.SearchKeyInText(line.LineText, key);
 
@@ -202,8 +203,8 @@ namespace ConfigCat.Cli.Commands
 
             var preText = text[0..keyIndex];
             var postText = text[(keyIndex + key.Length)..text.Length];
-            this.output.Write(preText);
-            this.output.WriteNonAnsiColor(key, ConsoleColor.White, ConsoleColor.DarkMagenta);
+            this.output.Write(preText)
+                .WriteNonAnsiColor(key, ConsoleColor.White, ConsoleColor.DarkMagenta);
             this.SearchKeyInText(postText, key);
         }
 

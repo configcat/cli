@@ -45,7 +45,7 @@ namespace ConfigCat.Cli.Services.Scan
                         return null;
                     }
 
-                    this.output.Verbose($"{file.FullName} start scanning...");
+                    this.output.Verbose($"{file.FullName} scanning...");
 
                     using var reader = new StreamReader(stream);
                     var tracker = new LineTracker(contextLines);

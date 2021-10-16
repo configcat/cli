@@ -15,9 +15,9 @@ namespace ConfigCat.Cli.Services.Api
 
         Task<ProductModel> GetProductAsync(string productId, CancellationToken token);
 
-        Task<ProductModel> CreateProductAsync(string organizationId, string name, CancellationToken token);
+        Task<ProductModel> CreateProductAsync(string organizationId, string name, string description, CancellationToken token);
 
-        Task UpdateProductAsync(string productId, string name, CancellationToken token);
+        Task UpdateProductAsync(string productId, string name, string description, CancellationToken token);
 
         Task DeleteProductAsync(string productId, CancellationToken token);
     }
@@ -37,8 +37,8 @@ namespace ConfigCat.Cli.Services.Api
         public Task<ProductModel> GetProductAsync(string productId, CancellationToken token) =>
             this.GetAsync<ProductModel>(HttpMethod.Get, $"v1/products/{productId}", token);
 
-        public Task<ProductModel> CreateProductAsync(string organizationId, string name, CancellationToken token) =>
-            this.SendAsync<ProductModel>(HttpMethod.Post, $"v1/organizations/{organizationId}/products", new { Name = name }, token);
+        public Task<ProductModel> CreateProductAsync(string organizationId, string name, string description, CancellationToken token) =>
+            this.SendAsync<ProductModel>(HttpMethod.Post, $"v1/organizations/{organizationId}/products", new { Name = name, Description = description }, token);
 
         public async Task DeleteProductAsync(string productId, CancellationToken token)
         {
@@ -48,10 +48,10 @@ namespace ConfigCat.Cli.Services.Api
             this.Output.WriteLine();
         }
 
-        public async Task UpdateProductAsync(string productId, string name, CancellationToken token)
+        public async Task UpdateProductAsync(string productId, string name, string description, CancellationToken token)
         {
             this.Output.Write($"Updating Product... ");
-            await this.SendAsync(HttpMethod.Put, $"v1/products/{productId}", new { Name = name }, token);
+            await this.SendAsync(HttpMethod.Put, $"v1/products/{productId}", new { Name = name, Description = description }, token);
             this.Output.WriteSuccess();
             this.Output.WriteLine();
         }

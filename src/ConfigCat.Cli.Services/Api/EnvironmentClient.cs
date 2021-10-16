@@ -15,9 +15,9 @@ namespace ConfigCat.Cli.Services.Api
 
         Task<EnvironmentModel> GetEnvironmentAsync(string environmentId, CancellationToken token);
 
-        Task<EnvironmentModel> CreateEnvironmentAsync(string productId, string name, CancellationToken token);
+        Task<EnvironmentModel> CreateEnvironmentAsync(string productId, string name, string description, string color, CancellationToken token);
 
-        Task UpdateEnvironmentAsync(string environmentId, string name, CancellationToken token);
+        Task UpdateEnvironmentAsync(string environmentId, string name, string description, string color, CancellationToken token);
 
         Task DeleteEnvironmentAsync(string environmentId, CancellationToken token);
     }
@@ -37,8 +37,8 @@ namespace ConfigCat.Cli.Services.Api
         public Task<EnvironmentModel> GetEnvironmentAsync(string environmentId, CancellationToken token) =>
             this.GetAsync<EnvironmentModel>(HttpMethod.Get, $"v1/environments/{environmentId}", token);
 
-        public Task<EnvironmentModel> CreateEnvironmentAsync(string productId, string name, CancellationToken token) =>
-            this.SendAsync<EnvironmentModel>(HttpMethod.Post, $"v1/products/{productId}/environments", new { Name = name }, token);
+        public Task<EnvironmentModel> CreateEnvironmentAsync(string productId, string name, string description, string color, CancellationToken token) =>
+            this.SendAsync<EnvironmentModel>(HttpMethod.Post, $"v1/products/{productId}/environments", new { Name = name, Description = description, Color = color }, token);
 
         public async Task DeleteEnvironmentAsync(string environmentId, CancellationToken token)
         {
@@ -48,10 +48,10 @@ namespace ConfigCat.Cli.Services.Api
             this.Output.WriteLine();
         }
 
-        public async Task UpdateEnvironmentAsync(string environmentId, string name, CancellationToken token)
+        public async Task UpdateEnvironmentAsync(string environmentId, string name, string description, string color, CancellationToken token)
         {
             this.Output.Write($"Updating Environment... ");
-            await this.SendAsync(HttpMethod.Put, $"v1/environments/{environmentId}", new { Name = name }, token);
+            await this.SendAsync(HttpMethod.Put, $"v1/environments/{environmentId}", new { Name = name, Description = description, Color = color }, token);
             this.Output.WriteSuccess();
             this.Output.WriteLine();
         }

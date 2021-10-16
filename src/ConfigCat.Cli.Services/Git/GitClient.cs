@@ -2,6 +2,7 @@
 using ConfigCat.Cli.Services.Rendering;
 using System;
 using System.Collections.Generic;
+using System.CommandLine.Rendering;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 
@@ -23,7 +24,9 @@ namespace ConfigCat.Cli.Services.Git
 
         public GitRepositoryInfo GatherGitInfo(string path)
         {
-            this.output.WriteLine($"Collecting Git repository information from {path}");
+            this.output.Write("Collecting Git repository information from ")
+                .WriteColored(path, ForegroundColorSpan.LightCyan())
+                .WriteLine();
 
             try
             {
@@ -31,8 +34,7 @@ namespace ConfigCat.Cli.Services.Git
             }
             catch
             {
-                this.output.WriteYellow("Could not execute the Git CLI, it's probably not installed. Skipping.");
-                this.output.WriteLine();
+                this.output.WriteYellow("Could not execute the Git CLI, it's probably not installed. Skipping.").WriteLine();
                 return null;
             }
         }
@@ -44,11 +46,11 @@ namespace ConfigCat.Cli.Services.Git
             var repoWorkingDir = this.ExecuteCommand(process, "rev-parse --show-toplevel");
             if (repoWorkingDir.IsEmpty())
             {
-                this.output.WriteLine("Git repository not found.");
+                this.output.WriteYellow($"{path} is not a Git repository. Skipping.").WriteLine();
                 return null;
             }
 
-            this.output.WriteLine($"Git repository found at {repoWorkingDir}");
+            this.output.WriteGreen($"Git repository found at {repoWorkingDir}").WriteLine();
 
             var commitHash = this.ExecuteCommand(process, "rev-parse HEAD");
             var branchName = this.ExecuteCommand(process, "rev-parse --abbrev-ref HEAD");

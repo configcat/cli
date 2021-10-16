@@ -86,6 +86,7 @@ namespace ConfigCat.Cli
                         {
                             new Option<string>(new[] { "--organization-id", "-o" }, "The Organization's ID where the Product must be created"),
                             new Option<string>(new[] { "--name", "-n" }, "Name of the new Product"),
+                            new Option<string>(new[] { "--description", "-d" }, "Description of the new Product"),
                         }
                     },
                     new CommandDescriptor("rm", "Remove a Product identified by the `--product-id` option")
@@ -104,6 +105,7 @@ namespace ConfigCat.Cli
                         {
                             new Option<string>(new[] { "--product-id", "-i" }, "ID of the Product to update"),
                             new Option<string>(new[] { "--name", "-n" }, "The updated name"),
+                            new Option<string>(new[] { "--description", "-d" }, "The updated description"),
                         }
                     },
                 },
@@ -132,6 +134,7 @@ namespace ConfigCat.Cli
                         {
                             new Option<string>(new[] { "--product-id", "-p" }, "ID of the Product where the Config must be created"),
                             new Option<string>(new[] { "--name", "-n" }, "Name of the new Config"),
+                            new Option<string>(new[] { "--description", "-d" }, "Description of the new Config"),
                         }
                     },
                     new CommandDescriptor("rm", "Remove a Config identified by the `--config-id` option")
@@ -150,6 +153,7 @@ namespace ConfigCat.Cli
                         {
                             new Option<string>(new[] { "--config-id", "-i" }, "ID of the Config to update"),
                             new Option<string>(new[] { "--name", "-n" }, "The updated name"),
+                            new Option<string>(new[] { "--description", "-d" }, "The updated description"),
                         }
                     },
                 },
@@ -178,6 +182,8 @@ namespace ConfigCat.Cli
                         {
                             new Option<string>(new[] { "--product-id", "-p" }, "ID of the Product where the Environment must be created"),
                             new Option<string>(new[] { "--name", "-n" }, "Name of the new Environment"),
+                            new Option<string>(new[] { "--description", "-d" }, "Description of the new Environment"),
+                            new Option<string>(new[] { "--color", "-c" }, "Color of the new Environment"),
                         }
                     },
                     new CommandDescriptor("rm", "Remove an Environment identified by the `--environment-id` option")
@@ -196,6 +202,8 @@ namespace ConfigCat.Cli
                         {
                             new Option<string>(new[] { "--environment-id", "-i" }, "ID of the environment to update"),
                             new Option<string>(new[] { "--name", "-n" }, "The updated name"),
+                            new Option<string>(new[] { "--description", "-d" }, "The updated description"),
+                            new Option<string>(new[] { "--color", "-c" }, "The updated color"),
                         }
                     },
                 },
@@ -516,12 +524,12 @@ namespace ConfigCat.Cli
                     new Option<int>(new[] { "--line-count", "-l" }, () => 4, "Context line count before and after the reference line (min: 1, max: 10)"),
                     new Option<bool>(new[] { "--print", "-p" }, "Print found references to output"),
                     new Option<bool>(new[] { "--upload", "-u" }, "Upload references to ConfigCat"),
-                    new Option<string>(new[] { "--repo", "-r" }, "Repository name, required for upload"),
-                    new Option<string>(new[] { "--branch", "-b" }, "Branch name, required for upload in case when the scanned folder is not a git repo. Otherwise, it's collected from git"),
-                    new Option<string>(new[] { "--commit-hash", "-cm" }, "Commit hash, in case when the scanned folder is not a git repo. Otherwise, it's collected from from git"),
+                    new Option<string>(new[] { "--repo", "-r" }, "Repository name. Mandatory for code reference upload"),
+                    new Option<string>(new[] { "--branch", "-b" }, "Branch name. When the scanned folder is a Git repo, it's determined automatically, otherwise, it must be set manually"),
+                    new Option<string>(new[] { "--commit-hash", "-cm" }, "Commit hash. When the scanned folder is a Git repo, it's determined automatically, otherwise, it must be set manually"),
                     new Option<string>(new[] { "--file-url-template", "-f" }, "Template url used to generate VCS file links. Available template parameters: `branch`, `filePath`, `lineNumber`. Example: https://github.com/my/repo/blob/{branch}/{filePath}#L{lineNumber}"),
                     new Option<string>(new[] { "--commit-url-template", "-ct" }, "Template url used to generate VCS commit links. Available template parameters: `commitHash`. Example: https://github.com/my/repo/commit/{commitHash}"),
-                    new Option<string>(new[] { "--runner", "-ru" }, "Runner name override, default: `ConfigCat CLI {version}`"),
+                    new Option<string>(new[] { "--runner", "-ru" }, "Overrides the default `ConfigCat CLI {version}` executor label on the ConfigCat dashboard"),
 
                 }
             };
