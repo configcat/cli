@@ -57,6 +57,7 @@ namespace ConfigCat.Cli.DocGenerator
             }
 
             await File.WriteAllTextAsync(Path.Combine(currentPath, $"index.md"), output.ToString());
+            await File.WriteAllTextAsync(Path.Combine(currentPath, $"README.md"), output.ToString());
         }
 
         static async Task GenerateDocsForSubCommand(Command command, Stack<Command> parents, IDictionary<string, string> generatedDocs)
