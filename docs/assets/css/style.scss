@@ -1,6 +1,8 @@
 ---
 ---
 
+@import "{{ site.theme }}";
+
 table td:first-of-type {
     white-space: nowrap;
 }
