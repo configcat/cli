@@ -9,7 +9,14 @@ configcat [options] scan <directory>
 | ------ | ----------- |
 | `--config-id`, `-c` | ID of the Config to scan against |
 | `--line-count`, `-l` | Context line count before and after the reference line (min: 1, max: 10) |
-| `--print`, `-p` | Print found references |
+| `--print`, `-p` | Print found references to output |
+| `--upload`, `-u` | Upload references to ConfigCat |
+| `--repo`, `-r` | Repository name. Mandatory for code reference upload |
+| `--branch`, `-b` | Branch name. When the scanned folder is a Git repo, it's determined automatically, otherwise, it must be set manually |
+| `--commit-hash`, `-cm` | Commit hash. When the scanned folder is a Git repo, it's determined automatically, otherwise, it must be set manually |
+| `--file-url-template`, `-f` | Template url used to generate VCS file links. Available template parameters: `branch`, `filePath`, `lineNumber`. Example: https://github.com/my/repo/blob/{branch}/{filePath}#L{lineNumber} |
+| `--commit-url-template`, `-ct` | Template url used to generate VCS commit links. Available template parameters: `commitHash`. Example: https://github.com/my/repo/commit/{commitHash} |
+| `--runner`, `-ru` | Overrides the default `ConfigCat CLI {version}` executor label on the ConfigCat dashboard |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |
 | `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |
 ## Arguments

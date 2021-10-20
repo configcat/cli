@@ -11,6 +11,7 @@ configcat [options] product update
 | ------ | ----------- |
 | `--product-id`, `-i` | ID of the Product to update |
 | `--name`, `-n` | The updated name |
+| `--description`, `-d` | The updated description |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |
 | `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |
 ## Parent Command

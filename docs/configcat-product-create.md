@@ -11,6 +11,7 @@ configcat [options] product create
 | ------ | ----------- |
 | `--organization-id`, `-o` | The Organization's ID where the Product must be created |
 | `--name`, `-n` | Name of the new Product |
+| `--description`, `-d` | Description of the new Product |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |
 | `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |
 ## Parent Command

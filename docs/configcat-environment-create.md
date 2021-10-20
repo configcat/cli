@@ -11,6 +11,8 @@ configcat [options] environment create
 | ------ | ----------- |
 | `--product-id`, `-p` | ID of the Product where the Environment must be created |
 | `--name`, `-n` | Name of the new Environment |
+| `--description`, `-d` | Description of the new Environment |
+| `--color`, `-c` | Color of the new Environment |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |
 | `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |
 ## Parent Command
