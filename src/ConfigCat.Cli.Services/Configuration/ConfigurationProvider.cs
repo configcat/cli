@@ -36,13 +36,13 @@ namespace ConfigCat.Cli.Services.Configuration
                 throw new ShowHelpException($"The CLI is not configured properly, please execute the `configcat setup` command, or set the {Constants.ApiUserNameEnvironmentVariableName} and {Constants.ApiPasswordEnvironmentVariableName} environment variables.");
 
             var fromHost = host is not null ? $"(from env:{Constants.ApiHostEnvironmentVariableName})"
-                : config.Auth.ApiHost is not null
+                : config?.Auth?.ApiHost is not null
                     ? "(from config file)"
                     : "(default)";
             var fromUser = user is not null ? $"(from env:{Constants.ApiUserNameEnvironmentVariableName})" : "(from config file)";
             var fromPass = pass is not null ? $"(from env:{Constants.ApiPasswordEnvironmentVariableName})" : "(from config file)";
 
-            this.output.Verbose($"Host: {host ?? config.Auth.ApiHost ?? Constants.DefaultApiHost} {fromHost}");
+            this.output.Verbose($"Host: {host ?? config?.Auth?.ApiHost ?? Constants.DefaultApiHost} {fromHost}");
             this.output.Verbose($"Username: {user ?? config.Auth.UserName} {fromUser}");
             this.output.Verbose($"Password: <masked> {fromPass}");
 
@@ -50,7 +50,7 @@ namespace ConfigCat.Cli.Services.Configuration
             {
                 Auth = new Auth
                 {
-                    ApiHost = host ?? config.Auth.ApiHost ?? Constants.DefaultApiHost,
+                    ApiHost = host ?? config?.Auth?.ApiHost ?? Constants.DefaultApiHost,
                     Password = pass ?? config.Auth.Password,
                     UserName = user ?? config.Auth.UserName
                 }
