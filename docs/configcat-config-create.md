@@ -13,6 +13,7 @@ configcat [options] config create
 | `--name`, `-n` | Name of the new Config |
 | `--description`, `-d` | Description of the new Config |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |
+| `--non-interactive`, `-ni` | Turn off progress rendering and interactive features. |
 | `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |
 ## Parent Command
 | Command | Description |

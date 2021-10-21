@@ -9,6 +9,7 @@ configcat [options] config rm
 | ------ | ----------- |
 | `--config-id`, `-i` | ID of the Config to delete |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |
+| `--non-interactive`, `-ni` | Turn off progress rendering and interactive features. |
 | `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |
 ## Parent Command
 | Command | Description |

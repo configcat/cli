@@ -14,6 +14,7 @@ configcat [options] flag targeting move
 | `--from` | The position of the targeting rule to delete |
 | `--to` | The desired position of the targeting rule |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |
+| `--non-interactive`, `-ni` | Turn off progress rendering and interactive features. |
 | `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |
 ## Parent Command
 | Command | Description |

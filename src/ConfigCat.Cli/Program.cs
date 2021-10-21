@@ -40,8 +40,10 @@ namespace ConfigCat.Cli
                 .UseMiddleware(async (context, next) =>
                 {
                     var verboseResult = context.ParseResult.FindResultFor(CommandBuilder.VerboseOption);
+                    var nonInteractiveResult = context.ParseResult.FindResultFor(CommandBuilder.NonInteractiveOption);
                     var hasVerboseOption = verboseResult?.GetValueOrDefault<bool>() ?? false;
-                    container.RegisterInstance(new CliOptions { IsVerboseEnabled = hasVerboseOption });
+                    var hasNonInteractiveOption = nonInteractiveResult?.GetValueOrDefault<bool>() ?? false;
+                    container.RegisterInstance(new CliOptions { IsVerboseEnabled = hasVerboseOption, IsNonInteractive = hasNonInteractiveOption });
                     await next(context);
                 })
                 .UseMiddleware(async (context, next) =>

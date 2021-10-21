@@ -12,6 +12,7 @@ configcat [options] flag value show
 | `--flag-id`, `-i`, `--setting-id` | ID of the Feature Flag or Setting |
 | `--json` | Format the output in JSON |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |
+| `--non-interactive`, `-ni` | Turn off progress rendering and interactive features. |
 | `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |
 ## Parent Command
 | Command | Description |

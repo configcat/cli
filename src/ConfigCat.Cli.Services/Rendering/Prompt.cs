@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ConfigCat.Cli.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -34,10 +35,12 @@ namespace ConfigCat.Cli.Services.Rendering
         private const int DefaultPageSize = 15;
 
         private readonly IOutput output;
+        private readonly CliOptions options;
 
-        public Prompt(IOutput output)
+        public Prompt(IOutput output, CliOptions options)
         {
             this.output = output;
+            this.options = options;
         }
 
         public async Task<string> GetStringAsync(string label,
@@ -45,7 +48,8 @@ namespace ConfigCat.Cli.Services.Rendering
             string defaultValue = null)
         {
             if (token.IsCancellationRequested ||
-                output.IsOutputRedirected)
+                output.IsOutputRedirected ||
+                options.IsNonInteractive)
                 return defaultValue;
 
             this.output.Write(label)
@@ -62,7 +66,8 @@ namespace ConfigCat.Cli.Services.Rendering
             string defaultValue = null)
         {
             if (token.IsCancellationRequested ||
-                output.IsOutputRedirected)
+                output.IsOutputRedirected ||
+                options.IsNonInteractive)
                 return defaultValue;
 
             this.output.Write(label)
@@ -80,7 +85,9 @@ namespace ConfigCat.Cli.Services.Rendering
             CancellationToken token,
             TItem selectedValue = default)
         {
-            if (token.IsCancellationRequested || this.output.IsOutputRedirected)
+            if (token.IsCancellationRequested || 
+                this.output.IsOutputRedirected ||
+                options.IsNonInteractive)
                 return default;
 
             using var _ = this.output.CreateCursorHider();
@@ -162,7 +169,9 @@ namespace ConfigCat.Cli.Services.Rendering
             CancellationToken token,
             List<TItem> preSelectedItems = null)
         {
-            if (token.IsCancellationRequested || this.output.IsOutputRedirected)
+            if (token.IsCancellationRequested || 
+                this.output.IsOutputRedirected ||
+                options.IsNonInteractive)
                 return default;
 
             using var _ = this.output.CreateCursorHider();

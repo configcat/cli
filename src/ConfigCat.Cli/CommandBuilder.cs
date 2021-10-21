@@ -11,12 +11,14 @@ namespace ConfigCat.Cli
     public class CommandBuilder
     {
         public readonly static Option VerboseOption = new VerboseOption();
+        public readonly static Option NonInteractiveOption = new NonInteractiveOption();
 
         public static Command BuildRootCommand(IDependencyRegistrator dependencyRegistrator = null, bool asRootCommand = true)
         {
             var root = BuildDescriptors();
             var rootCommand = asRootCommand ? new RootCommand(root.Description) : new Command("configcat", root.Description);
             rootCommand.AddGlobalOption(VerboseOption);
+            rootCommand.AddGlobalOption(NonInteractiveOption);
             rootCommand.Configure(root.SubCommands, dependencyRegistrator);
             return rootCommand;
         }

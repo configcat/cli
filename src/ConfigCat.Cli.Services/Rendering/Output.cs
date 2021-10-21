@@ -57,16 +57,16 @@ namespace ConfigCat.Cli.Services.Rendering
 
         private readonly object consoleLock = new object();
 
-        private readonly bool showVerboseOutput;
+        private readonly CliOptions options;
 
         public Output(CliOptions options)
         {
-            this.showVerboseOutput = options.IsVerboseEnabled;
+            this.options = options;
         }
 
         public IOutput Verbose(string text, ConsoleColor color = default)
         {
-            if (!this.showVerboseOutput)
+            if (!this.options.IsVerboseEnabled)
                 return this;
 
             lock (this.consoleLock)
@@ -153,7 +153,7 @@ namespace ConfigCat.Cli.Services.Rendering
 
         public IOutput WriteSuccess() => this.WriteGreen($"Ok.");
 
-        public Spinner CreateSpinner(CancellationToken token) => new Spinner(token, this, this.showVerboseOutput);
+        public Spinner CreateSpinner(CancellationToken token) => new Spinner(token, this, this.options.IsVerboseEnabled, this.options.IsNonInteractive);
 
         public CursorHider CreateCursorHider() => new CursorHider(this);
 

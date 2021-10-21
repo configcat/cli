@@ -23,12 +23,9 @@ namespace ConfigCat.Cli.Services.Rendering
             "|",
         };
 
-        public Spinner(CancellationToken token, IOutput output, bool isVerboseEnabled)
+        public Spinner(CancellationToken token, IOutput output, bool isVerboseEnabled, bool isNonInteractive)
         {
-            if (isVerboseEnabled)
-                return;
-
-            if (output.IsOutputRedirected)
+            if (isVerboseEnabled || isNonInteractive || output.IsOutputRedirected)
                 return;
 
             this.output = output;

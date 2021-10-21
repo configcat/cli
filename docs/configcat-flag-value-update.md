@@ -13,6 +13,7 @@ configcat [options] flag value update
 | `--environment-id`, `-e` | ID of the Environment where the update must be applied |
 | `--flag-value`, `-f` | The value to serve, it must respect the setting type |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |
+| `--non-interactive`, `-ni` | Turn off progress rendering and interactive features. |
 | `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |
 ## Parent Command
 | Command | Description |

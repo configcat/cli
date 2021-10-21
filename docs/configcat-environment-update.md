@@ -14,6 +14,7 @@ configcat [options] environment update
 | `--description`, `-d` | The updated description |
 | `--color`, `-c` | The updated color |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |
+| `--non-interactive`, `-ni` | Turn off progress rendering and interactive features. |
 | `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |
 ## Parent Command
 | Command | Description |

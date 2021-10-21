@@ -14,6 +14,7 @@ configcat [options] flag update
 | `--hint`, `-H` | The updated hint |
 | `--tag-ids`, `-g` | The updated Tag list |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |
+| `--non-interactive`, `-ni` | Turn off progress rendering and interactive features. |
 | `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |
 ## Parent Command
 | Command | Description |
