@@ -1,10 +1,9 @@
-﻿using ConfigCat.Cli.Models;
-using ConfigCat.Cli.Models.Api;
+﻿using ConfigCat.Cli.Models.Api;
 using ConfigCat.Cli.Services;
 using ConfigCat.Cli.Services.Api;
 using ConfigCat.Cli.Services.Rendering;
 using System.Collections.Generic;
-using System.CommandLine.Rendering.Views;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -69,13 +68,14 @@ namespace ConfigCat.Cli.Commands
                         });
             }
 
-            var table = new TableView<ConfigEnvironment>() { Items = items };
-            table.AddColumn(p => $"{p.Config.Product.Organization.OrganizationId} ({p.Config.Product.Organization.Name})", "ORGANIZATION");
-            table.AddColumn(p => $"{p.Config.Product.ProductId} ({p.Config.Product.Name})", "PRODUCT");
-            table.AddColumn(p => $"{p.Config.ConfigId} ({p.Config.Name})", "CONFIG");
-            table.AddColumn(p => $"{p.Environment.EnvironmentId} ({p.Environment.Name})", "ENVIRONMENT");
-
-            this.output.RenderView(table);
+            var itemsToRender = items.Select(p => new
+            {
+                Organization = $"{p.Config.Product.Organization.OrganizationId} ({p.Config.Product.Organization.Name})",
+                Product = $"{p.Config.Product.ProductId} ({p.Config.Product.Name})",
+                Config = $"{p.Config.ConfigId} ({p.Config.Name})",
+                Environment = $"{p.Environment.EnvironmentId} ({p.Environment.Name})",
+            });
+            this.output.RenderTable(itemsToRender);
 
             return ExitCodes.Ok;
         }

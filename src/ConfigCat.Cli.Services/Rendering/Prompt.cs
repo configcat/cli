@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.CommandLine.Rendering;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -49,8 +48,8 @@ namespace ConfigCat.Cli.Services.Rendering
                 output.IsOutputRedirected)
                 return defaultValue;
 
-            this.output.WriteUnderline(label)
-                .WriteColored(!defaultValue.IsEmpty() ? $" [default: '{defaultValue}']" : "", ForegroundColorSpan.DarkGray())
+            this.output.Write(label)
+                .WriteDarkGray(!defaultValue.IsEmpty() ? $" [default: '{defaultValue}']" : "")
                 .Write(": ");
 
             var result = await output.ReadLineAsync(token);
@@ -66,8 +65,8 @@ namespace ConfigCat.Cli.Services.Rendering
                 output.IsOutputRedirected)
                 return defaultValue;
 
-            this.output.WriteUnderline(label)
-                .WriteColored(!defaultValue.IsEmpty() ? $" [default: '{defaultValue}']" : "", ForegroundColorSpan.DarkGray())
+            this.output.Write(label)
+                .WriteDarkGray(!defaultValue.IsEmpty() ? $" [default: '{defaultValue}']" : "")
                 .Write(": ");
 
             var result = await output.ReadLineAsync(token, true);
@@ -86,13 +85,9 @@ namespace ConfigCat.Cli.Services.Rendering
 
             using var _ = this.output.CreateCursorHider();
 
-            this.output.WriteUnderline(label).Write(":").WriteLine();
+            this.output.Write(label).Write(":").WriteLine();
 
-            this.output.WriteColored("(Use the ", ForegroundColorSpan.DarkGray())
-                .WriteColored("UP", ForegroundColorSpan.LightCyan())
-                .WriteColored(" and ", ForegroundColorSpan.DarkGray())
-                .WriteColored("DOWN", ForegroundColorSpan.LightCyan())
-                .WriteColored(" keys to navigate)", ForegroundColorSpan.DarkGray())
+            this.output.WriteDarkGray("(Use the ").WriteCyan("UP").WriteDarkGray(" and ").WriteCyan("DOWN").WriteDarkGray(" keys to navigate)")
                 .WriteLine().WriteLine();
 
             var pages = this.GetPages(items);
@@ -172,15 +167,15 @@ namespace ConfigCat.Cli.Services.Rendering
 
             using var _ = this.output.CreateCursorHider();
 
-            this.output.WriteUnderline(label).Write(":").WriteLine();
+            this.output.Write(label).Write(":").WriteLine();
 
-            this.output.WriteColored("(Use the ", ForegroundColorSpan.DarkGray())
-                .WriteColored("UP", ForegroundColorSpan.LightCyan())
-                .WriteColored(" and ", ForegroundColorSpan.DarkGray())
-                .WriteColored("DOWN", ForegroundColorSpan.LightCyan())
-                .WriteColored(" keys to navigate, and ", ForegroundColorSpan.DarkGray())
-                .WriteColored("SPACE", ForegroundColorSpan.LightCyan())
-                .WriteColored(" to select)", ForegroundColorSpan.DarkGray())
+            this.output.WriteDarkGray("(Use the ")
+                .WriteCyan("UP")
+                .WriteDarkGray(" and ")
+                .WriteCyan("DOWN")
+                .WriteDarkGray(" keys to navigate, and ")
+                .WriteCyan("SPACE")
+                .WriteDarkGray(" to select)")
                 .WriteLine().WriteLine();
 
             int index = 0, pageIndex = 0;
@@ -341,13 +336,13 @@ namespace ConfigCat.Cli.Services.Rendering
         private void RenderPageSection(int pageIndex, int pageLength)
         {
             this.output.WriteLine()
-                    .WriteNonAnsiColor("Page: ", ConsoleColor.DarkGray)
-                    .WriteNonAnsiColor($"{pageIndex + 1} / {pageLength}", ConsoleColor.Green)
-                    .WriteNonAnsiColor(" (Use the ", ConsoleColor.DarkGray)
-                    .WriteNonAnsiColor("<", ConsoleColor.Cyan)
-                    .WriteNonAnsiColor(" and ", ConsoleColor.DarkGray)
-                    .WriteNonAnsiColor(">", ConsoleColor.Cyan)
-                    .WriteNonAnsiColor(" keys to scroll between pages)", ConsoleColor.DarkGray)
+                    .WriteColor("Page: ", ConsoleColor.DarkGray)
+                    .WriteColor($"{pageIndex + 1} / {pageLength}", ConsoleColor.Green)
+                    .WriteColor(" (Use the ", ConsoleColor.DarkGray)
+                    .WriteColor("<", ConsoleColor.Cyan)
+                    .WriteColor(" and ", ConsoleColor.DarkGray)
+                    .WriteColor(">", ConsoleColor.Cyan)
+                    .WriteColor(" keys to scroll between pages)", ConsoleColor.DarkGray)
                     .WriteLine();
         }
 
@@ -358,22 +353,22 @@ namespace ConfigCat.Cli.Services.Rendering
         {
             if (isHighlight)
             {
-                this.output.WriteNonAnsiColor($"| {(showIndicator ? ">" : " ")} {labelSelector(item)}", ConsoleColor.White, ConsoleColor.DarkMagenta);
+                this.output.WriteColor($"| {(showIndicator ? ">" : " ")} {labelSelector(item)}", ConsoleColor.White, ConsoleColor.DarkMagenta);
                 return;
             }
 
-            this.output.WriteNonAnsiColor("|", ConsoleColor.DarkGray).WriteNonAnsiColor($" > ", ConsoleColor.Magenta).Write(labelSelector(item));
+            this.output.WriteColor("|", ConsoleColor.DarkGray).WriteColor($" > ", ConsoleColor.Magenta).Write(labelSelector(item));
         }
 
         private void PrintNonSelected<TItem>(TItem item, Func<TItem, string> labelSelector)
         {
             if(item is null || item.Equals(default))
             {
-                this.output.WriteNonAnsiColor($"|", ConsoleColor.DarkGray);
+                this.output.WriteColor($"|", ConsoleColor.DarkGray);
                 return;
             }
 
-            this.output.WriteNonAnsiColor($"|   {labelSelector(item)}", ConsoleColor.DarkGray);
+            this.output.WriteColor($"|   {labelSelector(item)}", ConsoleColor.DarkGray);
         }
 
         private void PrintSelectedInMulti<TItem>(TItem item, Func<TItem, string> labelSelector, List<TItem> selectedItems)

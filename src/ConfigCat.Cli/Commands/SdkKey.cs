@@ -1,10 +1,9 @@
-﻿using ConfigCat.Cli.Models;
-using ConfigCat.Cli.Models.Api;
+﻿using ConfigCat.Cli.Models.Api;
 using ConfigCat.Cli.Services;
 using ConfigCat.Cli.Services.Api;
 using ConfigCat.Cli.Services.Rendering;
 using System.Collections.Generic;
-using System.CommandLine.Rendering.Views;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -56,14 +55,15 @@ namespace ConfigCat.Cli.Commands
                 return ExitCodes.Ok;
             }
 
-            var table = new TableView<SdkKeyTableItem>() { Items = items };
-            table.AddColumn(k => k.SdkKey.Primary, "PRIMARY");
-            table.AddColumn(k => k.SdkKey.Secondary ?? "-", "SECONDARY");
-            table.AddColumn(k => k.Environment.Name, "ENVIRONMENT");
-            table.AddColumn(k => k.Config.Name, "CONFIG");
-            table.AddColumn(k => k.Config.Product.Name, "PRODUCT");
-
-            this.output.RenderView(table);
+            var itemsToRender = items.Select(p => new
+            {
+                Primary = p.SdkKey.Primary,
+                Secondary = p.SdkKey.Secondary,
+                Environment = p.Environment.Name,
+                Config = p.Config.Name,
+                Product = p.Config.Product.Name
+            });
+            this.output.RenderTable(itemsToRender);
 
             return ExitCodes.Ok;
         }

@@ -1,11 +1,10 @@
-﻿using ConfigCat.Cli.Models;
-using ConfigCat.Cli.Models.Api;
+﻿using ConfigCat.Cli.Models.Api;
 using ConfigCat.Cli.Services;
 using ConfigCat.Cli.Services.Api;
 using ConfigCat.Cli.Services.Rendering;
 using System;
 using System.Collections.Generic;
-using System.CommandLine.Rendering.Views;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -50,13 +49,14 @@ namespace ConfigCat.Cli.Commands
                 return ExitCodes.Ok;
             }
 
-            var table = new TableView<TagModel>() { Items = tags };
-            table.AddColumn(p => p.TagId, "ID");
-            table.AddColumn(p => p.Name, "NAME");
-            table.AddColumn(p => p.Color, "COLOR");
-            table.AddColumn(p => $"{p.Product.Name} [{p.Product.ProductId}]", "PRODUCT");
-
-            this.output.RenderView(table);
+            var itemsToRender = tags.Select(t => new 
+            { 
+                Id = t.TagId, 
+                Name = t.Name,
+                Color = t.Color, 
+                Product = $"{t.Product.Name} [{t.Product.ProductId}]" 
+            });
+            this.output.RenderTable(itemsToRender);
             return ExitCodes.Ok;
         }
 

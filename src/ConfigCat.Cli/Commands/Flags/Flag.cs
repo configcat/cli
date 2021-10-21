@@ -1,5 +1,4 @@
-﻿using ConfigCat.Cli.Models;
-using ConfigCat.Cli.Models.Api;
+﻿using ConfigCat.Cli.Models.Api;
 using ConfigCat.Cli.Services;
 using ConfigCat.Cli.Services.Api;
 using ConfigCat.Cli.Services.Exceptions;
@@ -7,7 +6,6 @@ using ConfigCat.Cli.Services.Json;
 using ConfigCat.Cli.Services.Rendering;
 using System;
 using System.Collections.Generic;
-using System.CommandLine.Rendering.Views;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -75,17 +73,18 @@ namespace ConfigCat.Cli.Commands
                 return ExitCodes.Ok;
             }
 
-            var table = new TableView<FlagModel>() { Items = flags };
-            table.AddColumn(f => f.SettingId, "ID");
-            table.AddColumn(f => f.Name, "NAME");
-            table.AddColumn(f => f.Key, "KEY");
-            table.AddColumn(f => f.Hint == null ? "\"\"" : f.Hint.Length > 30 ? $"\"{f.Hint[0..28]}...\"" : $"\"{f.Hint}\"", "HINT");
-            table.AddColumn(f => f.SettingType, "TYPE");
-            table.AddColumn(f => $"[{string.Join(", ", f.Tags.Select(t => $"{t.Name} ({t.TagId})"))}]", "TAGS");
-            table.AddColumn(f => $"{f.OwnerUserFullName} [{f.OwnerUserEmail}]", "OWNER");
-            table.AddColumn(f => $"{f.ConfigName} [{f.ConfigId}]", "CONFIG");
-
-            this.output.RenderView(table);
+            var itemsToRender = flags.Select(f => new
+            {
+                Id = f.SettingId,
+                Name = f.Name,
+                Key = f.Key,
+                Hint = f.Hint == null ? "\"\"" : f.Hint.Length > 30 ? $"\"{f.Hint[0..28]}...\"" : $"\"{f.Hint}\"",
+                Type = f.SettingType,
+                Tags = $"[{string.Join(", ", f.Tags.Select(t => $"{t.Name} ({t.TagId})"))}]",
+                Owner = $"{f.OwnerUserFullName} [{f.OwnerUserEmail}]",
+                Config = $"{f.ConfigName} [{f.ConfigId}]",
+            });
+            this.output.RenderTable(itemsToRender);
 
             return ExitCodes.Ok;
         }

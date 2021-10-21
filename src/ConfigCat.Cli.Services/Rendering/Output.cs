@@ -1,9 +1,6 @@
 ﻿using ConfigCat.Cli.Models;
 using System;
-using System.CommandLine;
-using System.CommandLine.IO;
-using System.CommandLine.Rendering;
-using System.CommandLine.Rendering.Views;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
@@ -14,20 +11,18 @@ namespace ConfigCat.Cli.Services.Rendering
 {
     public interface IOutput
     {
-        IOutput Verbose(string text, ForegroundColorSpan color = null);
+        IOutput Verbose(string text, ConsoleColor color = default);
 
         IOutput Write(string text);
         IOutput WriteLine(string text = null);
         IOutput WriteGreen(string text);
         IOutput WriteYellow(string text);
+        IOutput WriteDarkGray(string text);
+        IOutput WriteMagenta(string text);
+        IOutput WriteCyan(string text);
         IOutput WriteError(string text);
         IOutput WriteWarning(string text);
-        IOutput WriteUnderline(string text);
-        IOutput WriteBlink(string text);
-        IOutput WriteReverse(string text);
-        IOutput WriteStandout(string text);
-        IOutput WriteColored(string text, ForegroundColorSpan color);
-        IOutput WriteNonAnsiColor(string text, ConsoleColor foreground, ConsoleColor? background = null);
+        IOutput WriteColor(string text, ConsoleColor foreground, ConsoleColor? background = null);
         IOutput WriteNoChange(string noChangeText = "No changes detected... ");
         IOutput WriteSuccess();
 
@@ -49,7 +44,7 @@ namespace ConfigCat.Cli.Services.Rendering
 
         Spinner CreateSpinner(CancellationToken token);
         CursorHider CreateCursorHider();
-        IOutput RenderView(View view);
+        IOutput RenderTable<T>(IEnumerable<T> items);
         IOutput RenderJson(object toRender);
     }
 
@@ -62,44 +57,48 @@ namespace ConfigCat.Cli.Services.Rendering
 
         private readonly object consoleLock = new object();
 
-        private readonly IConsole console;
-
-        private readonly IConsole originalConsole;
-
         private readonly bool showVerboseOutput;
 
-        public Output(IConsole console, CliOptions options)
+        public Output(CliOptions options)
         {
-            this.console = console.GetTerminal() ?? console;
-            this.originalConsole = console;
             this.showVerboseOutput = options.IsVerboseEnabled;
         }
 
-        public IOutput Verbose(string text, ForegroundColorSpan color = null)
+        public IOutput Verbose(string text, ConsoleColor color = default)
         {
             if (!this.showVerboseOutput)
                 return this;
 
             lock (this.consoleLock)
             {
-                this.WriteColored("[verbose]: ", ForegroundColorSpan.DarkGray());
-                this.WriteColored(text, color ?? ForegroundColorSpan.DarkGray());
+                this.WriteDarkGray("[verbose]: ");
+                if (color != default)
+                    this.WriteColor(text, color);
+                else
+                    this.WriteDarkGray(text);
+
                 this.WriteLine();
 
                 return this;
             }
         }
 
-        public IOutput Write(string text) { this.console.Out.Write(text); return this; }
+        public IOutput Write(string text) { Console.Write(text); return this; }
 
-        public IOutput WriteLine(string text = null) { this.console.Out.WriteLine(text); return this; }
+        public IOutput WriteLine(string text = null) { Console.WriteLine(text); return this; }
 
         public IOutput WriteError(string text)
         {
             lock (this.consoleLock)
             {
-                this.WriteColored("[error]: ", ForegroundColorSpan.DarkGray());
-                this.console.WriteError(text);
+                if (!this.IsOutputRedirected)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.Error.WriteLine($"[error]: {text}");
+                    Console.ResetColor();
+                }
+                else
+                    Console.Error.WriteLine(text);
 
                 return this;
             }
@@ -109,31 +108,29 @@ namespace ConfigCat.Cli.Services.Rendering
         {
             lock (this.consoleLock)
             {
-                this.WriteColored("[warning]: ", ForegroundColorSpan.DarkGray());
-                this.WriteYellow(text);
-
+                this.WriteYellow($"[warning]: {text}");
                 return this;
             }
         }
 
-        public IOutput WriteGreen(string text) { this.console.WriteStyle(text.Color(ForegroundColorSpan.LightGreen()), text); return this; }
+        public IOutput WriteGreen(string text) => this.WriteColor(text, ConsoleColor.Green);
 
-        public IOutput WriteYellow(string text) { this.console.WriteStyle(text.Color(ForegroundColorSpan.LightYellow()), text); return this; }
+        public IOutput WriteYellow(string text) => this.WriteColor(text, ConsoleColor.Yellow);
 
-        public IOutput WriteUnderline(string text) { this.console.WriteStyle(text.Underline(), text); return this; }
+        public IOutput WriteDarkGray(string text) => this.WriteColor(text, ConsoleColor.DarkGray);
 
-        public IOutput WriteBlink(string text) { this.console.WriteStyle(text.Blink(), text); return this; }
+        public IOutput WriteMagenta(string text) => this.WriteColor(text, ConsoleColor.Magenta);
 
-        public IOutput WriteReverse(string text) { this.console.WriteStyle(text.Reverse(), text); return this; }
+        public IOutput WriteCyan(string text) => this.WriteColor(text, ConsoleColor.Cyan);
 
-        public IOutput WriteStandout(string text) { this.console.WriteStyle(text.Standout(), text); return this; }
-
-        public IOutput WriteColored(string text, ForegroundColorSpan color) { this.console.WriteStyle(text.Color(color), text); return this; }
-
-        public IOutput WriteColoredBackground(string text, BackgroundColorSpan color) { this.console.WriteStyle(text.Background(color), text); return this; }
-
-        public IOutput WriteNonAnsiColor(string text, ConsoleColor foreground, ConsoleColor? background = null)
+        public IOutput WriteColor(string text, ConsoleColor foreground, ConsoleColor? background = null)
         {
+            if (this.IsOutputRedirected)
+            {
+                this.Write(text);
+                return this;
+            }
+
             Console.ForegroundColor = foreground;
             if (background is not null)
                 Console.BackgroundColor = background.Value;
@@ -141,11 +138,6 @@ namespace ConfigCat.Cli.Services.Rendering
             Console.ResetColor();
 
             return this;
-        }
-
-        public IOutput WriteColoredWithBackground(string text, ForegroundColorSpan foreground, BackgroundColorSpan background)
-        {
-            this.console.WriteStyle(text.ColorWithBackground(foreground, background), text); return this;
         }
 
         public IOutput WriteNoChange(string noChangeText = "No changes detected... ")
@@ -164,14 +156,6 @@ namespace ConfigCat.Cli.Services.Rendering
         public Spinner CreateSpinner(CancellationToken token) => new Spinner(token, this, this.showVerboseOutput);
 
         public CursorHider CreateCursorHider() => new CursorHider(this);
-
-        public IOutput RenderView(View view)
-        {
-            var renderer = new ConsoleRenderer(this.originalConsole, resetAfterRender: true);
-            view.RenderFitToContent(renderer, this.originalConsole);
-            return this;
-
-        }
 
         public IOutput MoveCursorLeft()
         {
@@ -209,8 +193,10 @@ namespace ConfigCat.Cli.Services.Rendering
 
         public IOutput ClearCurrentLine()
         {
-            this.SetCursorPosition(0, Console.CursorTop);
-            this.console.Out.Write("\x1b[K");
+            int currentLineCursor = this.CursorTop;
+            Console.SetCursorPosition(0, this.CursorTop);
+            Console.Write(new string(' ', Console.WindowWidth));
+            Console.SetCursorPosition(0, currentLineCursor);
             return this;
         }
 
@@ -300,8 +286,39 @@ namespace ConfigCat.Cli.Services.Rendering
             return this.CursorTop - lineCount + whichLine;
         }
 
+        public IOutput RenderTable<T>(IEnumerable<T> items)
+        {
+            const int padding = 2;
+
+            var builder = new StringBuilder();
+            var itemType = typeof(T);
+            var properties = itemType.GetProperties();
+
+            var headers = properties.Select(p => p.Name).ToArray();
+            var values = items.Select(i => properties.Select(p => p.GetValue(i)?.ToString() ?? string.Empty).ToArray());
+
+            var lengthCounter = values.ToList();
+            lengthCounter.Add(headers);
+
+            var maxColumnLengths = headers.Select((h, i) => lengthCounter.Select(c => c[i].Length + padding).Max());
+
+            builder.AppendLine(FormatLine(headers.Select(h => h.ToUpperInvariant()), maxColumnLengths));
+            builder.AppendLine(FormatLine(headers.Select(h => new string('-', h.Length)), maxColumnLengths));
+            foreach (var item in values)
+                builder.AppendLine(FormatLine(item, maxColumnLengths));
+
+            this.Write(builder.ToString());
+            return this;
+
+
+            string FormatLine(IEnumerable<string> texts, IEnumerable<int> columnLengths) =>
+                texts.Select((t, i) => FormatColumn(t, columnLengths.ElementAt(i)))
+                    .Aggregate((a, b) => a + b);
+
+            string FormatColumn(string text, int columnLength) => $"{text}{new string(' ', columnLength - text.Length)}";
+        }
+
         public IOutput RenderJson(object toRender) =>
             this.Write(JsonSerializer.Serialize(toRender, Constants.CamelCaseOptions));
-
     }
 }

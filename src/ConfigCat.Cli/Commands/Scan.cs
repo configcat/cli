@@ -9,7 +9,6 @@ using ConfigCat.Cli.Services.Rendering;
 using ConfigCat.Cli.Services.Scan;
 using System;
 using System.Collections.Generic;
-using System.CommandLine.Rendering;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
@@ -68,9 +67,9 @@ namespace ConfigCat.Cli.Commands
             var deletedFlagReferences = Filter(flagReferences, r => r.FoundFlag is DeletedFlagModel);
 
             this.output.Write("Found ")
-                .WriteColored(aliveFlagReferences.Sum(f => f.References.Count()).ToString(), ForegroundColorSpan.LightCyan())
+                .WriteCyan(aliveFlagReferences.Sum(f => f.References.Count()).ToString())
                 .Write($" feature flag / setting reference(s) in ")
-                .WriteColored(aliveFlagReferences.Count().ToString(), ForegroundColorSpan.LightCyan())
+                .WriteCyan(aliveFlagReferences.Count().ToString())
                 .Write(" file(s). " +
                     $"Keys: [{string.Join(", ", aliveFlagReferences.SelectMany(r => r.References).Select(r => r.FoundFlag.Key).Distinct())}]")
                 .WriteLine();
@@ -104,9 +103,9 @@ namespace ConfigCat.Cli.Commands
 
                 var branch = gitInfo == null || gitInfo.Branch.IsEmpty() ? scanArguments.Branch : gitInfo.Branch;
                 var commitHash = gitInfo?.CurrentCommitHash ?? scanArguments.CommitHash;
-                this.output.WriteUnderline("Repository").Write(":").WriteColored($" {scanArguments.Repo}", ForegroundColorSpan.LightCyan()).WriteLine()
-                    .WriteUnderline("Branch").Write(":").WriteColored($" {branch}", ForegroundColorSpan.LightCyan()).WriteLine()
-                    .WriteUnderline("Commit").Write(":").WriteColored($" {commitHash}", ForegroundColorSpan.LightCyan()).WriteLine();
+                this.output.Write("Repository").Write(":").WriteCyan($" {scanArguments.Repo}").WriteLine()
+                    .Write("Branch").Write(":").WriteCyan($" {branch}").WriteLine()
+                    .Write("Commit").Write(":").WriteCyan($" {commitHash}").WriteLine();
                 var repositoryDirectory = gitInfo == null || gitInfo.WorkingDirectory.IsEmpty() ? scanArguments.Directory.FullName : gitInfo.WorkingDirectory;
                 await this.codeReferenceClient.UploadAsync(new CodeReferenceRequest
                 {
@@ -153,7 +152,7 @@ namespace ConfigCat.Cli.Commands
             this.output.WriteLine();
             foreach (var fileReference in references)
             {
-                this.output.WriteColored(fileReference.File.FullName, ForegroundColorSpan.LightYellow()).WriteLine();
+                this.output.WriteYellow(fileReference.File.FullName).WriteLine();
                 foreach (var reference in fileReference.References)
                 {
                     var maxDigitCount = reference.PostLines.Count > 0
@@ -175,16 +174,16 @@ namespace ConfigCat.Cli.Commands
         private void PrintRegularLine(Line line, int maxDigitCount)
         {
             var spaces = maxDigitCount - line.LineNumber.GetDigitCount();
-            this.output.WriteColored($"{line.LineNumber}:", ForegroundColorSpan.LightCyan())
+            this.output.WriteCyan($"{line.LineNumber}:")
                 .Write($"{new string(' ', spaces)} ")
-                .WriteColored(line.LineText, ForegroundColorSpan.DarkGray())
+                .WriteDarkGray(line.LineText)
                 .WriteLine();
         }
 
         private void PrintSelectedLine(Line line, int maxDigitCount, string key)
         {
             var spaces = maxDigitCount - line.LineNumber.GetDigitCount();
-            this.output.WriteColored($"{line.LineNumber}:", ForegroundColorSpan.LightCyan())
+            this.output.WriteCyan($"{line.LineNumber}:")
                 .Write($"{new string(' ', spaces)} ");
 
             this.SearchKeyInText(line.LineText, key);
@@ -204,7 +203,7 @@ namespace ConfigCat.Cli.Commands
             var preText = text[0..keyIndex];
             var postText = text[(keyIndex + key.Length)..text.Length];
             this.output.Write(preText)
-                .WriteNonAnsiColor(key, ConsoleColor.White, ConsoleColor.DarkMagenta);
+                .WriteColor(key, ConsoleColor.White, ConsoleColor.DarkMagenta);
             this.SearchKeyInText(postText, key);
         }
 

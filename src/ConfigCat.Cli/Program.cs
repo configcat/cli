@@ -5,6 +5,7 @@ using ConfigCat.Cli.Services;
 using ConfigCat.Cli.Services.Api;
 using ConfigCat.Cli.Services.Configuration;
 using ConfigCat.Cli.Services.Exceptions;
+using ConfigCat.Cli.Services.Rendering;
 using Stashbox;
 using Stashbox.Configuration;
 using Stashbox.Lifetime;
@@ -38,8 +39,8 @@ namespace ConfigCat.Cli
             var parser = new CommandLineBuilder(CommandBuilder.BuildRootCommand(container))
                 .UseMiddleware(async (context, next) =>
                 {
-                    var hasVerboseOption = context.ParseResult.FindResultFor(CommandBuilder.VerboseOption) is not null;
-                    container.RegisterInstance(context.Console);
+                    var verboseResult = context.ParseResult.FindResultFor(CommandBuilder.VerboseOption);
+                    var hasVerboseOption = verboseResult?.GetValueOrDefault<bool>() ?? false;
                     container.RegisterInstance(new CliOptions { IsVerboseEnabled = hasVerboseOption });
                     await next(context);
                 })
@@ -79,42 +80,40 @@ namespace ConfigCat.Cli
                 })
                 .UseTypoCorrections()
                 .UseParseErrorReporting()
-                .UseExceptionHandler(ExceptionHandler)
+                .UseExceptionHandler((exception, context) =>
+                {
+                    var hasVerboseOption = context.ParseResult.FindResultFor(CommandBuilder.VerboseOption) is not null;
+                    var output = container.Resolve<IOutput>();
+                    if (exception is OperationCanceledException || exception is TaskCanceledException)
+                        output.WriteError("Terminated.");
+                    else if (exception is HttpStatusException statusException)
+                        output.WriteError($"Http request failed: {(int)statusException.StatusCode} {statusException.ReasonPhrase}.");
+                    else if (exception is MaxRetryAttemptsReachedException retryException)
+                    {
+                        if (retryException.OperationResult is HttpResponseMessage response)
+                            output.WriteError($"Http request failed: {(int)response.StatusCode} {response.ReasonPhrase}.");
+                        else if (retryException.InnerException is not null)
+                            output.WriteError(hasVerboseOption ? retryException.InnerException.ToString() : retryException.InnerException.Message);
+                        else
+                            output.WriteError(hasVerboseOption ? retryException.ToString() : retryException.Message);
+                    }
+                    else if (exception is OperationTimeoutException)
+                        output.WriteError("Operation timed out.");
+                    else if (exception is ShowHelpException misconfigurationException)
+                    {
+                        output.WriteError(misconfigurationException.Message);
+                        context.Console.Error.WriteLine();
+                        context.InvocationResult = new HelpResult();
+                    }
+                    else
+                        output.WriteError(hasVerboseOption ? exception.ToString() : exception.Message);
+
+                    context.ExitCode = ExitCodes.Error;
+                })
                 .CancelOnProcessTermination()
                 .Build();
 
             return await parser.InvokeAsync(args);
-        }
-
-        private static void ExceptionHandler(Exception exception, InvocationContext context)
-        {
-            var hasVerboseOption = context.ParseResult.FindResultFor(CommandBuilder.VerboseOption) is not null;
-
-            if (exception is OperationCanceledException || exception is TaskCanceledException)
-                context.Console.WriteErrorOnTerminal("Terminated.");
-            else if (exception is HttpStatusException statusException)
-                context.Console.WriteErrorOnTerminal($"Http request failed: {(int)statusException.StatusCode} {statusException.ReasonPhrase}.");
-            else if (exception is MaxRetryAttemptsReachedException retryException)
-            {
-                if (retryException.OperationResult is HttpResponseMessage response)
-                    context.Console.WriteErrorOnTerminal($"Http request failed: {(int)response.StatusCode} {response.ReasonPhrase}.");
-                else if (retryException.InnerException is not null)
-                    context.Console.WriteErrorOnTerminal(hasVerboseOption ? retryException.InnerException.ToString() : retryException.InnerException.Message);
-                else
-                    context.Console.WriteErrorOnTerminal(hasVerboseOption ? retryException.ToString() : retryException.Message);
-            }
-            else if (exception is OperationTimeoutException)
-                context.Console.WriteErrorOnTerminal("Operation timed out.");
-            else if (exception is ShowHelpException misconfigurationException)
-            {
-                context.Console.WriteErrorOnTerminal(misconfigurationException.Message);
-                context.Console.Error.WriteLine();
-                context.InvocationResult = new HelpResult();
-            }
-            else
-                context.Console.WriteErrorOnTerminal(hasVerboseOption ? exception.ToString() : exception.Message);
-
-            context.ExitCode = ExitCodes.Error;
         }
     }
 }

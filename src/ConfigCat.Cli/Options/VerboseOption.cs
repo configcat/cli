@@ -2,7 +2,7 @@
 
 namespace ConfigCat.Cli.Options
 {
-    class VerboseOption : Option
+    class VerboseOption : Option<bool>
     {
         public VerboseOption() : base(new[]
         {

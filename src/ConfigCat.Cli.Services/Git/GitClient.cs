@@ -2,7 +2,6 @@
 using ConfigCat.Cli.Services.Rendering;
 using System;
 using System.Collections.Generic;
-using System.CommandLine.Rendering;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 
@@ -25,7 +24,7 @@ namespace ConfigCat.Cli.Services.Git
         public GitRepositoryInfo GatherGitInfo(string path)
         {
             this.output.Write("Collecting Git repository information from ")
-                .WriteColored(path, ForegroundColorSpan.LightCyan())
+                .WriteCyan(path)
                 .WriteLine();
 
             try

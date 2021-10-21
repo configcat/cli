@@ -1,11 +1,10 @@
-﻿using ConfigCat.Cli.Models;
-using ConfigCat.Cli.Models.Api;
+﻿using ConfigCat.Cli.Models.Api;
 using ConfigCat.Cli.Services;
 using ConfigCat.Cli.Services.Api;
 using ConfigCat.Cli.Services.Rendering;
 using System;
 using System.Collections.Generic;
-using System.CommandLine.Rendering.Views;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -50,15 +49,15 @@ namespace ConfigCat.Cli.Commands
                 return ExitCodes.Ok;
             }
 
-            var table = new TableView<EnvironmentModel>() { Items = environments };
-            table.AddColumn(e => e.EnvironmentId, "ID");
-            table.AddColumn(e => e.Name, "NAME");
-            table.AddColumn(e => e.Description ?? string.Empty, "DESCRIPTION");
-            table.AddColumn(e => e.Color ?? string.Empty, "COLOR");
-            table.AddColumn(e => $"{e.Product.Name} [{e.Product.ProductId}]", "PRODUCT");
-
-            this.output.RenderView(table);
-
+            var itemsToRender = environments.Select(e => new
+            {
+                Id = e.EnvironmentId,
+                Name = e.Name,
+                Description = e.Description,
+                Color = e.Color,
+                Product = $"{e.Product.Name} [{e.Product.ProductId}]"
+            });
+            this.output.RenderTable(itemsToRender);
             return ExitCodes.Ok;
         }
 

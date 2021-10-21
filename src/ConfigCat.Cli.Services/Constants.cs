@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.CommandLine.Rendering;
 using System.IO;
 using System.Text.Json;
 
@@ -18,8 +17,6 @@ namespace ConfigCat.Cli.Services
 
         public static string ConfigFilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
             ".configcat", "cli.json");
-
-        public static Size MaxSize = new Size(int.MaxValue, int.MaxValue);
 
         public static Dictionary<string, string> ComparatorTypes = new Dictionary<string, string>
         {

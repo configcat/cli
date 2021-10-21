@@ -1,11 +1,10 @@
-﻿using ConfigCat.Cli.Models;
-using ConfigCat.Cli.Models.Api;
+﻿using ConfigCat.Cli.Models.Api;
 using ConfigCat.Cli.Services;
 using ConfigCat.Cli.Services.Api;
 using ConfigCat.Cli.Services.Rendering;
 using System;
 using System.Collections.Generic;
-using System.CommandLine.Rendering.Views;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -50,13 +49,8 @@ namespace ConfigCat.Cli.Commands
                 return ExitCodes.Ok;
             }
 
-            var table = new TableView<ConfigModel>() { Items = configs };
-            table.AddColumn(c => c.ConfigId, "ID");
-            table.AddColumn(c => c.Name, "NAME");
-            table.AddColumn(c => c.Description ?? string.Empty, "DESCRIPTION");
-            table.AddColumn(c => $"{c.Product.Name} [{c.Product.ProductId}]", "PRODUCT");
-
-            this.output.RenderView(table);
+            var itemsToRender = configs.Select(c => new { Id = c.ConfigId, Name = c.Name, Description = c.Description, Product = $"{c.Product.Name} [{c.Product.ProductId}]" });
+            this.output.RenderTable(itemsToRender);
 
             return ExitCodes.Ok;
         }

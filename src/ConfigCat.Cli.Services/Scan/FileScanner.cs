@@ -3,7 +3,6 @@ using ConfigCat.Cli.Models.Scan;
 using ConfigCat.Cli.Services.Rendering;
 using System;
 using System.Collections.Generic;
-using System.CommandLine.Rendering;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -41,7 +40,7 @@ namespace ConfigCat.Cli.Services.Scan
                     await using var stream = file.OpenRead();
                     if (await stream.IsBinaryAsync(cancellation))
                     {
-                        this.output.Verbose($"{file.FullName} is binary, skipping.", ForegroundColorSpan.LightYellow());
+                        this.output.Verbose($"{file.FullName} is binary, skipping.", ConsoleColor.Yellow);
                         return null;
                     }
 
@@ -66,13 +65,13 @@ namespace ConfigCat.Cli.Services.Scan
                     }
 
                     tracker.FinishAll();
-                    this.output.Verbose($"{file.FullName} scan completed.", ForegroundColorSpan.LightGreen());
+                    this.output.Verbose($"{file.FullName} scan completed.", ConsoleColor.Green);
                     return new FlagReferenceResult { File = file, References = tracker.FinishedReferences };
                 }, token);
             }
             catch (OperationTimeoutException)
             {
-                this.output.Verbose($"{file.FullName} scan timed out.", ForegroundColorSpan.LightRed());
+                this.output.Verbose($"{file.FullName} scan timed out.", ConsoleColor.Red);
                 return null;
             }
         }
