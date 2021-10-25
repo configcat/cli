@@ -98,11 +98,12 @@ namespace ConfigCat.Cli.Commands
 
                 var gitInfo = this.gitClient.GatherGitInfo(scanArguments.Directory.FullName);
 
-                if((gitInfo == null || gitInfo.Branch.IsEmpty()) && scanArguments.Branch.IsEmpty())
+                var branch = scanArguments.Branch ?? gitInfo?.Branch;
+                var commitHash = scanArguments.CommitHash ?? gitInfo?.CurrentCommitHash;
+
+                if (branch.IsEmpty())
                     throw new ShowHelpException("Could not determine the current branch name, make sure the scanned folder is inside a Git repository, or use the --branch argument.");
 
-                var branch = gitInfo == null || gitInfo.Branch.IsEmpty() ? scanArguments.Branch : gitInfo.Branch;
-                var commitHash = gitInfo?.CurrentCommitHash ?? scanArguments.CommitHash;
                 this.output.Write("Repository").Write(":").WriteCyan($" {scanArguments.Repo}").WriteLine()
                     .Write("Branch").Write(":").WriteCyan($" {branch}").WriteLine()
                     .Write("Commit").Write(":").WriteCyan($" {commitHash}").WriteLine();
@@ -132,8 +133,8 @@ namespace ConfigCat.Cli.Commands
                     Repository = scanArguments.Repo,
                     Branch = branch,
                     CommitHash = commitHash,
-                    CommitUrl = commitHash != null && !scanArguments.CommitUrlTemplate.IsEmpty()
-                        ? scanArguments.CommitUrlTemplate.Replace("{commitHash}", gitInfo?.CurrentCommitHash ?? scanArguments.CommitHash)
+                    CommitUrl = !commitHash.IsEmpty() && !scanArguments.CommitUrlTemplate.IsEmpty()
+                        ? scanArguments.CommitUrlTemplate.Replace("{commitHash}", commitHash)
                         : null,
                     ActiveBranches = gitInfo?.ActiveBranches,
                     ConfigId = scanArguments.ConfigId,

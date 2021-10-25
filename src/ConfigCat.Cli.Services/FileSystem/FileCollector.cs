@@ -34,12 +34,19 @@ namespace ConfigCat.Cli.Services.FileSystem
             });
             var ignoreFiles = files.Where(f => f.IsIgnoreFile());
             var filesToReturn = files.Except(ignoreFiles);
-            var ignores = ignoreFiles.Select(f => new IgnoreFile(f, rootDirectory)).ToList();
+            var ignores = new List<IgnorePolicy>();
+            foreach (var ignoreFile in ignoreFiles)
+                ignores.Add(new IgnoreFile(ignoreFile, rootDirectory));
+
+            ignores.Add(new GlobalIgnorePolicy(rootDirectory, "**/.git/**"));
 
             foreach (var ignore in ignores)
             {
-                output.Verbose($"Using ignore file {ignore.File.FullName}");
-                await ignore.LoadIgnoreFileAsync(token);
+                if (ignore is IgnoreFile ignoreFile)
+                {
+                    output.Verbose($"Using ignore file {ignoreFile.File.FullName}");
+                    await ignoreFile.LoadIgnoreFileAsync(token);
+                }
             }
 
             return filesToReturn.Where(f =>
