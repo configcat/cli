@@ -1,7 +1,7 @@
-# Command Line Interface Reference
+# ConfigCat CLI Reference Documentation
 [GitHub](https://github.com/configcat/cli) | [Documentation](https://configcat.com/docs/advanced/cli) | [ConfigCat](https://configcat.com)
 
-This is a reference for the ConfigCat CLI. It allows you to interact with the ConfigCat Management API via the command line. It supports most functionality found on the ConfigCat Dashboard. You can manage ConfigCat resources like Feature Flags, Targeting / Percentage rules, Products, Configs, Environments, and more.
+The ConfigCat CLI allows you to interact with the ConfigCat Management API via the command line. It supports most functionality found on the ConfigCat Dashboard. You can manage ConfigCat resources like Feature Flags, Targeting / Percentage rules, Products, Configs, Environments, and more.
 ## Options
 | Option | Description |
 | ------ | ----------- |

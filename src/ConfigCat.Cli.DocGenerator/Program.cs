@@ -26,10 +26,10 @@ namespace ConfigCat.Cli.DocGenerator
                 .UseHelp();
             var output = new StringBuilder();
 
-            output.AppendLine($"# Command Line Interface Reference");
+            output.AppendLine($"# ConfigCat CLI Reference Documentation");
             output.AppendLine("[GitHub](https://github.com/configcat/cli) | [Documentation](https://configcat.com/docs/advanced/cli) | [ConfigCat](https://configcat.com)");
             output.AppendLine("");
-            output.AppendLine("This is a reference for the ConfigCat CLI. It allows you to interact with the ConfigCat Management API via the command line. It supports most functionality found on the ConfigCat Dashboard. You can manage ConfigCat resources like Feature Flags, Targeting / Percentage rules, Products, Configs, Environments, and more.");
+            output.AppendLine("The ConfigCat CLI allows you to interact with the ConfigCat Management API via the command line. It supports most functionality found on the ConfigCat Dashboard. You can manage ConfigCat resources like Feature Flags, Targeting / Percentage rules, Products, Configs, Environments, and more.");
 
             var options = rootCommand.Options.Where(o => !o.IsHidden);
             if (options.Any())
