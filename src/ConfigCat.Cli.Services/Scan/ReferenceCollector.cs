@@ -2,7 +2,9 @@
 using ConfigCat.Cli.Models.Scan;
 using ConfigCat.Cli.Services.Rendering;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -22,14 +24,17 @@ namespace ConfigCat.Cli.Services.Scan
     public class ReferenceCollector : IReferenceCollector
     {
         private readonly IFileScanner fileScanner;
+        private readonly IAliasCollector aliasCollector;
         private readonly IBotPolicy<IEnumerable<FlagReferenceResult>> botPolicy;
         private readonly IOutput output;
 
         public ReferenceCollector(IFileScanner fileScanner,
+            IAliasCollector aliasCollector,
             IBotPolicy<IEnumerable<FlagReferenceResult>> botPolicy,
             IOutput output)
         {
             this.fileScanner = fileScanner;
+            this.aliasCollector = aliasCollector;
             this.botPolicy = botPolicy;
             this.output = output;
             this.botPolicy.Configure(p => p.Timeout(t => t.After(TimeSpan.FromSeconds(600))));
@@ -44,15 +49,39 @@ namespace ConfigCat.Cli.Services.Scan
 
             return await this.botPolicy.ExecuteAsync(async (ctx, cancellation) =>
             {
-                var tasks = new List<Task<FlagReferenceResult>>();
+                var sw = new Stopwatch();
+                sw.Start();
+                this.output.Verbose($"Scanning for flag ALIASES...");
+                var aliasTasks = new List<Task<AliasScanResult>>();
                 foreach (var file in filesToScan)
                 {
                     if (cancellation.IsCancellationRequested)
                         break;
 
-                    tasks.Add(this.fileScanner.ScanAsync(flags, file, contextLines, cancellation));
+                    aliasTasks.Add(this.aliasCollector.CollectAsync(flags, file, token));
                 }
-                return (await Task.WhenAll(tasks)).Where(r => r is not null);
+
+                var scanResults = (await Task.WhenAll(aliasTasks)).Where(r => r is not null);
+
+                foreach (var scanResult in scanResults.SelectMany(r => r.FlagAliases))
+                    scanResult.Key.Aliases = scanResult.Value.Distinct().ToList();
+
+                Console.WriteLine(sw.ElapsedMilliseconds);
+                sw.Restart();
+
+                this.output.Verbose($"Scanning for CODE REFERENCES...");
+                var scanTasks = new List<Task<FlagReferenceResult>>();
+                foreach (var file in scanResults.Select(r => r.ScannedFile))
+                {
+                    if (cancellation.IsCancellationRequested)
+                        break;
+
+                    scanTasks.Add(this.fileScanner.ScanAsync(flags, file, contextLines, cancellation));
+                }
+
+                var result = (await Task.WhenAll(scanTasks)).Where(r => r is not null);
+                Console.WriteLine(sw.ElapsedMilliseconds);
+                return result;
             }, token);
         }
     }

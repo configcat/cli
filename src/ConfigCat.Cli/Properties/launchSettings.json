@@ -2,7 +2,7 @@
   "profiles": {
     "ConfigCat.Cli": {
       "commandName": "Project",
-      "commandLineArgs": "configcat p ls"
+      "commandLineArgs": "scan d:/git/api --config-id=08d98b08-735e-4569-8948-9dcbeb30d206 --upload --repo cli --print --non-interactive"
     }
   }
 }

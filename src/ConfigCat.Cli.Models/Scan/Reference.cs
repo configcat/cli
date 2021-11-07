@@ -5,6 +5,8 @@ namespace ConfigCat.Cli.Models.Scan
 {
     public class Reference
     {
+        public string MatchedSample { get; set; }
+
         public FlagModel FoundFlag { get; set; }
 
         public List<Line> PreLines { get; set; } = new List<Line>();

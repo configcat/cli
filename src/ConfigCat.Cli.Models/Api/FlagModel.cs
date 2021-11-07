@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace ConfigCat.Cli.Models.Api
@@ -24,6 +25,8 @@ namespace ConfigCat.Cli.Models.Api
         public string OwnerUserEmail { get; set; }
 
         public List<TagModel> Tags { get; set; }
+
+        public List<string> Aliases { get; set; } = new List<string>();
 
         public UpdateFlagModel ToUpdateModel() =>
             new UpdateFlagModel

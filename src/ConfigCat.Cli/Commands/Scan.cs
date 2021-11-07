@@ -75,7 +75,7 @@ namespace ConfigCat.Cli.Commands
                 .WriteLine();
 
             if (scanArguments.Print)
-                this.PrintReferences(aliveFlagReferences);
+                this.PrintReferences(aliveFlagReferences, token);
 
             if (deletedFlagReferences.Any())
                 this.output.WriteWarning($"{deletedFlagReferences.Sum(f => f.References.Count())} deleted feature flag/setting " +
@@ -87,7 +87,7 @@ namespace ConfigCat.Cli.Commands
             this.output.WriteLine();
 
             if (scanArguments.Print)
-                this.PrintReferences(deletedFlagReferences);
+                this.PrintReferences(deletedFlagReferences, token);
 
             if (scanArguments.Upload)
             {
@@ -145,7 +145,7 @@ namespace ConfigCat.Cli.Commands
             return ExitCodes.Ok;
         }
 
-        private void PrintReferences(IEnumerable<FlagReferenceResult> references)
+        private void PrintReferences(IEnumerable<FlagReferenceResult> references, CancellationToken token)
         {
             if (!references.Any())
                 return;
@@ -153,16 +153,22 @@ namespace ConfigCat.Cli.Commands
             this.output.WriteLine();
             foreach (var fileReference in references)
             {
+                if (token.IsCancellationRequested)
+                    break;
+
                 this.output.WriteYellow(fileReference.File.FullName).WriteLine();
                 foreach (var reference in fileReference.References)
                 {
+                    if (token.IsCancellationRequested)
+                        break;
+
                     var maxDigitCount = reference.PostLines.Count > 0
                         ? reference.PostLines.Max(pl => pl.LineNumber).GetDigitCount()
                         : reference.ReferenceLine.LineNumber.GetDigitCount();
                     foreach (var preLine in reference.PreLines)
                         this.PrintRegularLine(preLine, maxDigitCount);
 
-                    this.PrintSelectedLine(reference.ReferenceLine, maxDigitCount, reference.FoundFlag.Key);
+                    this.PrintSelectedLine(reference.ReferenceLine, maxDigitCount, reference);
 
                     foreach (var postLine in reference.PostLines)
                         this.PrintRegularLine(postLine, maxDigitCount);
@@ -181,31 +187,55 @@ namespace ConfigCat.Cli.Commands
                 .WriteLine();
         }
 
-        private void PrintSelectedLine(Line line, int maxDigitCount, string key)
+        private void PrintSelectedLine(Line line, int maxDigitCount, Reference reference)
         {
             var spaces = maxDigitCount - line.LineNumber.GetDigitCount();
             this.output.WriteCyan($"{line.LineNumber}:")
                 .Write($"{new string(' ', spaces)} ");
 
-            this.SearchKeyInText(line.LineText, key);
+            this.SearchKeyInText(line.LineText, reference);
 
             this.output.WriteLine();
         }
 
-        private void SearchKeyInText(string text, string key)
+        private void SearchKeyInText(string text, Reference reference)
         {
-            var keyIndex = text.IndexOf(key);
+            var keyIndex = text.IndexOf(reference.FoundFlag.Key);
+            var key = reference.FoundFlag.Key;
             if (keyIndex == -1)
             {
-                this.output.Write(text);
-                return;
+                if (reference.FoundFlag.Aliases != null)
+                {
+                    foreach (var alias in reference.FoundFlag.Aliases)
+                    {
+                        keyIndex = text.IndexOf(alias);
+                        key = alias;
+                        if (keyIndex != -1)
+                            break;
+                    }
+                }
+
+                if (keyIndex == -1)
+                {
+                    if (reference.MatchedSample != null)
+                    {
+                        keyIndex = text.IndexOf(reference.MatchedSample);
+                        key = reference.MatchedSample;
+                    }
+
+                    if (keyIndex == -1)
+                    {
+                        this.output.Write(text);
+                        return;
+                    }
+                }
             }
 
             var preText = text[0..keyIndex];
             var postText = text[(keyIndex + key.Length)..text.Length];
             this.output.Write(preText)
                 .WriteColor(key, ConsoleColor.White, ConsoleColor.DarkMagenta);
-            this.SearchKeyInText(postText, key);
+            this.SearchKeyInText(postText, reference);
         }
 
         private IEnumerable<FlagReferenceResult> Filter(IEnumerable<FlagReferenceResult> source, Predicate<Reference> filter)
@@ -213,7 +243,7 @@ namespace ConfigCat.Cli.Commands
             foreach (var item in source)
             {
                 var references = FilterReference(item.References, filter);
-                if(!references.Any())
+                if (!references.Any())
                     continue;
 
                 yield return item;
@@ -223,7 +253,7 @@ namespace ConfigCat.Cli.Commands
             {
                 foreach (var item in references)
                 {
-                    if(!filter(item))
+                    if (!filter(item))
                         continue;
 
                     yield return item;

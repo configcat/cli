@@ -19,6 +19,8 @@ namespace ConfigCat.Cli.Services.Scan
 
     public class FileScanner : IFileScanner
     {
+        private readonly static string[] Prefixes = new[] { ".", "->" };
+
         private readonly IBotPolicy<FlagReferenceResult> botPolicy;
         private readonly IOutput output;
 
@@ -52,12 +54,27 @@ namespace ConfigCat.Cli.Services.Scan
                     while (!reader.EndOfStream && !cancellation.IsCancellationRequested)
                     {
                         var line = await reader.ReadLineAsync();
+                        if (line.Length > 1000)
+                        {
+                            this.output.Verbose($"{file.FullName} contains a line that has more than 1000 characters, skipping.", ConsoleColor.Yellow);
+                            return null;
+                        }
+
                         foreach (var flag in flags)
                         {
                             if (line.Contains($"\"{flag.Key}\"") ||
                                 line.Contains($"'{flag.Key}'") ||
-                                line.Contains($"`{flag.Key}`"))
+                                line.Contains($"`{flag.Key}`") ||
+                                (flag.Aliases != null && flag.Aliases.Any(a => line.Contains(a, StringComparison.OrdinalIgnoreCase))))
+                            {
                                 tracker.TrackReference(flag, line, lineNumber);
+                                continue;
+                            }
+
+                            var matchedSample = this.SearchForSampleVariations(flag, line);
+
+                            if(matchedSample != null)
+                                tracker.TrackReference(flag, line, lineNumber, matchedSample);
                         }
 
                         tracker.AddLine(line, lineNumber);
@@ -73,6 +90,53 @@ namespace ConfigCat.Cli.Services.Scan
             {
                 this.output.Verbose($"{file.FullName} scan timed out.", ConsoleColor.Red);
                 return null;
+            }
+        }
+
+        private string SearchForSampleVariations(FlagModel flag, string line)
+        {
+            var originals = new[] { flag.Key }.Concat(flag.Aliases);
+            foreach (var original in originals)
+            {
+                var samples = ProduceVariationSamples(original, flag.SettingType == SettingTypes.Boolean).Distinct();
+
+                foreach (var sample in samples)
+                {
+                    if (Prefixes.Any(p => line.Contains($"{p}{sample}", StringComparison.OrdinalIgnoreCase)))
+                    {
+                        var originalFromLine = line.IndexOf(sample, StringComparison.OrdinalIgnoreCase);
+                        return line.Substring(originalFromLine, sample.Length);
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        private IEnumerable<string> ProduceVariationSamples(string original, bool isBoolFlag)
+        {
+            var trimmed = original.RemoveDashes();
+            var includeUnderscore = trimmed != original;
+
+            yield return original;
+            yield return trimmed;
+            yield return $"get{trimmed}";
+
+            if (includeUnderscore)
+                yield return $"get_{original}";
+
+            if (isBoolFlag)
+            {
+                yield return $"is{trimmed}";
+                yield return $"is{trimmed}enabled";
+                yield return $"has{trimmed}";
+
+                if (includeUnderscore)
+                {
+                    yield return $"is_{original}";
+                    yield return $"is_{original}_enabled";
+                    yield return $"has_{original}";
+                }
             }
         }
 
@@ -99,13 +163,14 @@ namespace ConfigCat.Cli.Services.Scan
                 this.HandleBufferQueue(currentLine);
             }
 
-            public void TrackReference(FlagModel flag, string line, int lineNumber)
+            public void TrackReference(FlagModel flag, string line, int lineNumber, string matchedSample = null)
             {
                 var reference = new Reference
                 {
                     FoundFlag = flag,
                     ReferenceLine = new Line { LineText = line, LineNumber = lineNumber },
-                    PreLines = this.preContextLineBuffer.ToList()
+                    PreLines = this.preContextLineBuffer.ToList(),
+                    MatchedSample = matchedSample
                 };
                 this.trackedReferences.Add(new Trackable { RemainingContextLines = this.contextLineCount, FlagReference = reference });
             }
