@@ -22,7 +22,7 @@ namespace ConfigCat.Cli.Services.Scan
 
     public class AliasCollector : IAliasCollector
     {
-        private readonly static string[] Prefixes = new[] { ".", "->" };
+        private static readonly string[] Prefixes = new[] { ".", "->" };
         private readonly IBotPolicy<AliasScanResult> botPolicy;
         private readonly IOutput output;
 
@@ -60,7 +60,7 @@ namespace ConfigCat.Cli.Services.Scan
                     while (match.Success)
                     {
                         var flag = flags.FirstOrDefault(f => f.Key == match.Groups[2].Value);
-                        if(!result.FlagAliases.ContainsKey(flag))
+                        if(flag != null && !result.FlagAliases.ContainsKey(flag))
                             result.FlagAliases[flag] = new List<string>();
 
                         if (flag != null && !match.Groups[1].Value.IsEmpty() && Similarity(flag.Key, match.Groups[1].Value) > 0.3)
@@ -125,19 +125,15 @@ namespace ConfigCat.Cli.Services.Scan
             if (includeUnderscore)
                 yield return $"get_{original}";
 
-            if (isBoolFlag)
-            {
-                yield return $"is{trimmed}";
-                yield return $"is{trimmed}enabled";
-                yield return $"has{trimmed}";
+            if (!isBoolFlag) yield break;
+            yield return $"is{trimmed}";
+            yield return $"is{trimmed}enabled";
+            yield return $"has{trimmed}";
 
-                if (includeUnderscore)
-                {
-                    yield return $"is_{original}";
-                    yield return $"is_{original}_enabled";
-                    yield return $"has_{original}";
-                }
-            }
+            if (!includeUnderscore) yield break;
+            yield return $"is_{original}";
+            yield return $"is_{original}_enabled";
+            yield return $"has_{original}";
         }
 
         private static double Similarity(string a, string b)

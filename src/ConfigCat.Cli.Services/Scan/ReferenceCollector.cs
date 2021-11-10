@@ -52,14 +52,8 @@ namespace ConfigCat.Cli.Services.Scan
                 var sw = new Stopwatch();
                 sw.Start();
                 this.output.Verbose($"Scanning for flag ALIASES...");
-                var aliasTasks = new List<Task<AliasScanResult>>();
-                foreach (var file in filesToScan)
-                {
-                    if (cancellation.IsCancellationRequested)
-                        break;
-
-                    aliasTasks.Add(this.aliasCollector.CollectAsync(flags, file, token));
-                }
+                var aliasTasks = filesToScan.TakeWhile(file => !cancellation.IsCancellationRequested)
+                    .Select(file => this.aliasCollector.CollectAsync(flags, file, token));
 
                 var scanResults = (await Task.WhenAll(aliasTasks)).Where(r => r is not null);
 
@@ -70,14 +64,10 @@ namespace ConfigCat.Cli.Services.Scan
                 sw.Restart();
 
                 this.output.Verbose($"Scanning for CODE REFERENCES...");
-                var scanTasks = new List<Task<FlagReferenceResult>>();
-                foreach (var file in scanResults.Select(r => r.ScannedFile))
-                {
-                    if (cancellation.IsCancellationRequested)
-                        break;
-
-                    scanTasks.Add(this.fileScanner.ScanAsync(flags, file, contextLines, cancellation));
-                }
+                var scanTasks = scanResults
+                    .Select(r => r.ScannedFile)
+                    .TakeWhile(file => !cancellation.IsCancellationRequested)
+                    .Select(file => this.fileScanner.ScanAsync(flags, file, contextLines, cancellation));
 
                 var result = (await Task.WhenAll(scanTasks)).Where(r => r is not null);
                 Console.WriteLine(sw.ElapsedMilliseconds);
