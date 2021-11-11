@@ -7,7 +7,7 @@
     <Description>Command Line Interface for ConfigCat.</Description>
     <Copyright>Copyright © ConfigCat 2021</Copyright>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <AssemblyName>configcat</AssemblyName>
     <AssemblyTitle>ConfigCat CLI</AssemblyTitle>
     <InvariantGlobalization>true</InvariantGlobalization>

@@ -44,6 +44,8 @@ namespace ConfigCat.Cli.Services
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         };
+
+        public const int MaxCharCountPerLine = 1000;
     }
 
     public static class ExitCodes

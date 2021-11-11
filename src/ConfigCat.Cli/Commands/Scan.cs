@@ -26,7 +26,7 @@ namespace ConfigCat.Cli.Commands
         private readonly IFlagClient flagClient;
         private readonly ICodeReferenceClient codeReferenceClient;
         private readonly IFileCollector fileCollector;
-        private readonly IReferenceCollector referenceCollector;
+        private readonly IFileScanner fileScanner;
         private readonly IGitClient gitClient;
         private readonly IOutput output;
 
@@ -34,7 +34,7 @@ namespace ConfigCat.Cli.Commands
             IFlagClient flagClient,
             ICodeReferenceClient codeReferenceClient,
             IFileCollector fileCollector,
-            IReferenceCollector referenceCollector,
+            IFileScanner fileScanner,
             IGitClient gitClient,
             IOutput output)
         {
@@ -42,7 +42,7 @@ namespace ConfigCat.Cli.Commands
             this.flagClient = flagClient;
             this.codeReferenceClient = codeReferenceClient;
             this.fileCollector = fileCollector;
-            this.referenceCollector = referenceCollector;
+            this.fileScanner = fileScanner;
             this.gitClient = gitClient;
             this.output = output;
         }
@@ -61,7 +61,7 @@ namespace ConfigCat.Cli.Commands
                 .Distinct(new FlagModelEqualityComparer());
 
             var files = await this.fileCollector.CollectAsync(scanArguments.Directory, token);
-            var flagReferences = await this.referenceCollector.CollectAsync(flags.Concat(deletedFlags), files, scanArguments.LineCount, token);
+            var flagReferences = await this.fileScanner.ScanAsync(flags.Concat(deletedFlags), files, scanArguments.LineCount, token);
 
             var aliveFlagReferences = Filter(flagReferences, r => r.FoundFlag is not DeletedFlagModel);
             var deletedFlagReferences = Filter(flagReferences, r => r.FoundFlag is DeletedFlagModel);

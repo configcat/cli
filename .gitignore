@@ -256,6 +256,10 @@ ServiceFabricBackup/
 *.ldf
 *.ndf
 
+.idea
+linux-musl-x64
+.vscode
+
 # Business Intelligence projects
 *.rdl.data
 *.bim.layout
