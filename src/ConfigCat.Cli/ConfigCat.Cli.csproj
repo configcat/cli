@@ -15,6 +15,7 @@
     <TrimmerDefaultAction>link</TrimmerDefaultAction>
     <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+	<IsTrimmable>false</IsTrimmable>
     <Version>0.0.0</Version>
   </PropertyGroup>
 
@@ -26,7 +27,6 @@
   <ItemGroup>
     <TrimmerRootAssembly Include="System.ComponentModel.TypeConverter" />
 	<TrimmerRootAssembly Include="Stashbox" />
-	<TrimmerRootAssembly Include="System.CommandLine" />
   </ItemGroup>
 
   <ItemGroup>
