@@ -23,7 +23,7 @@ using Trybot.Timeout.Exceptions;
 
 namespace ConfigCat.Cli
 {
-    class Program
+    internal static class Program
     {
         static async Task<int> Main(string[] args)
         {
@@ -49,7 +49,7 @@ namespace ConfigCat.Cli
                 .UseMiddleware(async (context, next) =>
                 {
                     var commandName = context.ParseResult.CommandResult.Command.Name;
-                    if (commandName == "setup" || commandName == "whoisthebestcat")
+                    if (commandName is "setup" or "whoisthebestcat")
                     {
                         container.RegisterInstance(new CliConfig());
                         await next(context);
@@ -74,7 +74,7 @@ namespace ConfigCat.Cli
                 .UseHelp()
                 .UseHelpBuilder(ctx =>
                 {
-                    int maxWidth = int.MaxValue;
+                    var maxWidth = int.MaxValue;
                     if (ctx.Console is SystemConsole systemConsole)
                         maxWidth = systemConsole.GetWindowWidth();
 
@@ -86,29 +86,35 @@ namespace ConfigCat.Cli
                 {
                     var hasVerboseOption = context.ParseResult.FindResultFor(CommandBuilder.VerboseOption) is not null;
                     var output = container.Resolve<IOutput>();
-                    if (exception is OperationCanceledException || exception is TaskCanceledException)
-                        output.WriteError("Terminated.");
-                    else if (exception is HttpStatusException statusException)
-                        output.WriteError($"Http request failed: {(int)statusException.StatusCode} {statusException.ReasonPhrase}.");
-                    else if (exception is MaxRetryAttemptsReachedException retryException)
+                    switch (exception)
                     {
-                        if (retryException.OperationResult is HttpResponseMessage response)
+                        case OperationCanceledException or TaskCanceledException:
+                            output.WriteError("Terminated.");
+                            break;
+                        case HttpStatusException statusException:
+                            output.WriteError($"Http request failed: {(int)statusException.StatusCode} {statusException.ReasonPhrase}.");
+                            break;
+                        case MaxRetryAttemptsReachedException { OperationResult: HttpResponseMessage response }:
                             output.WriteError($"Http request failed: {(int)response.StatusCode} {response.ReasonPhrase}.");
-                        else if (retryException.InnerException is not null)
+                            break;
+                        case MaxRetryAttemptsReachedException { InnerException: { } } retryException:
                             output.WriteError(hasVerboseOption ? retryException.InnerException.ToString() : retryException.InnerException.Message);
-                        else
+                            break;
+                        case MaxRetryAttemptsReachedException retryException:
                             output.WriteError(hasVerboseOption ? retryException.ToString() : retryException.Message);
+                            break;
+                        case OperationTimeoutException:
+                            output.WriteError("Operation timed out.");
+                            break;
+                        case ShowHelpException misconfigurationException:
+                            output.WriteError(misconfigurationException.Message);
+                            context.Console.Error.WriteLine();
+                            context.InvocationResult = new HelpResult();
+                            break;
+                        default:
+                            output.WriteError(hasVerboseOption ? exception.ToString() : exception.Message);
+                            break;
                     }
-                    else if (exception is OperationTimeoutException)
-                        output.WriteError("Operation timed out.");
-                    else if (exception is ShowHelpException misconfigurationException)
-                    {
-                        output.WriteError(misconfigurationException.Message);
-                        context.Console.Error.WriteLine();
-                        context.InvocationResult = new HelpResult();
-                    }
-                    else
-                        output.WriteError(hasVerboseOption ? exception.ToString() : exception.Message);
 
                     context.ExitCode = ExitCodes.Error;
                 })

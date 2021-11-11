@@ -4,16 +4,16 @@ using System.Linq;
 
 namespace ConfigCat.Cli.Options
 {
-    class PercentageRuleArgument : Argument<UpdatePercentageModel[]>
+    internal class PercentageRuleArgument : Argument<UpdatePercentageModel[]>
     {
         public PercentageRuleArgument() : base(argumentResult =>
         {
             var length = argumentResult.Tokens.Count;
             if (length == 0)
-                return new UpdatePercentageModel[0];
+                return Array.Empty<UpdatePercentageModel>();
 
             var result = new UpdatePercentageModel[length];
-            for (int i = 0; i < length; i++)
+            for (var i = 0; i < length; i++)
             {
                 var value = argumentResult.Tokens.ElementAt(i).Value;
                 var indexOfSeparator = value.IndexOf(':');
@@ -54,13 +54,10 @@ namespace ConfigCat.Cli.Options
                 return null;
             }
 
-            if (result.Length == 1)
-            {
-                argumentResult.ErrorMessage = $"There must be at least 2 rules.";
-                return null;
-            }
+            if (result.Length != 1) return result;
+            argumentResult.ErrorMessage = $"There must be at least 2 rules.";
+            return null;
 
-            return result;
         })
         {
             Name = "rules";
@@ -78,10 +75,10 @@ namespace ConfigCat.Cli.Options
         }
     }
 
-    class UpdatePercentageModel
+    internal class UpdatePercentageModel
     {
-        public int Percentage { get; set; }
+        public int Percentage { get; init; }
 
-        public string Value { get; set; }
+        public string Value { get; init; }
     }
 }

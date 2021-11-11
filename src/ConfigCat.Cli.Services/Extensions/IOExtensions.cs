@@ -18,11 +18,9 @@ namespace System.IO
 
             while (readBytes-- > 0)
             {
-                if(readBuffer[readBytes] == char.MinValue)
-                {
-                    stream.Seek(0, SeekOrigin.Begin);
-                    return true;
-                }
+                if (readBuffer[readBytes] != char.MinValue) continue;
+                stream.Seek(0, SeekOrigin.Begin);
+                return true;
             }
 
             stream.Seek(0, SeekOrigin.Begin);

@@ -32,21 +32,20 @@ namespace ConfigCat.Cli.Services.FileSystem
                 IgnoreInaccessible = true,
                 AttributesToSkip = FileAttributes.System
             });
-            var ignoreFiles = files.Where(f => f.IsIgnoreFile());
+            var ignoreFiles = files.Where(f => f.IsIgnoreFile()).ToArray();
             var filesToReturn = files.Except(ignoreFiles);
-            var ignores = new List<IgnorePolicy>();
-            foreach (var ignoreFile in ignoreFiles)
-                ignores.Add(new IgnoreFile(ignoreFile, rootDirectory));
+            var ignores = ignoreFiles
+                .Select(ignoreFile => new IgnoreFile(ignoreFile, rootDirectory))
+                .Cast<IgnorePolicy>()
+                .ToList();
 
             ignores.Add(new GlobalIgnorePolicy(rootDirectory, "**/.git/**"));
 
             foreach (var ignore in ignores)
             {
-                if (ignore is IgnoreFile ignoreFile)
-                {
-                    output.Verbose($"Using ignore file {ignoreFile.File.FullName}");
-                    await ignoreFile.LoadIgnoreFileAsync(token);
-                }
+                if (ignore is not IgnoreFile ignoreFile) continue;
+                output.Verbose($"Using ignore file {ignoreFile.File.FullName}");
+                await ignoreFile.LoadIgnoreFileAsync(token);
             }
 
             return filesToReturn.Where(f =>

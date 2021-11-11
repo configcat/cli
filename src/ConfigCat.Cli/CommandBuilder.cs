@@ -8,10 +8,10 @@ using System.Linq;
 
 namespace ConfigCat.Cli
 {
-    public class CommandBuilder
+    public static class CommandBuilder
     {
-        public readonly static Option VerboseOption = new VerboseOption();
-        public readonly static Option NonInteractiveOption = new NonInteractiveOption();
+        public static readonly Option VerboseOption = new VerboseOption();
+        public static readonly Option NonInteractiveOption = new NonInteractiveOption();
 
         public static Command BuildRootCommand(IDependencyRegistrator dependencyRegistrator = null, bool asRootCommand = true)
         {
@@ -24,9 +24,9 @@ namespace ConfigCat.Cli
         }
 
         private static CommandDescriptor BuildDescriptors() =>
-            new CommandDescriptor(null, $"This is the Command Line Tool of ConfigCat.{System.Environment.NewLine}ConfigCat is a " +
-                $"hosted feature flag service: https://configcat.com{System.Environment.NewLine}For more information, " +
-                $"see the documentation here: https://configcat.com/docs/advanced/cli")
+            new(null, $"This is the Command Line Tool of ConfigCat.{System.Environment.NewLine}ConfigCat is a " +
+                      $"hosted feature flag service: https://configcat.com{System.Environment.NewLine}For more information, " +
+                      $"see the documentation here: https://configcat.com/docs/advanced/cli")
             {
                 SubCommands = new CommandDescriptor[]
                 {
@@ -44,8 +44,8 @@ namespace ConfigCat.Cli
             };
 
         private static CommandDescriptor BuildSetupCommand() =>
-            new CommandDescriptor("setup", $"Setup the CLI with Public Management API host and credentials." +
-                        $"{System.Environment.NewLine}You can get your credentials from here: https://app.configcat.com/my-account/public-api-credentials")
+            new("setup", $"Setup the CLI with Public Management API host and credentials." +
+                         $"{System.Environment.NewLine}You can get your credentials from here: https://app.configcat.com/my-account/public-api-credentials")
             {
                 Options = new[]
                 {
@@ -57,7 +57,7 @@ namespace ConfigCat.Cli
             };
 
         private static CommandDescriptor BuildListAllCommand() =>
-            new CommandDescriptor("ls", "List all Product, Config, and Environment IDs")
+            new("ls", "List all Product, Config, and Environment IDs")
             {
                 Handler = CreateHandler<ListAll>(nameof(ListAll.InvokeAsync)),
                 Options = new[]
@@ -67,7 +67,7 @@ namespace ConfigCat.Cli
             };
 
         private static CommandDescriptor BuildProductCommand() =>
-            new CommandDescriptor("product", "Manage Products")
+            new("product", "Manage Products")
             {
                 Aliases = new[] { "p" },
                 SubCommands = new[]
@@ -114,7 +114,7 @@ namespace ConfigCat.Cli
             };
 
         private static CommandDescriptor BuildConfigCommand() =>
-            new CommandDescriptor("config", "Manage Configs")
+            new("config", "Manage Configs")
             {
                 Aliases = new[] { "c" },
                 SubCommands = new[]
@@ -162,7 +162,7 @@ namespace ConfigCat.Cli
             };
 
         private static CommandDescriptor BuildEnvironmentCommand() =>
-            new CommandDescriptor("environment", "Manage Environments")
+            new("environment", "Manage Environments")
             {
                 Aliases = new[] { "e" },
                 SubCommands = new[]
@@ -212,7 +212,7 @@ namespace ConfigCat.Cli
             };
 
         private static CommandDescriptor BuildTagCommand() =>
-            new CommandDescriptor("tag", "Manage Tags")
+            new("tag", "Manage Tags")
             {
                 Aliases = new[] { "t" },
                 SubCommands = new[]
@@ -261,7 +261,7 @@ namespace ConfigCat.Cli
 
 
         private static CommandDescriptor BuildFlagCommand() =>
-            new CommandDescriptor("flag", "Manage Feature Flags & Settings")
+            new("flag", "Manage Feature Flags & Settings")
             {
                 Aliases = new[] { "setting", "f", "s" },
                 SubCommands = new[]
@@ -353,7 +353,7 @@ namespace ConfigCat.Cli
 
 
         private static CommandDescriptor BuildFlagValueCommand() =>
-            new CommandDescriptor("value", "Show, and update Feature Flag or Setting values in different Environments")
+            new("value", "Show, and update Feature Flag or Setting values in different Environments")
             {
                 Aliases = new[] { "v" },
                 SubCommands = new[]
@@ -389,7 +389,7 @@ namespace ConfigCat.Cli
             };
 
         private static CommandDescriptor BuildFlagTargetingCommand() =>
-            new CommandDescriptor("targeting", "Manage targeting rules")
+            new("targeting", "Manage targeting rules")
             {
                 Aliases = new[] { "t" },
                 SubCommands = new[]
@@ -463,7 +463,7 @@ namespace ConfigCat.Cli
             };
 
         private static CommandDescriptor BuildFlagPercentageCommand() =>
-            new CommandDescriptor("percentage", "Manage percentage rules")
+            new("percentage", "Manage percentage rules")
             {
                 Aliases = new[] { "%" },
                 SubCommands = new[]
@@ -502,7 +502,7 @@ namespace ConfigCat.Cli
             };
 
         private static CommandDescriptor BuildSdkKeyCommand() =>
-            new CommandDescriptor("sdk-key", "List SDK Keys")
+            new("sdk-key", "List SDK Keys")
             {
                 Aliases = new[] { "k" },
                 Handler = CreateHandler<SdkKey>(nameof(SdkKey.InvokeAsync)),
@@ -513,7 +513,7 @@ namespace ConfigCat.Cli
             };
 
         private static CommandDescriptor BuildScanCommand() =>
-            new CommandDescriptor("scan", "Scans files for Feature Flag or Setting usages")
+            new("scan", "Scans files for Feature Flag or Setting usages")
             {
                 Handler = CreateHandler<Scan>(nameof(Scan.InvokeAsync)),
                 Arguments = new[]
@@ -537,7 +537,7 @@ namespace ConfigCat.Cli
             };
 
         private static CommandDescriptor BuildCatCommand() =>
-            new CommandDescriptor("whoisthebestcat", "Well, who?")
+            new("whoisthebestcat", "Well, who?")
             {
                 Aliases = new[] { "cat" },
                 Handler = CreateHandler<Cat>(nameof(Cat.InvokeAsync)),

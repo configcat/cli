@@ -17,15 +17,15 @@ namespace ConfigCat.Cli.Options
 
             if (base.GetSubcommands(command).Any())
             { 
-                var parents = GetCommandList(command).Reverse();
+                var parents = GetCommandList(command).Reverse().ToArray();
                 var parentsPart = parents.Any() ? $"{string.Join(' ', parents)} " : string.Empty;
                 base.Console.Out.WriteLine($"Use \"{parentsPart}[command] -?\" for more information about a command.");
             }
 
-            IEnumerable<string> GetCommandList(ICommand command)
+            IEnumerable<string> GetCommandList(ISymbol commandToCheck)
             {
-                yield return command.Name;
-                var parent = command.Parents.FirstOrDefault(p => p is ICommand);
+                yield return commandToCheck.Name;
+                var parent = commandToCheck.Parents.FirstOrDefault(p => p is ICommand);
                 while(parent != null)
                 {
                     yield return parent.Name;

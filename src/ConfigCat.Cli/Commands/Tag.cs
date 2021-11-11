@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace ConfigCat.Cli.Commands
 {
-    class Tag
+    internal class Tag
     {
         private readonly ITagClient tagClient;
         private readonly IProductClient productClient;

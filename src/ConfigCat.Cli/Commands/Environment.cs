@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace ConfigCat.Cli.Commands
 {
-    class Environment
+    internal class Environment
     {
         private readonly IEnvironmentClient environmentClient;
         private readonly IWorkspaceLoader workspaceLoader;

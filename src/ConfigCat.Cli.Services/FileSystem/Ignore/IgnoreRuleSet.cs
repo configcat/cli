@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace ConfigCat.Cli.Services.FileSystem.Ignore
 {
-    class IgnoreRuleSet
+    internal class IgnoreRuleSet
     {
         private readonly List<Glob> rules = new List<Glob>();
 

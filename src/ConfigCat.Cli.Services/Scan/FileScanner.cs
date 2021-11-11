@@ -52,10 +52,10 @@ namespace ConfigCat.Cli.Services.Scan
                 var aliasTasks = filesToScan.TakeWhile(file => !cancellation.IsCancellationRequested)
                     .Select(file => this.aliasCollector.CollectAsync(flags, file, token));
 
-                var aliasResults = (await Task.WhenAll(aliasTasks)).Where(r => r is not null);
+                var aliasResults = (await Task.WhenAll(aliasTasks)).Where(r => r is not null).ToArray();
 
-                foreach (var scan in aliasResults.SelectMany(k => k.FlagAliases))
-                    scan.Key.Aliases = scan.Value.Distinct().ToList();
+                foreach (var (key, value) in aliasResults.SelectMany(k => k.FlagAliases))
+                    key.Aliases = value.Distinct().ToList();
 
                 this.output.Verbose($"Scanning for flag REFERENCES...", ConsoleColor.Magenta);
                 var scanTasks = aliasResults

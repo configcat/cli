@@ -43,12 +43,18 @@ namespace ConfigCat.Cli.Services.Json
             if(modified.Value.ValueKind == JsonValueKind.Null)
                 return;
 
-            if (original.Value.ValueKind == JsonValueKind.Object)
-                WalkOnProperties(original.Value, modified.Value, path + modified.Name + PathSeparator, document);
-            else if (original.Value.ValueKind == JsonValueKind.Array)
-                HandleArray(original.Value, modified.Value, path + modified.Name, document);
-            else
-                document.Replace(path + modified.Name, JsonSerializer.Deserialize<object>(modified.Value.GetRawText(), Constants.CamelCaseOptions));
+            switch (original.Value.ValueKind)
+            {
+                case JsonValueKind.Object:
+                    WalkOnProperties(original.Value, modified.Value, path + modified.Name + PathSeparator, document);
+                    break;
+                case JsonValueKind.Array:
+                    HandleArray(original.Value, modified.Value, path + modified.Name, document);
+                    break;
+                default:
+                    document.Replace(path + modified.Name, JsonSerializer.Deserialize<object>(modified.Value.GetRawText(), Constants.CamelCaseOptions));
+                    break;
+            }
         }
 
         private static void HandleArray(JsonElement original, JsonElement modified, string path, JsonPatchDocument document)
@@ -56,7 +62,7 @@ namespace ConfigCat.Cli.Services.Json
             var originalItems = original.EnumerateArray().ToArray();
             var modifiedItems = modified.EnumerateArray().ToArray();
 
-            for (int i = 0; i < originalItems.Length; i++)
+            for (var i = 0; i < originalItems.Length; i++)
             {
                 if (modifiedItems.Length - 1 < i)
                     document.Remove(path + PathSeparator + i);
@@ -70,7 +76,7 @@ namespace ConfigCat.Cli.Services.Json
                 }
             }
 
-            for (int i = originalItems.Length; i < modifiedItems.Length; i++)
+            for (var i = originalItems.Length; i < modifiedItems.Length; i++)
                 document.Add(path + PathSeparator + Dash, 
                     JsonSerializer.Deserialize<object>(modifiedItems[i].GetRawText(), Constants.CamelCaseOptions));
         }
@@ -78,12 +84,12 @@ namespace ConfigCat.Cli.Services.Json
 
     public class JsonPropertyEqualityComparer : IEqualityComparer<JsonProperty>
     {
-        public bool Equals([AllowNull] JsonProperty x, [AllowNull] JsonProperty y)
+        public bool Equals(JsonProperty x, JsonProperty y)
         {
             return x.Name == y.Name;
         }
 
-        public int GetHashCode([DisallowNull] JsonProperty obj)
+        public int GetHashCode(JsonProperty obj)
         {
             return obj.Name.GetHashCode();
         }

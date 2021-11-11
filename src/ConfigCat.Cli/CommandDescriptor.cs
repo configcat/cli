@@ -18,17 +18,17 @@ namespace ConfigCat.Cli
 
         public string Description { get; }
 
-        public bool IsHidden { get; set; }
+        public bool IsHidden { get; init; }
 
-        public IEnumerable<Option> Options { get; set; } = Enumerable.Empty<Option>();
+        public IEnumerable<Option> Options { get; init; } = Enumerable.Empty<Option>();
 
-        public IEnumerable<Argument> Arguments { get; set; } = Enumerable.Empty<Argument>();
+        public IEnumerable<Argument> Arguments { get; init; } = Enumerable.Empty<Argument>();
 
-        public IEnumerable<string> Aliases { get; set; } = Enumerable.Empty<string>();
+        public IEnumerable<string> Aliases { get; init; } = Enumerable.Empty<string>();
 
-        public IEnumerable<CommandDescriptor> SubCommands { get; set; } = Enumerable.Empty<CommandDescriptor>();
+        public IEnumerable<CommandDescriptor> SubCommands { get; init; } = Enumerable.Empty<CommandDescriptor>();
 
-        public HandlerDescriptor Handler { get; set; }
+        public HandlerDescriptor Handler { get; init; }
     }
 
     public class HandlerDescriptor

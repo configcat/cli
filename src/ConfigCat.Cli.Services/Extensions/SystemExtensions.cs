@@ -1,6 +1,7 @@
 ﻿using ConfigCat.Cli.Services;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace System
 {
@@ -9,14 +10,6 @@ namespace System
         public static string AsSlash(this string text) => text.Replace(Path.DirectorySeparatorChar, '/');
 
         public static string RemoveDashes(this string text) => text.Replace("-", string.Empty).Replace("_", string.Empty);
-
-        public static string Remove(this string text, IEnumerable<string> subStrings)
-        {
-            foreach (var substring in subStrings)
-                text = text.Replace(substring, string.Empty);
-
-            return text;
-        }
 
         public static int GetDigitCount(this int number) => (int)Math.Floor(Math.Log10(Math.Abs(number)) + 1);
 

@@ -3,7 +3,7 @@ using System.IO;
 
 namespace ConfigCat.Cli.Services.FileSystem.Ignore
 {
-    abstract class IgnorePolicy
+    internal abstract class IgnorePolicy
     {
         protected readonly IgnoreRuleSet AcceptMatcher = new IgnoreRuleSet();
         protected readonly IgnoreRuleSet IgnoreMatcher = new IgnoreRuleSet();

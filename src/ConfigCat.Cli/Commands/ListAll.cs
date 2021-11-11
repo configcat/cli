@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace ConfigCat.Cli.Commands
 {
-    class ListAll
+    internal class ListAll
     {
         private readonly IProductClient productClient;
         private readonly IConfigClient configClient;

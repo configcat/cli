@@ -29,7 +29,7 @@ namespace ConfigCat.Cli.Services.Git
 
             try
             {
-                return this.CollectInfoFromCLI(path);
+                return this.CollectInfoFromCli(path);
             }
             catch
             {
@@ -38,11 +38,11 @@ namespace ConfigCat.Cli.Services.Git
             }
         }
 
-        private GitRepositoryInfo CollectInfoFromCLI(string path)
+        private GitRepositoryInfo CollectInfoFromCli(string path)
         {
-            using var process = this.GetGitProcess(path);            
+            using var process = GetGitProcess(path);            
 
-            var repoWorkingDir = this.ExecuteCommand(process, "rev-parse --show-toplevel");
+            var repoWorkingDir = ExecuteCommand(process, "rev-parse --show-toplevel");
             if (repoWorkingDir.IsEmpty())
             {
                 this.output.WriteYellow($"{path} is not a Git repository. Skipping.").WriteLine();
@@ -51,9 +51,9 @@ namespace ConfigCat.Cli.Services.Git
 
             this.output.WriteGreen($"Git repository found at {repoWorkingDir}").WriteLine();
 
-            var commitHash = this.ExecuteCommand(process, "rev-parse HEAD");
-            var branchName = this.ExecuteCommand(process, "rev-parse --abbrev-ref HEAD");
-            var remoteBranches = this.ExecuteCommand(process, "ls-remote --heads --quiet");
+            var commitHash = ExecuteCommand(process, "rev-parse HEAD");
+            var branchName = ExecuteCommand(process, "rev-parse --abbrev-ref HEAD");
+            var remoteBranches = ExecuteCommand(process, "ls-remote --heads --quiet");
 
             var activeBranches = new List<string>();
             var regex = Regex.Match(remoteBranches, @"refs\/heads\/(.*)",
@@ -75,7 +75,7 @@ namespace ConfigCat.Cli.Services.Git
             };
         }
 
-        private Process GetGitProcess(string path)
+        private static Process GetGitProcess(string path)
         {
             var processInfo = new ProcessStartInfo
             {
@@ -90,7 +90,7 @@ namespace ConfigCat.Cli.Services.Git
             return process;
         }
 
-        private string ExecuteCommand(Process process, string arguments)
+        private static string ExecuteCommand(Process process, string arguments)
         {
             process.StartInfo.Arguments = arguments;
             process.Start();

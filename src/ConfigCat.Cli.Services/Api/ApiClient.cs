@@ -38,19 +38,14 @@ namespace ConfigCat.Cli.Services.Api
                 .Retry(retry => retry
                     .WhenExceptionOccurs(exception => exception is HttpRequestException)
                     .WhenResultIs(response => (int)response.StatusCode >= 500 ||
-                        response.StatusCode == System.Net.HttpStatusCode.RequestTimeout ||
-                        response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
+                                              response.StatusCode is System.Net.HttpStatusCode.RequestTimeout or System.Net.HttpStatusCode.TooManyRequests)
                     .WithMaxAttemptCount(3)
                     .WaitBetweenAttempts((attempt, exception, result) =>
                     {
                         var backoffTime = TimeSpan.FromSeconds(Math.Pow(2, attempt));
-                        if (result != null && result.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
-                        {
-                            var retryAfter = result.Headers.RetryAfter.Delta;
-                            return retryAfter ?? backoffTime;
-                        }
-
-                        return backoffTime;
+                        if (result is not { StatusCode: System.Net.HttpStatusCode.TooManyRequests }) return backoffTime;
+                        var retryAfter = result.Headers.RetryAfter.Delta;
+                        return retryAfter ?? backoffTime;
                     })
                     .OnRetry(this.LogRetry)
                 ));
@@ -69,7 +64,7 @@ namespace ConfigCat.Cli.Services.Api
             var content = await response.Content.ReadAsStringAsync();
             this.Output.Verbose($"Response body: {content}");
 
-            this.ValidateResponse(response);
+            ValidateResponse(response);
 
             return JsonSerializer.Deserialize<TResult>(content, Constants.CamelCaseOptions);
         }
@@ -94,7 +89,7 @@ namespace ConfigCat.Cli.Services.Api
             var content = await response.Content.ReadAsStringAsync();
             this.Output.Verbose($"Response body: {content}");
 
-            this.ValidateResponse(response);
+            ValidateResponse(response);
         }
 
         protected async Task<TResult> SendAsync<TResult>(HttpMethod method, string path, object body, CancellationToken token)
@@ -117,7 +112,7 @@ namespace ConfigCat.Cli.Services.Api
             var content = await response.Content.ReadAsStringAsync();
             this.Output.Verbose($"Response body: {content}");
 
-            this.ValidateResponse(response);
+            ValidateResponse(response);
 
             return JsonSerializer.Deserialize<TResult>(content, Constants.CamelCaseOptions);
         }
@@ -135,9 +130,10 @@ namespace ConfigCat.Cli.Services.Api
 
         private HttpRequestMessage CreateRequest(HttpMethod method, string path)
         {
-            var config = this.config.Auth;
-            var request = new HttpRequestMessage(method, new Uri(new Uri($"https://{config.ApiHost}"), path));
-            request.Headers.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes($"{config.UserName}:{config.Password}")));
+            var configAuth = this.config.Auth;
+            var request = new HttpRequestMessage(method, new Uri(new Uri($"https://{configAuth.ApiHost}"), path));
+            request.Headers.Authorization = new AuthenticationHeaderValue("Basic", 
+                Convert.ToBase64String(Encoding.ASCII.GetBytes($"{configAuth.UserName}:{configAuth.Password}")));
             return request;
         }
 
@@ -150,7 +146,7 @@ namespace ConfigCat.Cli.Services.Api
             this.Output.Verbose($"{message}, retrying... [{context.CurrentAttempt}. attempt, waiting {context.CurrentDelay}]", ConsoleColor.Yellow);
         }
 
-        private void ValidateResponse(HttpResponseMessage responseMessage)
+        private static void ValidateResponse(HttpResponseMessage responseMessage)
         {
             if (!responseMessage.IsSuccessStatusCode)
                 throw new HttpStatusException(responseMessage.StatusCode,

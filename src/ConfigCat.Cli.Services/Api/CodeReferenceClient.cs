@@ -64,9 +64,9 @@ namespace ConfigCat.Cli.Services.Api
 
         public string FileUrl { get; set; }
 
-        public List<Line> PreLines { get; set; } = new List<Line>();
+        public List<Line> PreLines { get; set; } = new();
 
-        public List<Line> PostLines { get; set; } = new List<Line>();
+        public List<Line> PostLines { get; set; } = new();
 
         public Line ReferenceLine { get; set; }
     }

@@ -18,9 +18,11 @@ using System.Threading.Tasks;
 
 namespace ConfigCat.Cli.Commands
 {
-    class Scan
+    internal class Scan
     {
-        private static readonly Lazy<string> Version = new(() => Assembly.GetEntryAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion);
+        private static readonly Lazy<string> Version = new(() =>
+            Assembly.GetEntryAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+                .InformationalVersion);
 
         private readonly IWorkspaceLoader workspaceLoader;
         private readonly IFlagClient flagClient;
@@ -52,33 +54,37 @@ namespace ConfigCat.Cli.Commands
             if (scanArguments.ConfigId.IsEmpty())
                 scanArguments.ConfigId = (await this.workspaceLoader.LoadConfigAsync(token)).ConfigId;
 
-            scanArguments.LineCount = scanArguments.LineCount < 0 || scanArguments.LineCount > 10 ? 4 : scanArguments.LineCount;
+            scanArguments.LineCount = scanArguments.LineCount is < 0 or > 10
+                ? 4
+                : scanArguments.LineCount;
 
             var flags = await this.flagClient.GetFlagsAsync(scanArguments.ConfigId, token);
             var deletedFlags = await this.flagClient.GetDeletedFlagsAsync(scanArguments.ConfigId, token);
             deletedFlags = deletedFlags
-                .Where(d => !flags.Any(f => f.Key == d.Key))
+                .Where(d => flags.All(f => f.Key != d.Key))
                 .Distinct(new FlagModelEqualityComparer());
 
             var files = await this.fileCollector.CollectAsync(scanArguments.Directory, token);
-            var flagReferences = await this.fileScanner.ScanAsync(flags.Concat(deletedFlags), files, scanArguments.LineCount, token);
+            var flagReferences =
+                await this.fileScanner.ScanAsync(flags.Concat(deletedFlags), files, scanArguments.LineCount, token);
 
             var aliveFlagReferences = Filter(flagReferences, r => r.FoundFlag is not DeletedFlagModel);
             var deletedFlagReferences = Filter(flagReferences, r => r.FoundFlag is DeletedFlagModel);
 
             this.output.Write("Found ")
-                .WriteCyan(aliveFlagReferences.Sum(f => f.References.Count()).ToString())
+                .WriteCyan(aliveFlagReferences.Sum(f => f.References.Count).ToString())
                 .Write($" feature flag / setting reference(s) in ")
                 .WriteCyan(aliveFlagReferences.Count().ToString())
                 .Write(" file(s). " +
-                    $"Keys: [{string.Join(", ", aliveFlagReferences.SelectMany(r => r.References).Select(r => r.FoundFlag.Key).Distinct())}]")
+                       $"Keys: [{string.Join(", ", aliveFlagReferences.SelectMany(r => r.References).Select(r => r.FoundFlag.Key).Distinct())}]")
                 .WriteLine();
 
             if (scanArguments.Print)
                 this.PrintReferences(aliveFlagReferences, token);
 
             if (deletedFlagReferences.Any())
-                this.output.WriteWarning($"{deletedFlagReferences.Sum(f => f.References.Count())} deleted feature flag/setting " +
+                this.output.WriteWarning(
+                    $"{deletedFlagReferences.Sum(f => f.References.Count)} deleted feature flag/setting " +
                     $"reference(s) found in {deletedFlagReferences.Count()} file(s). " +
                     $"Keys: [{string.Join(", ", deletedFlagReferences.SelectMany(r => r.References).Select(r => r.FoundFlag.Key).Distinct())}]");
             else
@@ -89,28 +95,31 @@ namespace ConfigCat.Cli.Commands
             if (scanArguments.Print)
                 this.PrintReferences(deletedFlagReferences, token);
 
-            if (scanArguments.Upload)
+            if (!scanArguments.Upload) return ExitCodes.Ok;
+
+            this.output.WriteLine("Initiating code reference upload...");
+
+            if (scanArguments.Repo.IsEmpty())
+                throw new ShowHelpException("The --repo argument is required for code reference upload.");
+
+            var gitInfo = this.gitClient.GatherGitInfo(scanArguments.Directory.FullName);
+
+            var branch = scanArguments.Branch ?? gitInfo?.Branch;
+            var commitHash = scanArguments.CommitHash ?? gitInfo?.CurrentCommitHash;
+
+            if (branch.IsEmpty())
+                throw new ShowHelpException(
+                    "Could not determine the current branch name, make sure the scanned folder is inside a Git repository, or use the --branch argument.");
+
+            this.output.Write("Repository").Write(":").WriteCyan($" {scanArguments.Repo}").WriteLine()
+                .Write("Branch").Write(":").WriteCyan($" {branch}").WriteLine()
+                .Write("Commit").Write(":").WriteCyan($" {commitHash}").WriteLine();
+            var repositoryDirectory = gitInfo == null || gitInfo.WorkingDirectory.IsEmpty()
+                ? scanArguments.Directory.FullName
+                : gitInfo.WorkingDirectory;
+            await this.codeReferenceClient.UploadAsync(new CodeReferenceRequest
             {
-                this.output.WriteLine("Initiating code reference upload...");
-
-                if (scanArguments.Repo.IsEmpty())
-                    throw new ShowHelpException("The --repo argument is required for code reference upload.");
-
-                var gitInfo = this.gitClient.GatherGitInfo(scanArguments.Directory.FullName);
-
-                var branch = scanArguments.Branch ?? gitInfo?.Branch;
-                var commitHash = scanArguments.CommitHash ?? gitInfo?.CurrentCommitHash;
-
-                if (branch.IsEmpty())
-                    throw new ShowHelpException("Could not determine the current branch name, make sure the scanned folder is inside a Git repository, or use the --branch argument.");
-
-                this.output.Write("Repository").Write(":").WriteCyan($" {scanArguments.Repo}").WriteLine()
-                    .Write("Branch").Write(":").WriteCyan($" {branch}").WriteLine()
-                    .Write("Commit").Write(":").WriteCyan($" {commitHash}").WriteLine();
-                var repositoryDirectory = gitInfo == null || gitInfo.WorkingDirectory.IsEmpty() ? scanArguments.Directory.FullName : gitInfo.WorkingDirectory;
-                await this.codeReferenceClient.UploadAsync(new CodeReferenceRequest
-                {
-                    FlagReferences = aliveFlagReferences
+                FlagReferences = aliveFlagReferences
                     .SelectMany(files => files.References, (file, reference) => new { file.File, reference })
                     .GroupBy(r => r.reference.FoundFlag)
                     .Select(r => new FlagReference
@@ -122,7 +131,9 @@ namespace ConfigCat.Cli.Commands
                             FileUrl = !scanArguments.FileUrlTemplate.IsEmpty()
                                 ? scanArguments.FileUrlTemplate
                                     .Replace("{branch}", branch)
-                                    .Replace("{filePath}", item.File.FullName.Replace(repositoryDirectory, string.Empty).AsSlash().Trim('/'))
+                                    .Replace("{filePath}",
+                                        item.File.FullName.Replace(repositoryDirectory, string.Empty).AsSlash()
+                                            .Trim('/'))
                                     .Replace("{lineNumber}", item.reference.ReferenceLine.LineNumber.ToString())
                                 : null,
                             PostLines = item.reference.PostLines,
@@ -130,17 +141,17 @@ namespace ConfigCat.Cli.Commands
                             ReferenceLine = item.reference.ReferenceLine
                         }).ToList()
                     }).ToList(),
-                    Repository = scanArguments.Repo,
-                    Branch = branch,
-                    CommitHash = commitHash,
-                    CommitUrl = !commitHash.IsEmpty() && !scanArguments.CommitUrlTemplate.IsEmpty()
-                        ? scanArguments.CommitUrlTemplate.Replace("{commitHash}", commitHash)
-                        : null,
-                    ActiveBranches = gitInfo?.ActiveBranches,
-                    ConfigId = scanArguments.ConfigId,
-                    Uploader = scanArguments.Runner ?? $"ConfigCat CLI {Version.Value}",
-                }, token);
-            }
+                Repository = scanArguments.Repo,
+                Branch = branch,
+                CommitHash = commitHash,
+                CommitUrl = !commitHash.IsEmpty() && !scanArguments.CommitUrlTemplate.IsEmpty()
+                    ? scanArguments.CommitUrlTemplate.Replace("{commitHash}", commitHash)
+                    : null,
+                ActiveBranches = gitInfo?.ActiveBranches,
+                ConfigId = scanArguments.ConfigId,
+                Uploader = scanArguments.Runner ?? $"ConfigCat CLI {Version.Value}",
+            }, token);
+
 
             return ExitCodes.Ok;
         }
@@ -238,7 +249,8 @@ namespace ConfigCat.Cli.Commands
             this.SearchKeyInText(postText, reference);
         }
 
-        private IEnumerable<FlagReferenceResult> Filter(IEnumerable<FlagReferenceResult> source, Predicate<Reference> filter)
+        private IEnumerable<FlagReferenceResult> Filter(IEnumerable<FlagReferenceResult> source,
+            Predicate<Reference> filter)
         {
             foreach (var item in source)
             {

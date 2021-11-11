@@ -2,7 +2,7 @@
 
 namespace ConfigCat.Cli.Services.FileSystem.Ignore
 {
-    class GlobalIgnorePolicy : IgnorePolicy
+    internal class GlobalIgnorePolicy : IgnorePolicy
     {
         private readonly DirectoryInfo rootDirectory;
 

@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace ConfigCat.Cli.Commands
 {
-    class Cat
+    internal class Cat
     {
         private readonly IOutput output;
 

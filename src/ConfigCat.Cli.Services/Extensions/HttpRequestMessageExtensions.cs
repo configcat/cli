@@ -15,13 +15,13 @@ namespace System.Net.Http
 
             foreach (var prop in request.Properties)
                 clone.Properties.Add(prop);
-            foreach (var header in request.Headers)
-                clone.Headers.Add(header.Key, header.Value);
+            foreach (var (key, value) in request.Headers)
+                clone.Headers.Add(key, value);
 
             return clone;
         }
 
-        public static async Task<HttpContent> CloneAsync(this HttpContent content)
+        private static async Task<HttpContent> CloneAsync(this HttpContent content)
         {
             if (content is null) return null;
 
@@ -30,8 +30,8 @@ namespace System.Net.Http
             stream.Position = 0;
             var clone = new StreamContent(stream);
 
-            foreach (var header in content.Headers)
-                clone.Headers.Add(header.Key, header.Value);
+            foreach (var (key, value) in content.Headers)
+                clone.Headers.Add(key, value);
 
             return clone;
         }

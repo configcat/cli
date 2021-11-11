@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace ConfigCat.Cli.Commands
 {
-    class Product
+    internal class Product
     {
         private readonly IProductClient productClient;
         private readonly IWorkspaceLoader workspaceLoader;

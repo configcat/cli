@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ConfigCat.Cli.Services.FileSystem.Ignore
 {
-    class IgnoreFile : IgnorePolicy
+    internal class IgnoreFile : IgnorePolicy
     {
         public static readonly string[] IgnoreFileNames = new[] { ".gitignore", ".ccignore", ".ignore" };
 

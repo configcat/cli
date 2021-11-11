@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace ConfigCat.Cli.Commands
 {
-    class SdkKey
+    internal class SdkKey
     {
         private readonly IProductClient productClient;
         private readonly IConfigClient configClient;

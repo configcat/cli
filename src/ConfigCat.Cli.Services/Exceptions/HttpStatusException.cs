@@ -14,8 +14,8 @@ namespace ConfigCat.Cli.Services.Exceptions
             this.ReasonPhrase = reason;
         }
 
-        public HttpStatusCode StatusCode { get; set; }
+        public HttpStatusCode StatusCode { get; }
 
-        public string ReasonPhrase { get; set; }
+        public string ReasonPhrase { get; }
     }
 }

@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace ConfigCat.Cli.Commands
 {
-    class Setup
+    internal class Setup
     {
         private readonly IPrompt prompt;
         private readonly IMeClient meClient;
