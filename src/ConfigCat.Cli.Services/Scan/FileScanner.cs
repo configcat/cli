@@ -49,27 +49,23 @@ namespace ConfigCat.Cli.Services.Scan
             return await this.botPolicy.ExecuteAsync(async (ctx, cancellation) =>
             {
                 this.output.Verbose($"Searching for flag ALIASES...", ConsoleColor.Magenta);
-                var aliasResults = new ConcurrentBag<AliasScanResult>();
-                await Parallel.ForEachAsync(filesToScan, token, async (file, t) =>
-                {
-                    var result = await this.aliasCollector.CollectAsync(flags, file, t);
-                    if (result is not null)
-                        aliasResults.Add(result);
-                });
+                var aliasTasks = filesToScan.TakeWhile(file => !cancellation.IsCancellationRequested)
+                    .Select(file => this.aliasCollector.CollectAsync(flags, file, token));
+
+                var aliasResults = (await Task.WhenAll(aliasTasks)).Where(r => r is not null);
 
                 foreach (var scan in aliasResults.SelectMany(k => k.FlagAliases))
                     scan.Key.Aliases = scan.Value.Distinct().ToList();
 
                 this.output.Verbose($"Scanning for flag REFERENCES...", ConsoleColor.Magenta);
-                var referenceResults = new ConcurrentBag<FlagReferenceResult>();
-                await Parallel.ForEachAsync(aliasResults.Select(r => r.ScannedFile), token, async (file, t) =>
-                {
-                    var result = await referenceCollector.CollectAsync(flags, file, contextLines, t);
-                    if (result is not null)
-                        referenceResults.Add(result);
-                });
+                var scanTasks = aliasResults
+                    .Select(r => r.ScannedFile)
+                    .TakeWhile(file => !cancellation.IsCancellationRequested)
+                    .Select(file => this.referenceCollector.CollectAsync(flags, file, contextLines, cancellation));
 
-                return referenceResults.AsEnumerable();
+                var referenceResults = (await Task.WhenAll(scanTasks)).Where(r => r is not null);
+
+                return referenceResults;
             }, token);
         }
     }
