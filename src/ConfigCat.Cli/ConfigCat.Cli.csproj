@@ -25,6 +25,7 @@
 
   <ItemGroup>
     <TrimmerRootAssembly Include="System.ComponentModel.TypeConverter" />
+	<TrimmerRootAssembly Include="Stashbox" />
   </ItemGroup>
 
   <ItemGroup>
