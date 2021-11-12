@@ -242,7 +242,7 @@ namespace ConfigCat.Cli.Commands
                 }
             }
 
-            var preText = text[0..keyIndex];
+            var preText = text[..keyIndex];
             var postText = text[(keyIndex + key.Length)..text.Length];
             this.output.Write(preText)
                 .WriteColor(key, ConsoleColor.White, ConsoleColor.DarkMagenta);

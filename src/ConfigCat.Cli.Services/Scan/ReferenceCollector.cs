@@ -19,7 +19,7 @@ namespace ConfigCat.Cli.Services.Scan
 
     public class ReferenceCollector : IReferenceCollector
     {
-        private static readonly string[] Prefixes = new[] { ".", "->" };
+        private static readonly string[] Prefixes = { ".", "->" };
         private readonly IBotPolicy<FlagReferenceResult> botPolicy;
         private readonly IOutput output;
 
@@ -50,6 +50,13 @@ namespace ConfigCat.Cli.Services.Scan
                     var lineTracker = new LineTracker(contextLines);
                     var lineNumber = 1;
 
+                    var flagSamples = flags.Select(f => new FlagSample
+                    {
+                        Flag = f,
+                        KeySamples = ProduceKeySamples(f).ToArray(),
+                        Samples = ProduceVariationSamples(f).ToArray()
+                    }).ToArray();
+                    
                     using var reader = new StreamReader(stream);
                     while (!reader.EndOfStream && !cancellation.IsCancellationRequested)
                     {
@@ -60,20 +67,19 @@ namespace ConfigCat.Cli.Services.Scan
                             return null;
                         }
 
-                        foreach (var flag in flags)
+                        foreach (var flagSample in flagSamples)
                         {
-                            if (line.Contains($"\"{flag.Key}\"") ||
-                                line.Contains($"'{flag.Key}'") ||
-                                line.Contains($"`{flag.Key}`") ||
-                                (flag.Aliases != null && flag.Aliases.Any(a => line.Contains(a, StringComparison.OrdinalIgnoreCase))))
+                            if (flagSample.KeySamples.Any(k => line.Contains(k)))
                             {
-                                lineTracker.TrackReference(flag, line, lineNumber);
+                                lineTracker.TrackReference(flagSample.Flag, line, lineNumber);
                                 continue;
                             }
 
-                            var matchedSample = SearchForSampleVariations(flag, line);
-                            if (matchedSample != null)
-                                lineTracker.TrackReference(flag, line, lineNumber, matchedSample);
+                            foreach (var sample in flagSample.Samples)
+                            {
+                                if(line.Contains(sample, StringComparison.OrdinalIgnoreCase))
+                                    lineTracker.TrackReference(flagSample.Flag, line, lineNumber, sample);
+                            }
                         }
 
                         lineTracker.AddLine(line, lineNumber);
@@ -93,43 +99,42 @@ namespace ConfigCat.Cli.Services.Scan
             }
         }
 
-        private static string SearchForSampleVariations(FlagModel flag, string line)
+        private static IEnumerable<string> ProduceKeySamples(FlagModel flag)
         {
-            var originals = new[] { flag.Key }.Concat(flag.Aliases);
-            foreach (var original in originals)
-            {
-                foreach (var sample in ProduceVariationSamples(original, flag.SettingType == SettingTypes.Boolean).Distinct())
-                {
-                    if (!Prefixes.Any(p => line.Contains($"{p}{sample}", StringComparison.OrdinalIgnoreCase))) continue;
-                    var originalFromLine = line.IndexOf(sample, StringComparison.OrdinalIgnoreCase);
-                    return line.Substring(originalFromLine, sample.Length);
-                }
-            }
-
-            return null;
+            yield return $"\"{flag.Key}\"";
+            yield return $"'{flag.Key}'";
+            yield return $"`{flag.Key}`";
         }
 
-        private static IEnumerable<string> ProduceVariationSamples(string original, bool isBoolFlag)
+        private static IEnumerable<string> ProduceVariationSamples(FlagModel flag)
         {
-            var trimmed = original.RemoveDashes();
-            var includeUnderscore = trimmed != original;
+            var originals = new[] {flag.Key}.Concat(flag.Aliases);
+            var isBoolFlag = flag.SettingType == SettingTypes.Boolean;
 
-            yield return original;
-            yield return trimmed;
-            yield return $"get{trimmed}";
-
-            if (includeUnderscore)
-                yield return $"get_{original}";
-
-            if (isBoolFlag)
+            foreach (var flagAlias in flag.Aliases)
+                yield return flagAlias;
+            
+            foreach (var original in originals)
             {
-                yield return $"is{trimmed}";
-                yield return $"is{trimmed}enabled";
+                var trimmed = original.RemoveDashes();
+                var includeUnderscore = trimmed != original;
 
-                if (includeUnderscore)
+                foreach (var prefix in Prefixes)
                 {
-                    yield return $"is_{original}";
-                    yield return $"is_{original}_enabled";
+                    yield return $"{prefix}{original}";
+                    yield return $"{prefix}{trimmed}";
+                    yield return $"{prefix}get{trimmed}";
+
+                    if (includeUnderscore)
+                        yield return $"{prefix}get_{original}";
+
+                    if (!isBoolFlag) continue;
+                    yield return $"{prefix}is{trimmed}";
+                    yield return $"{prefix}is{trimmed}enabled";
+
+                    if (!includeUnderscore) continue;
+                    yield return $"{prefix}is_{original}";
+                    yield return $"{prefix}is_{original}_enabled";
                 }
             }
         }
@@ -211,6 +216,15 @@ namespace ConfigCat.Cli.Services.Scan
 
                 public Reference FlagReference { get; set; }
             }
+        }
+
+        private class FlagSample
+        {
+            public FlagModel Flag { get; set; }
+
+            public string[] Samples { get; set; }
+            
+            public string[] KeySamples { get; set; }
         }
     }
 }
