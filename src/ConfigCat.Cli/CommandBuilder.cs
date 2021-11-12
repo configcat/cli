@@ -44,8 +44,7 @@ namespace ConfigCat.Cli
             };
 
         private static CommandDescriptor BuildSetupCommand() =>
-            new("setup", $"Setup the CLI with Public Management API host and credentials." +
-                         $"{System.Environment.NewLine}You can get your credentials from here: https://app.configcat.com/my-account/public-api-credentials")
+            new("setup", $"Setup the CLI with Public Management API host and credentials")
             {
                 Options = new[]
                 {
@@ -513,7 +512,7 @@ namespace ConfigCat.Cli
             };
 
         private static CommandDescriptor BuildScanCommand() =>
-            new("scan", "Scans files for Feature Flag or Setting usages")
+            new("scan", "Scan files for Feature Flag & Setting usages")
             {
                 Handler = CreateHandler<Scan>(nameof(Scan.InvokeAsync)),
                 Arguments = new[]

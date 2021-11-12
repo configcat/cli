@@ -1,5 +1,5 @@
 # configcat scan
-Scans files for Feature Flag or Setting usages
+Scan files for Feature Flag & Setting usages
 ## Usage
 ```
 configcat [options] scan <directory>
