@@ -165,6 +165,50 @@ namespace ConfigCat.Cli.Tests
             Assert.Contains("wrapper->IsTestFlagAliasEnabled()", referenceLines);
             Assert.Contains("wrapper->ISTESTFLAGALIASENABLED()", referenceLines);
             Assert.Contains("wrapper->IS_TEST_FLAG_ALIAS_ENABLED()", referenceLines);
+
+            Assert.Contains("wrapper::test_flag", referenceLines);
+            Assert.Contains("wrapper::testFlag", referenceLines);
+            Assert.Contains("wrapper::TestFlag", referenceLines);
+            Assert.Contains("wrapper::TESTFLAG", referenceLines);
+                                    
+            Assert.Contains("wrapper::test_flag_alias", referenceLines);
+            Assert.Contains("wrapper::testFlagAlias", referenceLines);
+            Assert.Contains("wrapper::TestFlagAlias", referenceLines);
+            Assert.Contains("wrapper::TESTFLAGALIAS", referenceLines);
+            Assert.Contains("wrapper::TEST_FLAG_ALIAS", referenceLines);
+                                    
+            Assert.Contains("wrapper::get_test_flag()", referenceLines);
+            Assert.Contains("wrapper::getTestFlag()", referenceLines);
+            Assert.Contains("wrapper::GetTestFlag()", referenceLines);
+            Assert.Contains("wrapper::GETTESTFLAG()", referenceLines);
+                                    
+            Assert.Contains("wrapper::get_test_flag_alias()", referenceLines);
+            Assert.Contains("wrapper::getTestFlagAlias()", referenceLines);
+            Assert.Contains("wrapper::GetTestFlagAlias()", referenceLines);
+            Assert.Contains("wrapper::GETTESTFLAGALIAS()", referenceLines);
+            Assert.Contains("wrapper::GET_TEST_FLAG_ALIAS()", referenceLines);
+                                    
+            Assert.Contains("wrapper::is_test_flag()", referenceLines);
+            Assert.Contains("wrapper::isTestFlag()", referenceLines);
+            Assert.Contains("wrapper::IsTestFlag()", referenceLines);
+            Assert.Contains("wrapper::ISTESTFLAG()", referenceLines);
+                                    
+            Assert.Contains("wrapper::is_test_flag_alias()", referenceLines);
+            Assert.Contains("wrapper::isTestFlagAlias()", referenceLines);
+            Assert.Contains("wrapper::IsTestFlagAlias()", referenceLines);
+            Assert.Contains("wrapper::ISTESTFLAGALIAS()", referenceLines);
+            Assert.Contains("wrapper::IS_TEST_FLAG_ALIAS()", referenceLines);
+                                    
+            Assert.Contains("wrapper::is_test_flag_enabled()", referenceLines);
+            Assert.Contains("wrapper::isTestFlagEnable()", referenceLines);
+            Assert.Contains("wrapper::IsTestFlagEnabled()", referenceLines);
+            Assert.Contains("wrapper::ISTESTFLAGENABLED()", referenceLines);
+                                    
+            Assert.Contains("wrapper::is_test_flag_alias_enabled()", referenceLines);
+            Assert.Contains("wrapper::isTestFlagAliasEnabled()", referenceLines);
+            Assert.Contains("wrapper::IsTestFlagAliasEnabled()", referenceLines);
+            Assert.Contains("wrapper::ISTESTFLAGALIASENABLED()", referenceLines);
+            Assert.Contains("wrapper::IS_TEST_FLAG_ALIAS_ENABLED()", referenceLines);
         }
     }
 }

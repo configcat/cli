@@ -19,7 +19,7 @@ namespace ConfigCat.Cli.Services.Scan
 
     public class ReferenceCollector : IReferenceCollector
     {
-        private static readonly string[] Prefixes = { ".", "->" };
+        private static readonly string[] Prefixes = { "::", ".", "->" };
         private readonly IBotPolicy<FlagReferenceResult> botPolicy;
         private readonly IOutput output;
 
@@ -53,10 +53,10 @@ namespace ConfigCat.Cli.Services.Scan
                     var flagSamples = flags.Select(f => new FlagSample
                     {
                         Flag = f,
-                        KeySamples = ProduceKeySamples(f).ToArray(),
-                        Samples = ProduceVariationSamples(f).ToArray()
+                        KeySamples = ProduceKeySamples(f).Distinct().ToArray(),
+                        Samples = ProduceVariationSamples(f).Distinct().ToArray()
                     }).ToArray();
-                    
+
                     using var reader = new StreamReader(stream);
                     while (!reader.EndOfStream && !cancellation.IsCancellationRequested)
                     {
@@ -69,7 +69,7 @@ namespace ConfigCat.Cli.Services.Scan
 
                         foreach (var flagSample in flagSamples)
                         {
-                            if (flagSample.KeySamples.Any(k => line.Contains(k)))
+                            if (flagSample.KeySamples.Any(k => line.Contains(k)) || flagSample.Flag.Aliases.Any(a => line.Contains(a)))
                             {
                                 lineTracker.TrackReference(flagSample.Flag, line, lineNumber);
                                 continue;
@@ -77,8 +77,11 @@ namespace ConfigCat.Cli.Services.Scan
 
                             foreach (var sample in flagSample.Samples)
                             {
-                                if(line.Contains(sample, StringComparison.OrdinalIgnoreCase))
-                                    lineTracker.TrackReference(flagSample.Flag, line, lineNumber, sample.Remove(Prefixes));
+                                if (line.Contains(sample, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    var originalFromLine = line.IndexOf(sample, StringComparison.OrdinalIgnoreCase);
+                                    lineTracker.TrackReference(flagSample.Flag, line, lineNumber, line.Substring(originalFromLine, sample.Length).Remove(Prefixes));
+                                }
                             }
                         }
 
@@ -108,12 +111,9 @@ namespace ConfigCat.Cli.Services.Scan
 
         private static IEnumerable<string> ProduceVariationSamples(FlagModel flag)
         {
-            var originals = new[] {flag.Key}.Concat(flag.Aliases);
+            var originals = new[] { flag.Key }.Concat(flag.Aliases);
             var isBoolFlag = flag.SettingType == SettingTypes.Boolean;
 
-            foreach (var flagAlias in flag.Aliases)
-                yield return flagAlias;
-            
             foreach (var original in originals)
             {
                 var trimmed = original.RemoveDashes();
@@ -122,11 +122,13 @@ namespace ConfigCat.Cli.Services.Scan
                 foreach (var prefix in Prefixes)
                 {
                     yield return $"{prefix}{original}";
-                    yield return $"{prefix}{trimmed}";
                     yield return $"{prefix}get{trimmed}";
 
                     if (includeUnderscore)
+                    {
+                        yield return $"{prefix}{trimmed}";
                         yield return $"{prefix}get_{original}";
+                    }
 
                     if (!isBoolFlag) continue;
                     yield return $"{prefix}is{trimmed}";
@@ -223,7 +225,7 @@ namespace ConfigCat.Cli.Services.Scan
             public FlagModel Flag { get; set; }
 
             public string[] Samples { get; set; }
-            
+
             public string[] KeySamples { get; set; }
         }
     }
