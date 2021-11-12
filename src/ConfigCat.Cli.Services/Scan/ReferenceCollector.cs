@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Trybot;
 using Trybot.Timeout.Exceptions;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace ConfigCat.Cli.Services.Scan
 {
@@ -81,6 +82,7 @@ namespace ConfigCat.Cli.Services.Scan
                     }
 
                     lineTracker.FinishAll();
+
                     this.output.Verbose($"{file.FullName} scan completed.", ConsoleColor.Green);
                     return new FlagReferenceResult { File = file, References = lineTracker.FinishedReferences };
                 }, token);
@@ -97,14 +99,24 @@ namespace ConfigCat.Cli.Services.Scan
             var originals = new[] { flag.Key }.Concat(flag.Aliases);
             foreach (var original in originals)
             {
-                var samples = ProduceVariationSamples(original, flag.SettingType == SettingTypes.Boolean).Distinct();
-
-                foreach (var sample in samples)
+                foreach (var sample in ProduceVariationSamples(original, flag.SettingType == SettingTypes.Boolean).Distinct())
                 {
                     if (!Prefixes.Any(p => line.Contains($"{p}{sample}", StringComparison.OrdinalIgnoreCase))) continue;
                     var originalFromLine = line.IndexOf(sample, StringComparison.OrdinalIgnoreCase);
                     return line.Substring(originalFromLine, sample.Length);
                 }
+            }
+
+            return null;
+        }
+
+        private static IEnumerable<string> GetSampleVariations(FlagModel flag)
+        {
+            var originals = new[] { flag.Key }.Concat(flag.Aliases);
+            foreach (var original in originals)
+            {
+                var samples = ProduceVariationSamples(original, flag.SettingType == SettingTypes.Boolean).Distinct();
+                return samples.SelectMany(s => Prefixes.Select(p => $"{p}{s}"));
             }
 
             return null;
@@ -126,14 +138,12 @@ namespace ConfigCat.Cli.Services.Scan
             {
                 yield return $"is{trimmed}";
                 yield return $"is{trimmed}enabled";
-                yield return $"has{trimmed}";
-            }
 
-            if (includeUnderscore)
-            {
-                yield return $"is_{original}";
-                yield return $"is_{original}_enabled";
-                yield return $"has_{original}";
+                if (includeUnderscore)
+                {
+                    yield return $"is_{original}";
+                    yield return $"is_{original}_enabled";
+                }
             }
         }
 

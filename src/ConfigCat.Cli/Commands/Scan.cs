@@ -57,7 +57,7 @@ namespace ConfigCat.Cli.Commands
             if (scanArguments.ConfigId.IsEmpty())
                 scanArguments.ConfigId = (await this.workspaceLoader.LoadConfigAsync(token)).ConfigId;
 
-            scanArguments.LineCount = scanArguments.LineCount is < 1 or > 10
+            scanArguments.LineCount = scanArguments.LineCount is < 0 or > 10
                 ? 4
                 : scanArguments.LineCount;
 
@@ -68,16 +68,16 @@ namespace ConfigCat.Cli.Commands
                 .Distinct(new FlagModelEqualityComparer());
 
             var files = await this.fileCollector.CollectAsync(scanArguments.Directory, token);
-            var flagReferences =
-                await this.fileScanner.ScanAsync(flags.Concat(deletedFlags), files, scanArguments.LineCount, token);
+            var flagReferences = await this.fileScanner.ScanAsync(flags.Concat(deletedFlags).ToArray(), files.ToArray(), scanArguments.LineCount, token);
 
-            var aliveFlagReferences = Filter(flagReferences, r => r.FoundFlag is not DeletedFlagModel);
-            var deletedFlagReferences = Filter(flagReferences, r => r.FoundFlag is DeletedFlagModel);
+            var flagReferenceResults = flagReferences as FlagReferenceResult[] ?? flagReferences.ToArray();
+            var aliveFlagReferences = Filter(flagReferenceResults, r => r.FoundFlag is not DeletedFlagModel).ToArray();
+            var deletedFlagReferences = Filter(flagReferenceResults, r => r.FoundFlag is DeletedFlagModel).ToArray();
 
             this.output.Write("Found ")
                 .WriteCyan(aliveFlagReferences.Sum(f => f.References.Count).ToString())
                 .Write($" feature flag / setting reference(s) in ")
-                .WriteCyan(aliveFlagReferences.Count().ToString())
+                .WriteCyan(aliveFlagReferences.Length.ToString())
                 .Write(" file(s). " +
                        $"Keys: [{string.Join(", ", aliveFlagReferences.SelectMany(r => r.References).Select(r => r.FoundFlag.Key).Distinct())}]")
                 .WriteLine();
@@ -85,10 +85,10 @@ namespace ConfigCat.Cli.Commands
             if (scanArguments.Print)
                 this.PrintReferences(aliveFlagReferences, token);
 
-            if (deletedFlagReferences.Any())
+            if (deletedFlagReferences.Length > 0)
                 this.output.WriteWarning(
                     $"{deletedFlagReferences.Sum(f => f.References.Count)} deleted feature flag/setting " +
-                    $"reference(s) found in {deletedFlagReferences.Count()} file(s). " +
+                    $"reference(s) found in {deletedFlagReferences.Length} file(s). " +
                     $"Keys: [{string.Join(", ", deletedFlagReferences.SelectMany(r => r.References).Select(r => r.FoundFlag.Key).Distinct())}]");
             else
                 this.output.WriteGreen("OK. Didn't find any deleted feature flag / setting references.");
@@ -120,7 +120,7 @@ namespace ConfigCat.Cli.Commands
             await this.codeReferenceClient.UploadAsync(new CodeReferenceRequest
             {
                 FlagReferences = aliveFlagReferences
-                    .SelectMany(files => files.References, (file, reference) => new { file.File, reference })
+                    .SelectMany(referenceResult => referenceResult.References, (file, reference) => new { file.File, reference })
                     .GroupBy(r => r.reference.FoundFlag)
                     .Select(r => new FlagReference
                     {
@@ -156,9 +156,9 @@ namespace ConfigCat.Cli.Commands
             return ExitCodes.Ok;
         }
 
-        private void PrintReferences(IEnumerable<FlagReferenceResult> references, CancellationToken token)
+        private void PrintReferences(FlagReferenceResult[] references, CancellationToken token)
         {
-            if (!references.Any())
+            if (references.Length == 0)
                 return;
 
             this.output.WriteLine();
@@ -249,7 +249,7 @@ namespace ConfigCat.Cli.Commands
             this.SearchKeyInText(postText, reference);
         }
 
-        private IEnumerable<FlagReferenceResult> Filter(IEnumerable<FlagReferenceResult> source,
+        private static IEnumerable<FlagReferenceResult> Filter(IEnumerable<FlagReferenceResult> source,
             Predicate<Reference> filter)
         {
             foreach (var item in source)
@@ -261,11 +261,11 @@ namespace ConfigCat.Cli.Commands
                 yield return item;
             }
 
-            IEnumerable<Reference> FilterReference(IEnumerable<Reference> references, Predicate<Reference> filter)
+            IEnumerable<Reference> FilterReference(IEnumerable<Reference> references, Predicate<Reference> predicate)
             {
                 foreach (var item in references)
                 {
-                    if (!filter(item))
+                    if (!predicate(item))
                         continue;
 
                     yield return item;
@@ -290,7 +290,7 @@ namespace ConfigCat.Cli.Commands
         }
     }
 
-    class ScanArguments
+    internal class ScanArguments
     {
         public DirectoryInfo Directory { get; set; }
         public string ConfigId { get; set; }

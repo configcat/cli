@@ -1,0 +1,83 @@
+﻿====================== Exclude ======================
+
+notRelevant = "test_flag"
+
+
+====================== C# ======================
+
+var cTestFlag = "test_flag";
+const string CTESTFlAG = "test_flag";
+static readonly FlagDescriptor CTestFlagD = new FlagDescriptor("test_flag", false);
+static readonly FlagDescriptor CTestFlagF = FlagDescriptor.Create("test_flag", false);
+
+====================== Java / Kotlin ======================
+
+String jTestFlag = "test_flag";
+final String JTESTFlAG = "test_flag";
+static final FlagDescriptor JTestFlagD = new FlagDescriptor("test_flag", false);
+static final FlagDescriptor JTestFlagF = FlagDescriptor.create("test_flag", false);
+
+const val KTESTFlAG = "test_flag";
+const val KSTESTFlAG: String = "test_flag";
+
+
+====================== Objective C / Swift ======================
+
+NSString * const OCTESTFlAG = @"test_flag";
+#define OCDTESTFLAG @"test_flag"
+
+let STestFlag: String = "test_flag"
+
+enum Flags : String {
+     case Another = "another", SEMTestFlag = "test_flag"
+}
+
+enum Flags : String {
+     case SETestFlag = "test_flag"
+}
+
+
+====================== TypeScript ======================
+
+export enum Flags {
+	TSETestFlag = 'test_flag',
+}
+
+const Flags = {
+	TSCTestFlag: 'test_flag'
+}
+
+flags.TSVTestFlag = 'test_flag'
+
+
+====================== Go ======================
+
+gVTestFlag := "test_flag"
+
+const (
+	GTestFlag string = "test_flag"
+)
+
+GDTestFlag := FlagDescriptor.Bool("test_flag", false)
+
+
+====================== Python ======================
+
+class Flags(NoValue):
+     PTestFlag = 'test_flag'
+
+
+====================== Ruby ======================
+
+class Flags
+  RTEST_FLAG    = "test_flag"
+end
+
+
+====================== PHP ======================
+
+enum Flags: string {
+  case PHETestFlag = "test_flag";
+}
+
+const PHCTestFlag = "test_flag";

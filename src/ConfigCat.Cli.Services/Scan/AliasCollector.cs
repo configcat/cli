@@ -10,6 +10,7 @@ using System;
 using System.Text.RegularExpressions;
 using System.Linq;
 using ConfigCat.Cli.Models.Scan;
+using System.Collections.Concurrent;
 
 namespace ConfigCat.Cli.Services.Scan
 {
@@ -62,13 +63,13 @@ namespace ConfigCat.Cli.Services.Scan
                         var match = Regex.Match(line, @"([a-zA-Z_$0-9]*)\s*(?>\:?\s*(?>[sS]tring)?\s*=?\s*(?>new)?)\s*\S*[@$]?[`'""](" + keys + ")[`'\"]",
                                        RegexOptions.Compiled);
 
-                        while (match.Success)
+                        while (match.Success && !cancellation.IsCancellationRequested)
                         {
                             var key = match.Groups[2].Value;
                             var found = match.Groups[1].Value;
                             var flag = flags.FirstOrDefault(f => f.Key == key);
                             if (flag != null && !found.IsEmpty() && Similarity(flag.Key, found) > 0.3)
-                                result.FlagAliases.AddOrUpdate(flag, new List<string> { found }, (k,v) => { v.Add(found); return v; });
+                                result.FlagAliases.AddOrUpdate(flag, new ConcurrentBag<string> { found }, (k,v) => { v.Add(found); return v; });
 
                             match = match.NextMatch();
                         }

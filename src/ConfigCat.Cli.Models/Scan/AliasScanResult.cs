@@ -9,6 +9,6 @@ namespace ConfigCat.Cli.Models.Scan
     {
         public FileInfo ScannedFile { get; set; }
 
-        public ConcurrentDictionary<FlagModel, List<string>> FlagAliases { get; set; } = new ConcurrentDictionary<FlagModel, List<string>>();
+        public ConcurrentDictionary<FlagModel, ConcurrentBag<string>> FlagAliases { get; set; } = new ConcurrentDictionary<FlagModel, ConcurrentBag<string>>();
     }
 }
