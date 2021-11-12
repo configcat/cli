@@ -78,7 +78,7 @@ namespace ConfigCat.Cli.Services.Scan
                             foreach (var sample in flagSample.Samples)
                             {
                                 if(line.Contains(sample, StringComparison.OrdinalIgnoreCase))
-                                    lineTracker.TrackReference(flagSample.Flag, line, lineNumber, sample);
+                                    lineTracker.TrackReference(flagSample.Flag, line, lineNumber, sample.Remove(Prefixes));
                             }
                         }
 
