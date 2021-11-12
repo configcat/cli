@@ -20,8 +20,7 @@ jobs:
       with:
         dotnet-version: '5.0.x'
     - name: Unit tests
-      run: | 
-        dotnet test test/ConfigCat.Cli.Tests/ConfigCat.Cli.Tests.csproj -c Release
+      run: dotnet test test/ConfigCat.Cli.Tests/ConfigCat.Cli.Tests.csproj -c Release
 
   produce-executables:
     runs-on: ubuntu-latest
