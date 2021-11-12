@@ -51,10 +51,13 @@ namespace ConfigCat.Cli.Commands
 
         public async Task<int> InvokeAsync(ScanArguments scanArguments, CancellationToken token)
         {
+            if (scanArguments.Upload && scanArguments.Repo.IsEmpty())
+                throw new ShowHelpException("The --repo argument is required for code reference upload.");
+
             if (scanArguments.ConfigId.IsEmpty())
                 scanArguments.ConfigId = (await this.workspaceLoader.LoadConfigAsync(token)).ConfigId;
 
-            scanArguments.LineCount = scanArguments.LineCount is < 0 or > 10
+            scanArguments.LineCount = scanArguments.LineCount is < 1 or > 10
                 ? 4
                 : scanArguments.LineCount;
 
@@ -98,9 +101,6 @@ namespace ConfigCat.Cli.Commands
             if (!scanArguments.Upload) return ExitCodes.Ok;
 
             this.output.WriteLine("Initiating code reference upload...");
-
-            if (scanArguments.Repo.IsEmpty())
-                throw new ShowHelpException("The --repo argument is required for code reference upload.");
 
             var gitInfo = this.gitClient.GatherGitInfo(scanArguments.Directory.FullName);
 

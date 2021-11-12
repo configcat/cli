@@ -152,26 +152,3 @@ jobs:
         CONFIGCAT_API_HOST: ${{ secrets.CONFIGCAT_API_HOST }}
         CONFIGCAT_API_USER: ${{ secrets.CONFIGCAT_API_USER }}
         CONFIGCAT_API_PASS: ${{ secrets.CONFIGCAT_API_PASS }}
-
-  docker-azure:
-    needs: produce-executables
-    runs-on: ubuntu-latest
-    
-    steps:
-    - uses: actions/checkout@v2
-
-    - name: Download executables
-      uses: actions/download-artifact@v2
-      with:
-        name: executables
-
-    - name: Set permissions
-      run: chmod +x ./linux-musl-x64/configcat
-
-    - name: Build and push
-      uses: docker/build-push-action@v2
-      with:
-        context: .
-        file: azure-devops/Dockerfile
-        push: false
-        tags: configcat/cli:azure
