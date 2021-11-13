@@ -11,7 +11,7 @@ configcat [options] setup
 | `--username`, `-u` | The Management API basic authentication username, also used from CONFIGCAT_API_USER |
 | `--password`, `-p` | The Management API basic authentication password, also used from CONFIGCAT_API_PASS |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |
-| `--non-interactive`, `-ni` | Turn off progress rendering and interactive features. |
+| `--non-interactive`, `-ni` | Turn off progress rendering and interactive features |
 | `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |
 ## Parent Command
 | Command | Description |

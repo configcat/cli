@@ -9,7 +9,7 @@ configcat [options] flag rm
 | ------ | ----------- |
 | `--flag-id`, `-i`, `--setting-id` | ID of the Feature Flag or Setting to delete |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |
-| `--non-interactive`, `-ni` | Turn off progress rendering and interactive features. |
+| `--non-interactive`, `-ni` | Turn off progress rendering and interactive features |
 | `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |
 ## Parent Command
 | Command | Description |

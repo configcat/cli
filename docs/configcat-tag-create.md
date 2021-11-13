@@ -13,7 +13,7 @@ configcat [options] tag create
 | `--name`, `-n` | The name of the new Tag |
 | `--color`, `-c` | The color of the new Tag |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |
-| `--non-interactive`, `-ni` | Turn off progress rendering and interactive features. |
+| `--non-interactive`, `-ni` | Turn off progress rendering and interactive features |
 | `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |
 ## Parent Command
 | Command | Description |

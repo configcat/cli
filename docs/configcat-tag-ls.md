@@ -10,7 +10,7 @@ configcat [options] tag ls
 | `--product-id`, `-p` | Show only a Product's tags |
 | `--json` | Format the output in JSON |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |
-| `--non-interactive`, `-ni` | Turn off progress rendering and interactive features. |
+| `--non-interactive`, `-ni` | Turn off progress rendering and interactive features |
 | `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |
 ## Parent Command
 | Command | Description |

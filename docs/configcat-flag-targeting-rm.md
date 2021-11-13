@@ -11,7 +11,7 @@ configcat [options] flag targeting rm
 | `--environment-id`, `-e` | ID of the Environment from where the rule must be deleted |
 | `--position`, `-p` | The position of the targeting rule to delete |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |
-| `--non-interactive`, `-ni` | Turn off progress rendering and interactive features. |
+| `--non-interactive`, `-ni` | Turn off progress rendering and interactive features |
 | `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |
 ## Parent Command
 | Command | Description |

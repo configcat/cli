@@ -8,7 +8,7 @@ namespace ConfigCat.Cli.Options
         {
             "--non-interactive",
             "-ni"
-        }, "Turn off progress rendering and interactive features.")
+        }, "Turn off progress rendering and interactive features")
         { }
 
         public override bool Equals(object obj)

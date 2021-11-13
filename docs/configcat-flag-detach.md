@@ -12,7 +12,7 @@ configcat [options] flag detach
 | `--flag-id`, `-i`, `--setting-id` | ID of the Feature Flag or Setting to detach Tags |
 | `--tag-ids`, `-g` | Tag IDs to detach |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |
-| `--non-interactive`, `-ni` | Turn off progress rendering and interactive features. |
+| `--non-interactive`, `-ni` | Turn off progress rendering and interactive features |
 | `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |
 ## Parent Command
 | Command | Description |

@@ -6,7 +6,7 @@ The ConfigCat CLI allows you to interact with the ConfigCat Management API via t
 | Option | Description |
 | ------ | ----------- |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |
-| `--non-interactive`, `-ni` | Turn off progress rendering and interactive features. |
+| `--non-interactive`, `-ni` | Turn off progress rendering and interactive features |
 | `--version` | Show version information |
 | `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |
 ## Commands
