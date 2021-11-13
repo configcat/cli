@@ -61,7 +61,7 @@ This is the complete list of the available commands provided by the CLI.
 | [configcat flag update](configcat-flag-update.md) | Update a Feature Flag or Setting identified by the `--flag-id` option |
 | [configcat flag attach](configcat-flag-attach.md) | Attach Tag(s) to a Feature Flag or Setting |
 | [configcat flag detach](configcat-flag-detach.md) | Detach Tag(s) from a Feature Flag or Setting |
-| [configcat flag value](configcat-flag-value.md) | Show, and update Feature Flag or Setting values in different Environments |
+| [configcat flag value](configcat-flag-value.md) | Manage Feature Flag & Setting values in different Environments |
 | [configcat flag value show](configcat-flag-value-show.md) | Show Feature Flag or Setting values, targeting, and percentage rules for each environment |
 | [configcat flag value update](configcat-flag-value-update.md) | Update the value of a Feature Flag or Setting |
 | [configcat flag targeting](configcat-flag-targeting.md) | Manage targeting rules |

@@ -25,6 +25,6 @@ configcat flag [command]
 | [configcat flag update](configcat-flag-update.md) | Update a Feature Flag or Setting identified by the `--flag-id` option |
 | [configcat flag attach](configcat-flag-attach.md) | Attach Tag(s) to a Feature Flag or Setting |
 | [configcat flag detach](configcat-flag-detach.md) | Detach Tag(s) from a Feature Flag or Setting |
-| [configcat flag value](configcat-flag-value.md) | Show, and update Feature Flag or Setting values in different Environments |
+| [configcat flag value](configcat-flag-value.md) | Manage Feature Flag & Setting values in different Environments |
 | [configcat flag targeting](configcat-flag-targeting.md) | Manage targeting rules |
 | [configcat flag percentage](configcat-flag-percentage.md) | Manage percentage rules |

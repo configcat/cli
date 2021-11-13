@@ -352,7 +352,7 @@ namespace ConfigCat.Cli
 
 
         private static CommandDescriptor BuildFlagValueCommand() =>
-            new("value", "Show, and update Feature Flag or Setting values in different Environments")
+            new("value", "Manage Feature Flag & Setting values in different Environments")
             {
                 Aliases = new[] { "v" },
                 SubCommands = new[]

@@ -1,5 +1,5 @@
 # configcat flag value
-Show, and update Feature Flag or Setting values in different Environments
+Manage Feature Flag & Setting values in different Environments
 ## Usage
 ```
 configcat flag value [command]

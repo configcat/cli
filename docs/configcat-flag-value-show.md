@@ -17,4 +17,4 @@ configcat [options] flag value show
 ## Parent Command
 | Command | Description |
 | ------ | ----------- |
-| [configcat flag value](configcat-flag-value.md) | Show, and update Feature Flag or Setting values in different Environments |
+| [configcat flag value](configcat-flag-value.md) | Manage Feature Flag & Setting values in different Environments |
