@@ -31,6 +31,8 @@ namespace ConfigCat.Cli.Tests
             Assert.Contains("CTESTFlAG", aliases);
             Assert.Contains("CTestFlagD", aliases);
             Assert.Contains("CTestFlagF", aliases);
+            Assert.Contains("cvTestFlag", aliases);
+            Assert.Contains("CMTestFlag", aliases);
 
             Assert.Contains("jTestFlag", aliases);
             Assert.Contains("JTESTFlAG", aliases);
@@ -60,6 +62,7 @@ namespace ConfigCat.Cli.Tests
 
             Assert.Contains("PHETestFlag", aliases);
             Assert.Contains("PHCTestFlag", aliases);
+            Assert.Contains("PHATestFlag", aliases);
         }
 
         [Fact]

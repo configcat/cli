@@ -9,6 +9,8 @@ var cTestFlag = "test_flag";
 const string CTESTFlAG = "test_flag";
 static readonly FlagDescriptor CTestFlagD = new FlagDescriptor("test_flag", false);
 static readonly FlagDescriptor CTestFlagF = FlagDescriptor.Create("test_flag", false);
+var cvTestFlag = client.GetValue("test_flag", false);
+flags.CMTestFlag = "test_flag";
 
 ====================== Java / Kotlin ======================
 
@@ -81,3 +83,7 @@ enum Flags: string {
 }
 
 const PHCTestFlag = "test_flag";
+
+$arr = [
+	'PHATestFlag' => "test_flag",
+];
