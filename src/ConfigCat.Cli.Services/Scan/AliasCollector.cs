@@ -68,8 +68,12 @@ namespace ConfigCat.Cli.Services.Scan
                             var key = match.Groups[2].Value;
                             var found = match.Groups[1].Value;
                             var flag = flags.FirstOrDefault(f => f.Key == key);
+
+                            if (flag != null)
+                                result.FoundFlags.Add(flag);
+
                             if (flag != null && !found.IsEmpty() && Similarity(flag.Key, found) > 0.3)
-                                result.FlagAliases.AddOrUpdate(flag, new ConcurrentBag<string> { found }, (k,v) => { v.Add(found); return v; });
+                                result.FlagAliases.AddOrUpdate(flag, new ConcurrentBag<string> { found }, (k, v) => { v.Add(found); return v; });
 
                             match = match.NextMatch();
                         }

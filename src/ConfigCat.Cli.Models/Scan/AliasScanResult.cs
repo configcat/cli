@@ -10,5 +10,7 @@ namespace ConfigCat.Cli.Models.Scan
         public FileInfo ScannedFile { get; set; }
 
         public ConcurrentDictionary<FlagModel, ConcurrentBag<string>> FlagAliases { get; set; } = new ConcurrentDictionary<FlagModel, ConcurrentBag<string>>();
+
+        public ConcurrentBag<FlagModel> FoundFlags { get; set; } = new ConcurrentBag<FlagModel>();
     }
 }
