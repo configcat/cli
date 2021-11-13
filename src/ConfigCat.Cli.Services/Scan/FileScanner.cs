@@ -3,7 +3,6 @@ using ConfigCat.Cli.Models.Scan;
 using ConfigCat.Cli.Services.Rendering;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
