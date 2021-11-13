@@ -14,7 +14,7 @@ configcat [options] scan <directory>
 | `--repo`, `-r` | Repository name. Mandatory for code reference upload |
 | `--branch`, `-b` | Branch name. When the scanned folder is a Git repo, it's determined automatically, otherwise, it must be set manually |
 | `--commit-hash`, `-cm` | Commit hash. When the scanned folder is a Git repo, it's determined automatically, otherwise, it must be set manually |
-| `--file-url-template`, `-f` | Template url used to generate VCS file links. Available template parameters: `branch`, `filePath`, `lineNumber`. Example: https://github.com/my/repo/blob/{branch}/{filePath}#L{lineNumber} |
+| `--file-url-template`, `-f` | Template url used to generate VCS file links. Available template parameters: `commitHash`, `filePath`, `lineNumber`. Example: https://github.com/my/repo/blob/{commitHash}/{filePath}#L{lineNumber} |
 | `--commit-url-template`, `-ct` | Template url used to generate VCS commit links. Available template parameters: `commitHash`. Example: https://github.com/my/repo/commit/{commitHash} |
 | `--runner`, `-ru` | Overrides the default `ConfigCat CLI {version}` executor label on the ConfigCat dashboard |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |

@@ -528,7 +528,7 @@ namespace ConfigCat.Cli
                     new Option<string>(new[] { "--repo", "-r" }, "Repository name. Mandatory for code reference upload"),
                     new Option<string>(new[] { "--branch", "-b" }, "Branch name. When the scanned folder is a Git repo, it's determined automatically, otherwise, it must be set manually"),
                     new Option<string>(new[] { "--commit-hash", "-cm" }, "Commit hash. When the scanned folder is a Git repo, it's determined automatically, otherwise, it must be set manually"),
-                    new Option<string>(new[] { "--file-url-template", "-f" }, "Template url used to generate VCS file links. Available template parameters: `branch`, `filePath`, `lineNumber`. Example: https://github.com/my/repo/blob/{branch}/{filePath}#L{lineNumber}"),
+                    new Option<string>(new[] { "--file-url-template", "-f" }, "Template url used to generate VCS file links. Available template parameters: `commitHash`, `filePath`, `lineNumber`. Example: https://github.com/my/repo/blob/{commitHash}/{filePath}#L{lineNumber}"),
                     new Option<string>(new[] { "--commit-url-template", "-ct" }, "Template url used to generate VCS commit links. Available template parameters: `commitHash`. Example: https://github.com/my/repo/commit/{commitHash}"),
                     new Option<string>(new[] { "--runner", "-ru" }, "Overrides the default `ConfigCat CLI {version}` executor label on the ConfigCat dashboard"),
 
