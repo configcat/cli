@@ -3,6 +3,7 @@ using ConfigCat.Cli.Services.Rendering;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Text.RegularExpressions;
 
 namespace ConfigCat.Cli.Services.Git
@@ -43,7 +44,7 @@ namespace ConfigCat.Cli.Services.Git
             using var process = GetGitProcess(path);            
 
             var repoWorkingDir = ExecuteCommand(process, "rev-parse --show-toplevel");
-            if (repoWorkingDir.IsEmpty())
+            if (repoWorkingDir.IsEmpty() || !Directory.Exists(repoWorkingDir))
             {
                 this.output.WriteYellow($"{path} is not a Git repository. Skipping.").WriteLine();
                 return null;

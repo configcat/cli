@@ -114,8 +114,9 @@ namespace ConfigCat.Cli.Commands
             this.output.Write("Repository").Write(":").WriteCyan($" {scanArguments.Repo}").WriteLine()
                 .Write("Branch").Write(":").WriteCyan($" {branch}").WriteLine()
                 .Write("Commit").Write(":").WriteCyan($" {commitHash}").WriteLine();
+
             var repositoryDirectory = gitInfo == null || gitInfo.WorkingDirectory.IsEmpty()
-                ? scanArguments.Directory.FullName
+                ? scanArguments.Directory.FullName.AsSlash()
                 : gitInfo.WorkingDirectory;
             await this.codeReferenceClient.UploadAsync(new CodeReferenceRequest
             {
@@ -127,13 +128,11 @@ namespace ConfigCat.Cli.Commands
                         SettingId = r.Key.SettingId,
                         References = r.Select(item => new ReferenceLines
                         {
-                            File = item.File.FullName.Replace(repositoryDirectory, string.Empty).AsSlash().Trim('/'),
-                            FileUrl = !scanArguments.FileUrlTemplate.IsEmpty()
+                            File = item.File.FullName.AsSlash().Replace(repositoryDirectory, string.Empty, StringComparison.OrdinalIgnoreCase).Trim('/'),
+                            FileUrl = !commitHash.IsEmpty() && !scanArguments.FileUrlTemplate.IsEmpty()
                                 ? scanArguments.FileUrlTemplate
-                                    .Replace("{branch}", branch)
-                                    .Replace("{filePath}",
-                                        item.File.FullName.Replace(repositoryDirectory, string.Empty).AsSlash()
-                                            .Trim('/'))
+                                    .Replace("{commitHash}", commitHash)
+                                    .Replace("{filePath}", item.File.FullName.AsSlash().Replace(repositoryDirectory, string.Empty, StringComparison.OrdinalIgnoreCase).Trim('/'))
                                     .Replace("{lineNumber}", item.reference.ReferenceLine.LineNumber.ToString())
                                 : null,
                             PostLines = item.reference.PostLines,
