@@ -3,6 +3,7 @@ using ConfigCat.Cli.Models.Scan;
 using ConfigCat.Cli.Services.Rendering;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -53,14 +54,16 @@ namespace ConfigCat.Cli.Services.Scan
 
                 var aliasResults = (await Task.WhenAll(aliasTasks)).Where(r => r is not null).ToArray();
 
-                foreach (var (key, value) in aliasResults.SelectMany(k => k.FlagAliases))
+                foreach (var (key, value) in aliasResults.SelectMany(a => a.FlagAliases))
                     key.Aliases = value.Distinct().ToList();
+
+                var foundFlags = aliasResults.SelectMany(a => a.FoundFlags).Distinct().ToArray();
 
                 this.output.Verbose($"Scanning for flag REFERENCES...", ConsoleColor.Magenta);
                 var scanTasks = aliasResults
                     .Select(r => r.ScannedFile)
                     .TakeWhile(file => !cancellation.IsCancellationRequested)
-                    .Select(file => this.referenceCollector.CollectAsync(flags, file, contextLines, cancellation));
+                    .Select(file => this.referenceCollector.CollectAsync(foundFlags, file, contextLines, cancellation));
 
                 var referenceResults = (await Task.WhenAll(scanTasks)).Where(r => r is not null);
 
