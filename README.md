@@ -22,7 +22,7 @@ You can install the CLI on multiple operating systems using the following method
 <details>
   <summary><strong>Homebrew (macOS / Linux)</strong></summary>
 
-Install the CLI from [ConfigCat tap](https://github.com/configcat/homebrew-tap) with [Homebrew](https://brew.sh) by executing the following command:
+Install the CLI with [Homebrew](https://brew.sh) from [ConfigCat's tap](https://github.com/configcat/homebrew-tap) by executing the following command:
 ```bash
 brew tap configcat/tap
 brew install configcat
@@ -33,7 +33,7 @@ brew install configcat
 <details>
   <summary><strong>Snap (Linux)</strong></summary>
 
-Install the CLI from [Snapcraft](https://snapcraft.io/) by executing the following command:
+Install the CLI with [Snapcraft](https://snapcraft.io/) by executing the following command:
 ```bash
 sudo snap install configcat
 ```
@@ -43,7 +43,7 @@ sudo snap install configcat
 <details>
   <summary><strong>Scoop (Windows)</strong></summary>
 
-Install the CLI from [ConfigCat bucket](https://github.com/configcat/scoop-configcat) with [Scoop](https://scoop.sh) by executing the following command:
+Install the CLI with [Scoop](https://scoop.sh) from [ConfigCat's bucket](https://github.com/configcat/scoop-configcat) by executing the following command:
 ```bash
 scoop bucket add configcat https://github.com/configcat/scoop-configcat
 scoop install configcat
@@ -54,7 +54,7 @@ scoop install configcat
 <details>
   <summary><strong>Chocolatey (Windows)</strong></summary>
 
-Install the CLI from [Chocolatey](https://chocolatey.org/) by executing the following command:
+Install the CLI with [Chocolatey](https://chocolatey.org/) by executing the following command:
 ```powershell
 choco install configcat
 ```
