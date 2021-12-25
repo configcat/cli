@@ -3,7 +3,6 @@ class Configcat < Formula
   homepage "https://configcat.com"
   version "#VERSION_PLACEHOLDER#"
   license "MIT"
-  bottle :unneeded
   
   if OS.mac? && Hardware::CPU.intel?
     url "#OSX-TAR-PATH#"
