@@ -193,10 +193,9 @@ namespace ConfigCat.Cli.Services.Rendering
 
         public IOutput ClearCurrentLine()
         {
-            int currentLineCursor = this.CursorTop;
             Console.SetCursorPosition(0, this.CursorTop);
-            Console.Write(new string(' ', Console.WindowWidth));
-            Console.SetCursorPosition(0, currentLineCursor);
+            Console.Write(new string(' ', Console.WindowWidth - 1));
+            Console.SetCursorPosition(0, this.CursorTop);
             return this;
         }
 
