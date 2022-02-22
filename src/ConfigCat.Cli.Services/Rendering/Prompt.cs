@@ -98,7 +98,7 @@ namespace ConfigCat.Cli.Services.Rendering
                 .WriteLine().WriteLine();
 
             var pages = this.GetPages(items);
-            var pageIndex = selectedValue is null || selectedValue.Equals(default) ? 0 : pages.PageIndexOf(selectedValue);
+            var pageIndex = selectedValue is null || selectedValue.Equals(default(TItem)) ? 0 : pages.PageIndexOf(selectedValue);
             var page = pages[pageIndex];
             int index = this.PrintChooseSection(page, selectedValue, labelSelector, pageIndex, pages.Count);
             ConsoleKeyInfo key;
@@ -120,7 +120,7 @@ namespace ConfigCat.Cli.Services.Rendering
                             break;
 
                         case ConsoleKey.DownArrow:
-                            if (index >= page.Count - 1 || page[index + 1] is null || page[index + 1].Equals(default))
+                            if (index >= page.Count - 1 || page[index + 1] is null || page[index + 1].Equals(default(TItem)))
                                 continue;
 
                             this.output.ClearCurrentLine();
@@ -213,7 +213,7 @@ namespace ConfigCat.Cli.Services.Rendering
                             break;
 
                         case ConsoleKey.DownArrow:
-                            if (index >= page.Count - 1 || page[index + 1] is null || page[index + 1].Equals(default))
+                            if (index >= page.Count - 1 || page[index + 1] is null || page[index + 1].Equals(default(TItem)))
                                 continue;
 
                             this.output.ClearCurrentLine();
@@ -288,7 +288,8 @@ namespace ConfigCat.Cli.Services.Rendering
             int pageIndex,
             int pageLength)
         {
-            var index = selectedItem is null || selectedItem.Equals(default) ? 0 : items.IndexOf(selectedItem);
+            var index = selectedItem is null || selectedItem.Equals(default(TItem)) ? 0 : items.IndexOf(selectedItem);
+            index = index == -1 ? 0 : index;
             foreach (var item in items)
             {
                 this.output.ClearCurrentLine();
@@ -371,7 +372,7 @@ namespace ConfigCat.Cli.Services.Rendering
 
         private void PrintNonSelected<TItem>(TItem item, Func<TItem, string> labelSelector)
         {
-            if(item is null || item.Equals(default))
+            if(item is null || item.Equals(default(TItem)))
             {
                 this.output.WriteColor($"|", ConsoleColor.DarkGray);
                 return;

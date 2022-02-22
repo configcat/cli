@@ -20,7 +20,7 @@ namespace ConfigCat.Cli.Commands
 
         public Config(IConfigClient configClient,
             IWorkspaceLoader workspaceLoader,
-            IProductClient productClient, 
+            IProductClient productClient,
             IPrompt prompt,
             IOutput output)
         {
@@ -49,7 +49,13 @@ namespace ConfigCat.Cli.Commands
                 return ExitCodes.Ok;
             }
 
-            var itemsToRender = configs.Select(c => new { Id = c.ConfigId, Name = c.Name, Description = c.Description, Product = $"{c.Product.Name} [{c.Product.ProductId}]" });
+            var itemsToRender = configs.Select(c => new
+            {
+                Id = c.ConfigId,
+                Name = c.Name,
+                Description = c.Description.TrimToFitColumn(),
+                Product = $"{c.Product.Name} [{c.Product.ProductId}]"
+            });
             this.output.RenderTable(itemsToRender);
 
             return ExitCodes.Ok;
@@ -82,7 +88,7 @@ namespace ConfigCat.Cli.Commands
 
         public async Task<int> UpdateConfigAsync(string configId, string name, string description, CancellationToken token)
         {
-            var config = configId.IsEmpty() 
+            var config = configId.IsEmpty()
                 ? await this.workspaceLoader.LoadConfigAsync(token)
                 : await this.configClient.GetConfigAsync(configId, token);
 

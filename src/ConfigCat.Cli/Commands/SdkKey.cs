@@ -68,7 +68,7 @@ namespace ConfigCat.Cli.Commands
             return ExitCodes.Ok;
         }
 
-        class SdkKeyTableItem
+        private class SdkKeyTableItem
         {
             public SdkKeyModel SdkKey { get; set; }
 

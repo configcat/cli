@@ -6,17 +6,19 @@ using ConfigCat.Cli.Services.Json;
 using ConfigCat.Cli.Services.Rendering;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ConfigCat.Cli.Commands
+namespace ConfigCat.Cli.Commands.Flags
 {
-    class FlagValue
+    internal class FlagValue
     {
         private readonly IFlagValueClient flagValueClient;
         private readonly IFlagClient flagClient;
         private readonly IConfigClient configClient;
         private readonly IEnvironmentClient environmentClient;
+        private readonly ISegmentClient segmentClient;
         private readonly IWorkspaceLoader workspaceLoader;
         private readonly IPrompt prompt;
         private readonly IOutput output;
@@ -25,6 +27,7 @@ namespace ConfigCat.Cli.Commands
             IFlagClient flagClient,
             IConfigClient configClient,
             IEnvironmentClient environmentClient,
+            ISegmentClient segmentClient,
             IWorkspaceLoader workspaceLoader,
             IPrompt prompt,
             IOutput output)
@@ -33,6 +36,7 @@ namespace ConfigCat.Cli.Commands
             this.flagClient = flagClient;
             this.configClient = configClient;
             this.environmentClient = environmentClient;
+            this.segmentClient = segmentClient;
             this.workspaceLoader = workspaceLoader;
             this.prompt = prompt;
             this.output = output;
@@ -91,19 +95,39 @@ namespace ConfigCat.Cli.Commands
 
                 if (value.TargetingRules.Count > 0)
                 {
+                    foreach (var rule in value.TargetingRules.Where(rule => !rule.SegmentId.IsEmpty()))
+                    {
+                        rule.Segment = await this.segmentClient.GetSegmentAsync(rule.SegmentId, token);
+                    }
+
                     this.output.WriteLine().WriteDarkGray($"|");
                     foreach (var targeting in value.TargetingRules)
                     {
-                        var comparatorName = Constants.ComparatorTypes.GetValueOrDefault(targeting.Comparator) ?? targeting.Comparator.ToUpperInvariant();
-                        this.output.WriteLine()
-                            .WriteDarkGray($"| ")
-                            .Write($"{value.TargetingRules.IndexOf(targeting) + 1}.")
-                            .WriteDarkGray($" When ")
-                            .WriteCyan($"{targeting.ComparisonAttribute} ")
-                            .WriteYellow($"{comparatorName} ")
-                            .WriteCyan($"{targeting.ComparisonValue} ")
-                            .WriteDarkGray("then ")
-                            .WriteMagenta(targeting.Value.ToString());
+                        if (targeting.Segment is not null)
+                        {
+                            var comparatorName = Constants.SegmentComparatorTypes.GetValueOrDefault(targeting.SegmentComparator) ?? targeting.SegmentComparator.ToUpperInvariant();
+                            this.output.WriteLine()
+                                .WriteDarkGray($"| ")
+                                .Write($"{value.TargetingRules.IndexOf(targeting) + 1}.")
+                                .WriteDarkGray($" When ")
+                                .WriteYellow($"{comparatorName} ")
+                                .WriteCyan($"{targeting.Segment.Name} ")
+                                .WriteDarkGray("then ")
+                                .WriteMagenta(targeting.Value.ToString());
+                        }
+                        else
+                        {
+                            var comparatorName = Constants.ComparatorTypes.GetValueOrDefault(targeting.Comparator) ?? targeting.Comparator.ToUpperInvariant();
+                            this.output.WriteLine()
+                                .WriteDarkGray($"| ")
+                                .Write($"{value.TargetingRules.IndexOf(targeting) + 1}.")
+                                .WriteDarkGray($" When ")
+                                .WriteCyan($"{targeting.ComparisonAttribute} ")
+                                .WriteYellow($"{comparatorName} ")
+                                .WriteCyan($"{targeting.ComparisonValue} ")
+                                .WriteDarkGray("then ")
+                                .WriteMagenta(targeting.Value.ToString());
+                        }
                     }
                 }
 
@@ -161,14 +185,14 @@ namespace ConfigCat.Cli.Commands
         }
     }
 
-    class FlagValueJsonOutput
+    internal class FlagValueJsonOutput
     {
         public FlagModel Setting { get; set; }
 
         public IEnumerable<ValueInEnvironmentJsonOutput> Values { get; set; }
     }
 
-    class ValueInEnvironmentJsonOutput
+    internal class ValueInEnvironmentJsonOutput
     {
         public string EnvironmentId { get; set; }
 

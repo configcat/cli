@@ -20,24 +20,30 @@ namespace ConfigCat.Cli.Services
 
         public static readonly Dictionary<string, string> ComparatorTypes = new()
         {
-           { "isOneOf",                 "IS ONE OF" },
-           { "isNotOneOf",              "IS NOT ONE OF" },
-           { "contains",                "CONTAINS" },
-           { "doesNotContain",          "DOES NOT CONTAIN" },
-           { "semVerIsOneOf",           "IS ONE OF (SemVer)" },
-           { "semVerIsNotOneOf",        "IS NOT ONE OF (SemVer)" },
-           { "semVerLess",              "< (SemVer)" },
-           { "semVerLessOrEquals",      "<= (SemVer)" },
-           { "semVerGreater",           "> (SemVer)" },
-           { "semVerGreaterOrEquals",   ">= (SemVer)" },
-           { "numberEquals",            "= (Number)" },
-           { "numberDoesNotEqual",      "<> (Number)" },
-           { "numberLess",              "< (Number)" },
-           { "numberLessOrEquals",      "<= (Number)" },
-           { "numberGreater",           "> (Number)" },
-           { "numberGreaterOrEquals",   ">= (Number)" },
-           { "sensitiveIsOneOf",        "IS ONE OF (Sensitive)" },
-           { "sensitiveIsNotOneOf",     "IS NOT ONE OF (Sensitive)" },
+            { "sensitiveIsOneOf",        "IS ONE OF (Sensitive)" },
+            { "sensitiveIsNotOneOf",     "IS NOT ONE OF (Sensitive)" },
+            { "isOneOf",                 "IS ONE OF" },
+            { "isNotOneOf",              "IS NOT ONE OF" },
+            { "contains",                "CONTAINS" },
+            { "doesNotContain",          "DOES NOT CONTAIN" },
+            { "semVerIsOneOf",           "IS ONE OF (SemVer)" },
+            { "semVerIsNotOneOf",        "IS NOT ONE OF (SemVer)" },
+            { "semVerLess",              "< (SemVer)" },
+            { "semVerLessOrEquals",      "<= (SemVer)" },
+            { "semVerGreater",           "> (SemVer)" },
+            { "semVerGreaterOrEquals",   ">= (SemVer)" },
+            { "numberEquals",            "= (Number)" },
+            { "numberDoesNotEqual",      "<> (Number)" },
+            { "numberLess",              "< (Number)" },
+            { "numberLessOrEquals",      "<= (Number)" },
+            { "numberGreater",           "> (Number)" },
+            { "numberGreaterOrEquals",   ">= (Number)" },
+        };
+
+        public static readonly Dictionary<string, string> SegmentComparatorTypes = new()
+        {
+            { "isIn",     "IS IN SEGMENT" },
+            { "isNotIn",  "IS NOT IN SEGMENT" },
         };
 
         public static readonly JsonSerializerOptions CamelCaseOptions = new JsonSerializerOptions

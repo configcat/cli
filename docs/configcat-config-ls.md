@@ -7,7 +7,7 @@ configcat [options] config ls
 ## Options
 | Option | Description |
 | ------ | ----------- |
-| `--product-id`, `-p` | Show only a Product's Config |
+| `--product-id`, `-p` | Show only a Product's Configs |
 | `--json` | Format the output in JSON |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |
 | `--non-interactive`, `-ni` | Turn off progress rendering and interactive features |

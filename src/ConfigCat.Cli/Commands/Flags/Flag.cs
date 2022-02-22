@@ -10,7 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ConfigCat.Cli.Commands
+namespace ConfigCat.Cli.Commands.Flags
 {
     class Flag
     {
@@ -58,7 +58,7 @@ namespace ConfigCat.Cli.Commands
                 {
                     var result = true;
                     if (!tagName.IsEmpty())
-                        result = result && f.Tags.Any(t => t.Name == tagName);
+                        result = f.Tags.Any(t => t.Name == tagName);
 
                     if (tagId is not null)
                         result = result && f.Tags.Any(t => t.TagId == tagId);
@@ -76,9 +76,9 @@ namespace ConfigCat.Cli.Commands
             var itemsToRender = flags.Select(f => new
             {
                 Id = f.SettingId,
-                Name = f.Name,
-                Key = f.Key,
-                Hint = f.Hint == null ? "\"\"" : f.Hint.Length > 30 ? $"\"{f.Hint[0..28]}...\"" : $"\"{f.Hint}\"",
+                f.Name,
+                f.Key,
+                Hint = f.Hint.TrimToFitColumn(),
                 Type = f.SettingType,
                 Tags = $"[{string.Join(", ", f.Tags.Select(t => $"{t.Name} ({t.TagId})"))}]",
                 Owner = $"{f.OwnerUserFullName} [{f.OwnerUserEmail}]",
@@ -123,8 +123,7 @@ namespace ConfigCat.Cli.Commands
 
         public async Task<int> DeleteFlagAsync(int? flagId, CancellationToken token)
         {
-            if (flagId is null)
-                flagId = (await this.workspaceLoader.LoadFlagAsync(token)).SettingId;
+            flagId ??= (await this.workspaceLoader.LoadFlagAsync(token)).SettingId;
 
             await this.flagClient.DeleteFlagAsync(flagId.Value, token);
             return ExitCodes.Ok;
@@ -154,7 +153,7 @@ namespace ConfigCat.Cli.Commands
                 updateFlagModel.Name.IsEmptyOrEquals(flag.Name) &&
                 (updateFlagModel.TagIds is null || 
                 !updateFlagModel.TagIds.Any() || 
-                Enumerable.SequenceEqual(updateFlagModel.TagIds, originalTagIds)))
+                updateFlagModel.TagIds.SequenceEqual(originalTagIds)))
             {
                 this.output.WriteNoChange();
                 return ExitCodes.Ok;
@@ -172,9 +171,8 @@ namespace ConfigCat.Cli.Commands
             var tagsToAdd = updatedTagIds.Except(originalTagIds).ToList();
 
             var tagIndexes = new List<int>();
-            foreach (var deleteItem in tagsToDelete)
+            foreach (var tagIndex in tagsToDelete.Select(deleteItem => originalTagIds.IndexOf(deleteItem)))
             {
-                var tagIndex = originalTagIds.IndexOf(deleteItem);
                 tagIndexes.Add(tagIndex);
                 originalTagIds.RemoveAt(tagIndex);
             }
@@ -202,7 +200,7 @@ namespace ConfigCat.Cli.Commands
 
             if (tagIds is null || 
                 !tagIds.Any() || 
-                Enumerable.SequenceEqual(tagIds, flagTagIds) ||
+                tagIds.SequenceEqual(flagTagIds) ||
                 !tagIds.Except(flagTagIds).Any())
             {
                 this.output.WriteNoChange();
@@ -235,9 +233,8 @@ namespace ConfigCat.Cli.Commands
 
             // play through the whole remove sequence as the indexes will change after each remove operation
             var tagIndexes = new List<int>();
-            foreach (var relevantTag in relevantTags)
+            foreach (var index in relevantTags.Select(relevantTag => flag.Tags.IndexOf(relevantTag)))
             {
-                var index = flag.Tags.IndexOf(relevantTag);
                 tagIndexes.Add(index);
                 flag.Tags.RemoveAt(index);
             }

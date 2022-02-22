@@ -79,8 +79,7 @@ namespace ConfigCat.Cli.Commands
 
         public async Task<int> DeleteTagAsync(int? tagId, CancellationToken token)
         {
-            if (tagId is null)
-                tagId = (await this.workspaceLoader.LoadTagAsync(token)).TagId;
+            tagId ??= (await this.workspaceLoader.LoadTagAsync(token)).TagId;
 
             await this.tagClient.DeleteTagAsync(tagId.Value, token);
             return ExitCodes.Ok;
@@ -88,9 +87,11 @@ namespace ConfigCat.Cli.Commands
 
         public async Task<int> UpdateTagAsync(int? tagId, string name, string color, CancellationToken token)
         {
-            var tag = tagId is null
-                ? await this.workspaceLoader.LoadTagAsync(token)
-                : await this.tagClient.GetTagAsync(tagId.Value, token);
+            var tag = tagId switch
+            {
+                null => await this.workspaceLoader.LoadTagAsync(token),
+                _ => await this.tagClient.GetTagAsync(tagId.Value, token)
+            };
 
             if (tagId is null)
             {

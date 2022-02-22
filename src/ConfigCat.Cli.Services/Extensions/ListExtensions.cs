@@ -41,7 +41,7 @@ namespace System.Collections.Generic
             var split = source.Split(chunkSize);
             var last = split[^1];
             if(last.Count < chunkSize)
-                last.AddRange(Enumerable.Repeat<T>(default, chunkSize - last.Count));
+                last.AddRange(Enumerable.Repeat(default(T), chunkSize - last.Count));
 
             return split;
         }
