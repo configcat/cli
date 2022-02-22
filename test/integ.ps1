@@ -31,6 +31,12 @@ BeforeAll {
     $environmentName = "CLI-IntegTest-Env"
     $environmentId = Invoke-ConfigCat "environment", "create", "-p", $productId, "-n", $environmentName
     Invoke-ConfigCat "environment", "ls" | Should -Match $environmentName
+
+    $segmentName = "CLI-IntegTest-Segment"
+    $segmentId = Invoke-ConfigCat "segment", "create", "-p", $productId, "-n", $segmentName, "-a", "Identifier", "-c", "doesnotcontain", "-t", "sample.com"
+    Invoke-ConfigCat "segment", "ls" | Should -Match $segmentName
+    $details = Invoke-ConfigCat "segment", "sh", "-i", $segmentId
+    $details | Should -Match "when Identifier DOES NOT CONTAIN sample.com"
 }
 
 AfterAll {
@@ -42,6 +48,9 @@ AfterAll {
 
     Invoke-ConfigCat "product", "rm", "-i", $productId
     Invoke-ConfigCat "product", "ls" | Should -Not -Match $productId
+
+    Invoke-ConfigCat "segment", "rm", "-i", $segmentId
+    Invoke-ConfigCat "segment", "ls" | Should -Not -Match $segmentId
 }
 
 Describe "Setup Tests" {
@@ -161,10 +170,12 @@ Describe "Flag value / Rule Tests" {
         Invoke-ConfigCat "flag", "targeting", "create", "-i", $flagId, "-e", $environmentId, "-a", "ID", "-c", "isoneof", "-t", "SAMPLEID,SOMEID", "-f", "true"
         Invoke-ConfigCat "flag", "targeting", "create", "-i", $flagId, "-e", $environmentId, "-a", "EMAIL", "-c", "contains", "-t", "example.com", "-f", "true"
         Invoke-ConfigCat "flag", "targeting", "create", "-i", $flagId, "-e", $environmentId, "-a", "VERSION", "-c", "isNotOneOf", "-t", "1.2.6,1.2.8", "-f", "true"
+        Invoke-ConfigCat "flag", "targeting", "create", "-i", $flagId, "-e", $environmentId, "-si", $segmentId, "-sc", "isNotIn", "-f", "true"
         $result = Invoke-ConfigCat "flag", "value", "show", "-i", $flagId
         $result | Should -Match "1. When ID IS ONE OF SAMPLEID,SOMEID then True"
         $result | Should -Match "2. When EMAIL CONTAINS example.com then True"
         $result | Should -Match "3. When VERSION IS NOT ONE OF 1.2.6,1.2.8 then True"
+        $result | Should -Match "4. When IS NOT IN SEGMENT $segmentName then True"
     }
 
     It "Update targeting rule" {
@@ -173,6 +184,16 @@ Describe "Flag value / Rule Tests" {
         $result | Should -Match "1. When ID IS ONE OF SAMPLEID,SOMEID then True"
         $result | Should -Match "2. When EMAIL DOES NOT CONTAIN sample.com then False"
         $result | Should -Match "3. When VERSION IS NOT ONE OF 1.2.6,1.2.8 then True"
+        $result | Should -Match "4. When IS NOT IN SEGMENT $segmentName then True"
+    }
+
+    It "Update segment rule" {
+        Invoke-ConfigCat "flag", "targeting", "update", "-i", $flagId, "-e", $environmentId, "-p", 4, "-si", $segmentId, "-sc", "isIn", "-f", "false"
+        $result = Invoke-ConfigCat "flag", "value", "show", "-i", $flagId
+        $result | Should -Match "1. When ID IS ONE OF SAMPLEID,SOMEID then True"
+        $result | Should -Match "2. When EMAIL DOES NOT CONTAIN sample.com then False"
+        $result | Should -Match "3. When VERSION IS NOT ONE OF 1.2.6,1.2.8 then True"
+        $result | Should -Match "4. When IS IN SEGMENT $segmentName then False"
     }
 
     It "Move targeting rule" {
@@ -181,13 +202,24 @@ Describe "Flag value / Rule Tests" {
         $result | Should -Match "1. When VERSION IS NOT ONE OF 1.2.6,1.2.8 then True"
         $result | Should -Match "2. When ID IS ONE OF SAMPLEID,SOMEID then True"
         $result | Should -Match "3. When EMAIL DOES NOT CONTAIN sample.com then False"
+        $result | Should -Match "4. When IS IN SEGMENT $segmentName then False"
+    }
+
+    It "Move segment rule" {
+        Invoke-ConfigCat "flag", "targeting", "move", "-i", $flagId, "-e", $environmentId, "--from", 4, "--to", 2 
+        $result = Invoke-ConfigCat "flag", "value", "show", "-i", $flagId
+        $result | Should -Match "1. When VERSION IS NOT ONE OF 1.2.6,1.2.8 then True"
+        $result | Should -Match "2. When IS IN SEGMENT $segmentName then False"
+        $result | Should -Match "3. When ID IS ONE OF SAMPLEID,SOMEID then True"
+        $result | Should -Match "4. When EMAIL DOES NOT CONTAIN sample.com then False"
     }
 
     It "Delete targeting rule" {
         Invoke-ConfigCat "flag", "targeting", "rm", "-i", $flagId, "-e", $environmentId, "-p", 2 
         $result = Invoke-ConfigCat "flag", "value", "show", "-i", $flagId
         $result | Should -Match "1. When VERSION IS NOT ONE OF 1.2.6,1.2.8 then True"
-        $result | Should -Match "2. When EMAIL DOES NOT CONTAIN sample.com then False"
+        $result | Should -Match "2. When ID IS ONE OF SAMPLEID,SOMEID then True"
+        $result | Should -Match "3. When EMAIL DOES NOT CONTAIN sample.com then False"
     }
 
     It "Add percentage rules" {

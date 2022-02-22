@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace ConfigCat.Cli.Options
 {
-    internal class PercentageRuleArgument : Argument<UpdatePercentageModel[]>
+    internal sealed class PercentageRuleArgument : Argument<UpdatePercentageModel[]>
     {
         public PercentageRuleArgument() : base(argumentResult =>
         {

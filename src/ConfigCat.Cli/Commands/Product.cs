@@ -41,7 +41,7 @@ namespace ConfigCat.Cli.Commands
             {
                 Id = p.ProductId,
                 Name = p.Name,
-                Description = p.Description,
+                Description = p.Description.TrimToFitColumn(),
                 Organization = $"{p.Organization.Name} [{p.Organization.OrganizationId}]"
             });
             this.output.RenderTable(itemsToRender);

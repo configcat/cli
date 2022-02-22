@@ -9,7 +9,7 @@ using ConfigCat.Cli.Services.Exceptions;
 using ConfigCat.Cli.Models.Api;
 using ConfigCat.Cli.Services.Rendering;
 
-namespace ConfigCat.Cli.Commands
+namespace ConfigCat.Cli.Commands.Flags
 {
     class FlagPercentage
     {

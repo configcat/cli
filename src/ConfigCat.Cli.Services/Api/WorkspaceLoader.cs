@@ -17,6 +17,8 @@ namespace ConfigCat.Cli.Services.Api
 
         Task<ConfigModel> LoadConfigAsync(CancellationToken token);
 
+        Task<SegmentModel> LoadSegmentAsync(CancellationToken token);
+
         Task<EnvironmentModel> LoadEnvironmentAsync(CancellationToken token, string configId = null);
 
         Task<TagModel> LoadTagAsync(CancellationToken token);
@@ -33,6 +35,7 @@ namespace ConfigCat.Cli.Services.Api
         private readonly IProductClient productClient;
         private readonly IPrompt prompt;
         private readonly IEnvironmentClient environmentClient;
+        private readonly ISegmentClient segmentClient;
         private readonly ITagClient tagClient;
         private readonly IFlagClient flagClient;
 
@@ -40,6 +43,7 @@ namespace ConfigCat.Cli.Services.Api
             IOrganizationClient organizationClient,
             IProductClient productClient,
             IEnvironmentClient environmentClient,
+            ISegmentClient segmentClient,
             ITagClient tagClient,
             IFlagClient flagClient,
             IPrompt prompt)
@@ -49,6 +53,7 @@ namespace ConfigCat.Cli.Services.Api
             this.productClient = productClient;
             this.prompt = prompt;
             this.environmentClient = environmentClient;
+            this.segmentClient = segmentClient;
             this.tagClient = tagClient;
             this.flagClient = flagClient;
         }
@@ -92,6 +97,23 @@ namespace ConfigCat.Cli.Services.Api
                 this.ThrowHelpException("--config-id");
 
             return selected;
+        }
+
+        public async Task<SegmentModel> LoadSegmentAsync(CancellationToken token)
+        {
+            var products = await this.productClient.GetProductsAsync(token);
+            var segments = new List<SegmentModel>();
+            foreach (var product in products)
+                segments.AddRange(await this.segmentClient.GetSegmentsAsync(product.ProductId, token));
+
+            if (!segments.Any())
+                this.ThrowInformalException("segment", "segment create");
+
+            var selected = await this.prompt.ChooseFromListAsync("Choose segment", segments.ToList(), s => $"{s.Name} ({s.Product.Name})", token);
+            if (selected == null)
+                this.ThrowHelpException("--segment-id");
+
+            return await this.segmentClient.GetSegmentAsync(selected.SegmentId, token);
         }
 
         public async Task<EnvironmentModel> LoadEnvironmentAsync(CancellationToken token, string configId = null)

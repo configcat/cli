@@ -53,7 +53,7 @@ namespace ConfigCat.Cli.Commands
             {
                 Id = e.EnvironmentId,
                 Name = e.Name,
-                Description = e.Description,
+                Description = e.Description.TrimToFitColumn(),
                 Color = e.Color,
                 Product = $"{e.Product.Name} [{e.Product.ProductId}]"
             });

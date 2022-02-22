@@ -1,5 +1,4 @@
-﻿using System.Collections.Concurrent;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 namespace ConfigCat.Cli.Models.Api
@@ -29,7 +28,7 @@ namespace ConfigCat.Cli.Models.Api
         public List<string> Aliases { get; set; } = new List<string>();
 
         public UpdateFlagModel ToUpdateModel() =>
-            new UpdateFlagModel
+            new()
             {
                 Name = this.Name,
                 Hint = this.Hint,

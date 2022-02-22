@@ -59,13 +59,9 @@ namespace ConfigCat.Cli.Commands
                 var configs = await this.configClient.GetConfigsAsync(product.ProductId, token);
                 var environments = await this.environmentClient.GetEnvironmentsAsync(product.ProductId, token);
 
-                foreach (var config in configs)
-                    foreach (var environment in environments)
-                        items.Add(new ConfigEnvironment
-                        {
-                            Config = config,
-                            Environment = environment
-                        });
+                items.AddRange(from config in configs 
+                    from environment in environments 
+                    select new ConfigEnvironment { Config = config, Environment = environment });
             }
 
             var itemsToRender = items.Select(p => new
@@ -80,19 +76,14 @@ namespace ConfigCat.Cli.Commands
             return ExitCodes.Ok;
         }
 
-        class ConfigEnvironment
+        private class ConfigEnvironment
         {
             public ConfigModel Config { get; set; }
 
             public EnvironmentModel Environment { get; set; }
         }
 
-        class OrganizationJsonOutput : OrganizationModel
-        {
-            public IEnumerable<ProductJsonOutput> Products { get; set; }
-        }
-
-        class ProductJsonOutput : ProductModel
+        private class ProductJsonOutput : ProductModel
         {
             public IEnumerable<EnvironmentModel> Environments { get; set; }
 

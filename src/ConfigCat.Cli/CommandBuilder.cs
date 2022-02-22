@@ -1,4 +1,5 @@
 ﻿using ConfigCat.Cli.Commands;
+using ConfigCat.Cli.Commands.Flags;
 using ConfigCat.Cli.Options;
 using ConfigCat.Cli.Services;
 using Stashbox;
@@ -34,6 +35,7 @@ namespace ConfigCat.Cli
                     BuildListAllCommand(),
                     BuildProductCommand(),
                     BuildConfigCommand(),
+                    BuildSegmentCommand(),
                     BuildEnvironmentCommand(),
                     BuildTagCommand(),
                     BuildFlagCommand(),
@@ -122,7 +124,7 @@ namespace ConfigCat.Cli
                     {
                         Options = new Option[]
                         {
-                            new Option<string>(new string[] { "--product-id", "-p" }, "Show only a Product's Config"),
+                            new Option<string>(new[] { "--product-id", "-p" }, "Show only a Product's Configs"),
                             new Option<bool>(new[] { "--json" }, "Format the output in JSON"),
                         },
                         Handler = CreateHandler<Config>(nameof(Config.ListAllConfigsAsync))
@@ -160,6 +162,72 @@ namespace ConfigCat.Cli
                 },
             };
 
+        private static CommandDescriptor BuildSegmentCommand() =>
+            new("segment", "Manage Segments")
+            {
+                Aliases = new[] { "seg" },
+                SubCommands = new[]
+                {
+                    new CommandDescriptor("ls", "List all Segments that belongs to the configured user")
+                    {
+                        Options = new Option[]
+                        {
+                            new Option<string>(new[] { "--product-id", "-p" }, "Show only a Product's Segments"),
+                            new Option<bool>(new[] { "--json" }, "Format the output in JSON"),
+                        },
+                        Handler = CreateHandler<Segment>(nameof(Segment.ListAllSegmentsAsync))
+                    },
+                    new CommandDescriptor("create", "Create a new Segment in a specified Product identified by the `--product-id` option")
+                    {
+                        Aliases = new[] { "cr" },
+                        Handler = CreateHandler<Segment>(nameof(Segment.CreateSegmentAsync)),
+                        Options = new[]
+                        {
+                            new Option<string>(new[] { "--product-id", "-p" }, "ID of the Product where the Segment must be created"),
+                            new Option<string>(new[] { "--name", "-n" }, "Name of the new Segment"),
+                            new Option<string>(new[] { "--description", "-d" }, "Description of the new Segment"),
+                            new Option<string>(new[] { "--attribute", "-a" }, "The user attribute to compare"),
+                            new Option<string>(new[] { "--comparator", "-c" }, "The comparison operator")
+                                    .AddSuggestions(Constants.ComparatorTypes.Keys.ToArray()),
+                            new Option<string>(new[] { "--compare-to", "-t" }, "The value to compare against"),
+                        }
+                    },
+                    new CommandDescriptor("rm", "Remove a Segment identified by the `--segment-id` option")
+                    {
+                        Handler = CreateHandler<Segment>(nameof(Segment.DeleteSegmentAsync)),
+                        Options = new[]
+                        {
+                            new Option<string>(new[] { "--segment-id", "-i" }, "ID of the Segment to delete"),
+                        }
+                    },
+                    new CommandDescriptor("update", "Update a Segment identified by the `--segment-id` option")
+                    {
+                        Aliases = new[] { "up" },
+                        Handler = CreateHandler<Segment>(nameof(Segment.UpdateSegmentAsync)),
+                        Options = new[]
+                        {
+                            new Option<string>(new[] { "--segment-id", "-i" }, "ID of the Segment to update"),
+                            new Option<string>(new[] { "--name", "-n" }, "The updated name"),
+                            new Option<string>(new[] { "--description", "-d" }, "The updated description"),
+                            new Option<string>(new[] { "--attribute", "-a" }, "The user attribute to compare"),
+                            new Option<string>(new[] { "--comparator", "-c" }, "The comparison operator")
+                                    .AddSuggestions(Constants.ComparatorTypes.Keys.ToArray()),
+                            new Option<string>(new[] { "--compare-to", "-t" }, "The value to compare against"),
+                        }
+                    },
+                    new CommandDescriptor("show", "Show details of a Segment identified by the `--segment-id` option")
+                    {
+                        Aliases = new[] { "sh", "pr", "print" },
+                        Handler = CreateHandler<Segment>(nameof(Segment.GetSegmentDetailsAsync)),
+                        Options = new Option[]
+                        {
+                            new Option<string>(new[] { "--segment-id", "-i" }, "ID of the Segment"),
+                            new Option<bool>(new[] { "--json" }, "Format the output in JSON"),
+                        }
+                    },
+                },
+            };
+
         private static CommandDescriptor BuildEnvironmentCommand() =>
             new("environment", "Manage Environments")
             {
@@ -170,7 +238,7 @@ namespace ConfigCat.Cli
                     {
                         Options = new Option[]
                         {
-                            new Option<string>(new string[] { "--product-id", "-p" }, "Show only a Product's Environments"),
+                            new Option<string>(new[] { "--product-id", "-p" }, "Show only a Product's Environments"),
                             new Option<bool>(new[] { "--json" }, "Format the output in JSON"),
                         },
                         Handler = CreateHandler<Environment>(nameof(Environment.ListAllEnvironmentsAsync))
@@ -396,7 +464,7 @@ namespace ConfigCat.Cli
                     new CommandDescriptor("create", "Create new targeting rule")
                     {
                         Aliases = new[] { "cr" },
-                        Handler = CreateHandler<FlagTargeting>(nameof(FlagTargeting.AddTargetinRuleAsync)),
+                        Handler = CreateHandler<FlagTargeting>(nameof(FlagTargeting.AddTargetingRuleAsync)),
                         Options = new Option[]
                         {
                             new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the Feature Flag or Setting")
@@ -409,12 +477,15 @@ namespace ConfigCat.Cli
                                     .AddSuggestions(Constants.ComparatorTypes.Keys.ToArray()),
                             new Option<string>(new[] { "--compare-to", "-t" }, "The value to compare against"),
                             new Option<string>(new[] { "--flag-value", "-f" }, "The value to serve when the comparison matches, it must respect the setting type"),
+                            new Option<string>(new[] { "--segment-id", "-si" }, "ID of the Segment used in the rule"),
+                            new Option<string>(new[] { "--segment-comparator", "-sc" }, "The segment comparison operator")
+                                    .AddSuggestions(Constants.SegmentComparatorTypes.Keys.ToArray()),
                         }
                     },
                     new CommandDescriptor("update", "Update targeting rule")
                     {
                         Aliases = new[] { "up" },
-                        Handler = CreateHandler<FlagTargeting>(nameof(FlagTargeting.UpdateTargetinRuleAsync)),
+                        Handler = CreateHandler<FlagTargeting>(nameof(FlagTargeting.UpdateTargetingRuleAsync)),
                         Options = new Option[]
                         {
                             new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the Feature Flag or Setting")
@@ -425,14 +496,17 @@ namespace ConfigCat.Cli
                             new Option<int?>(new[] { "--position", "-p" }, "The position of the updating targeting rule"),
                             new Option<string>(new[] { "--attribute", "-a" }, "The user attribute to compare"),
                             new Option<string>(new[] { "--comparator", "-c" }, "The comparison operator")
-                                .AddSuggestions(Constants.ComparatorTypes.Keys.ToArray()),
+                                    .AddSuggestions(Constants.ComparatorTypes.Keys.ToArray()),
                             new Option<string>(new[] { "--compare-to", "-t" }, "The value to compare against"),
                             new Option<string>(new[] { "--flag-value", "-f" }, "The value to serve when the comparison matches, it must respect the setting type"),
+                            new Option<string>(new[] { "--segment-id", "-si" }, "ID of the Segment used in the rule"),
+                            new Option<string>(new[] { "--segment-comparator", "-sc" }, "The segment comparison operator")
+                                    .AddSuggestions(Constants.SegmentComparatorTypes.Keys.ToArray()),
                         }
                     },
                     new CommandDescriptor("rm", "Delete targeting rule")
                     {
-                        Handler = CreateHandler<FlagTargeting>(nameof(FlagTargeting.DeleteTargetinRuleAsync)),
+                        Handler = CreateHandler<FlagTargeting>(nameof(FlagTargeting.DeleteTargetingRuleAsync)),
                         Options = new Option[]
                         {
                             new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the Feature Flag or Setting")
@@ -446,7 +520,7 @@ namespace ConfigCat.Cli
                     new CommandDescriptor("move", "Move a targeting rule into a different position")
                     {
                         Aliases = new[] { "mv" },
-                        Handler = CreateHandler<FlagTargeting>(nameof(FlagTargeting.MoveTargetinRuleAsync)),
+                        Handler = CreateHandler<FlagTargeting>(nameof(FlagTargeting.MoveTargetingRuleAsync)),
                         Options = new Option[]
                         {
                             new Option<int>(new[] { "--flag-id", "-i", "--setting-id" }, "ID of the Feature Flag or Setting")

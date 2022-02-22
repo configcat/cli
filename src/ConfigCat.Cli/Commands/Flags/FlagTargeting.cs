@@ -10,86 +10,102 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ConfigCat.Cli.Commands
+namespace ConfigCat.Cli.Commands.Flags
 {
-    class FlagTargeting
+    internal class FlagTargeting
     {
         private readonly IFlagValueClient flagValueClient;
         private readonly IFlagClient flagClient;
+        private readonly ISegmentClient segmentClient;
+        private readonly IEnvironmentClient environmentClient;
         private readonly IWorkspaceLoader workspaceLoader;
         private readonly IPrompt prompt;
 
         public FlagTargeting(IFlagValueClient flagValueClient,
             IFlagClient flagClient,
+            ISegmentClient segmentClient,
+            IEnvironmentClient environmentClient,
             IWorkspaceLoader workspaceLoader,
             IPrompt prompt)
         {
             this.flagValueClient = flagValueClient;
             this.flagClient = flagClient;
+            this.segmentClient = segmentClient;
+            this.environmentClient = environmentClient;
             this.workspaceLoader = workspaceLoader;
             this.prompt = prompt;
         }
 
-        public async Task<int> AddTargetinRuleAsync(int? flagId, string environmentId, AddTargetinRuleModel addTargetinRuleModel, CancellationToken token)
+        public async Task<int> AddTargetingRuleAsync(int? flagId, string environmentId, AddTargetinRuleModel addTargetingRuleModel, CancellationToken token)
         {
-            var flag = flagId is null
-                ? await this.workspaceLoader.LoadFlagAsync(token)
-                : await this.flagClient.GetFlagAsync(flagId.Value, token);
+            var flag = flagId switch
+            {
+                null => await this.workspaceLoader.LoadFlagAsync(token),
+                _ => await this.flagClient.GetFlagAsync(flagId.Value, token)
+            };
 
             if (environmentId.IsEmpty())
                 environmentId = (await this.workspaceLoader.LoadEnvironmentAsync(token, flag.ConfigId)).EnvironmentId;
 
-            await this.ValidateAddModel(addTargetinRuleModel, token);
+            await this.ValidateAddModel(addTargetingRuleModel, environmentId, token);
 
-            if (!addTargetinRuleModel.FlagValue.TryParseFlagValue(flag.SettingType, out var parsed))
-                throw new ShowHelpException($"Flag value '{addTargetinRuleModel.FlagValue}' must respect the type '{flag.SettingType}'.");
+            if (!addTargetingRuleModel.FlagValue.TryParseFlagValue(flag.SettingType, out var parsed))
+                throw new ShowHelpException($"Flag value '{addTargetingRuleModel.FlagValue}' must respect the type '{flag.SettingType}'.");
 
             var jsonPatchDocument = new JsonPatchDocument();
             jsonPatchDocument.Add($"/{FlagValueModel.TargetingRuleJsonName}/-", new TargetingModel
             {
-                Comparator = addTargetinRuleModel.Comparator,
-                ComparisonAttribute = addTargetinRuleModel.Attribute,
-                ComparisonValue = addTargetinRuleModel.CompareTo,
-                Value = parsed
+                Comparator = addTargetingRuleModel.Comparator,
+                ComparisonAttribute = addTargetingRuleModel.Attribute,
+                ComparisonValue = addTargetingRuleModel.CompareTo,
+                SegmentComparator = addTargetingRuleModel.SegmentComparator,
+                SegmentId = addTargetingRuleModel.SegmentId,
+                Value = parsed,
             });
 
             await this.flagValueClient.UpdateValueAsync(flag.SettingId, environmentId, jsonPatchDocument.Operations, token);
             return ExitCodes.Ok;
         }
 
-        public async Task<int> UpdateTargetinRuleAsync(int? flagId, string environmentId, int? position, AddTargetinRuleModel addTargetinRuleModel, CancellationToken token)
+        public async Task<int> UpdateTargetingRuleAsync(int? flagId, string environmentId, int? position, AddTargetinRuleModel addTargetingRuleModel, CancellationToken token)
         {
-            var flag = flagId is null
-                ? await this.workspaceLoader.LoadFlagAsync(token)
-                : await this.flagClient.GetFlagAsync(flagId.Value, token);
+            var flag = flagId switch
+            {
+                null => await this.workspaceLoader.LoadFlagAsync(token),
+                _ => await this.flagClient.GetFlagAsync(flagId.Value, token)
+            };
 
             if (environmentId.IsEmpty())
                 environmentId = (await this.workspaceLoader.LoadEnvironmentAsync(token, flag.ConfigId)).EnvironmentId;
 
             var (existing, realPosition) = await this.GetRuleAsync("Choose rule to update", flag.SettingId, environmentId, position, token);
-            await this.ValidateAddModel(addTargetinRuleModel, token, existing);
+            await this.ValidateAddModel(addTargetingRuleModel, environmentId, token, existing);
 
-            if (!addTargetinRuleModel.FlagValue.TryParseFlagValue(flag.SettingType, out var parsed))
-                throw new ShowHelpException($"Flag value '{addTargetinRuleModel.FlagValue}' must respect the type '{flag.SettingType}'.");
+            if (!addTargetingRuleModel.FlagValue.TryParseFlagValue(flag.SettingType, out var parsed))
+                throw new ShowHelpException($"Flag value '{addTargetingRuleModel.FlagValue}' must respect the type '{flag.SettingType}'.");
 
             var jsonPatchDocument = new JsonPatchDocument();
             jsonPatchDocument.Replace($"/{FlagValueModel.TargetingRuleJsonName}/{realPosition}", new TargetingModel
             {
-                Comparator = addTargetinRuleModel.Comparator,
-                ComparisonAttribute = addTargetinRuleModel.Attribute,
-                ComparisonValue = addTargetinRuleModel.CompareTo,
-                Value = parsed
+                Comparator = addTargetingRuleModel.Comparator,
+                ComparisonAttribute = addTargetingRuleModel.Attribute,
+                ComparisonValue = addTargetingRuleModel.CompareTo,
+                SegmentComparator = addTargetingRuleModel.SegmentComparator,
+                SegmentId = addTargetingRuleModel.SegmentId,
+                Value = parsed,
             });
 
             await this.flagValueClient.UpdateValueAsync(flag.SettingId, environmentId, jsonPatchDocument.Operations, token);
             return ExitCodes.Ok;
         }
 
-        public async Task<int> DeleteTargetinRuleAsync(int? flagId, string environmentId, int? position, CancellationToken token)
+        public async Task<int> DeleteTargetingRuleAsync(int? flagId, string environmentId, int? position, CancellationToken token)
         {
-            var flag = flagId is null
-                ? await this.workspaceLoader.LoadFlagAsync(token)
-                : await this.flagClient.GetFlagAsync(flagId.Value, token);
+            var flag = flagId switch
+            {
+                null => await this.workspaceLoader.LoadFlagAsync(token),
+                _ => await this.flagClient.GetFlagAsync(flagId.Value, token)
+            };
 
             if (environmentId.IsEmpty())
                 environmentId = (await this.workspaceLoader.LoadEnvironmentAsync(token, flag.ConfigId)).EnvironmentId;
@@ -103,11 +119,13 @@ namespace ConfigCat.Cli.Commands
             return ExitCodes.Ok;
         }
 
-        public async Task<int> MoveTargetinRuleAsync(int? flagId, string environmentId, int? from, int? to, CancellationToken token)
+        public async Task<int> MoveTargetingRuleAsync(int? flagId, string environmentId, int? from, int? to, CancellationToken token)
         {
-            var flag = flagId is null
-                ? await this.workspaceLoader.LoadFlagAsync(token)
-                : await this.flagClient.GetFlagAsync(flagId.Value, token);
+            var flag = flagId switch
+            {
+                null => await this.workspaceLoader.LoadFlagAsync(token),
+                _ => await this.flagClient.GetFlagAsync(flagId.Value, token)
+            };
 
             if (environmentId.IsEmpty())
                 environmentId = (await this.workspaceLoader.LoadEnvironmentAsync(token, flag.ConfigId)).EnvironmentId;
@@ -122,28 +140,60 @@ namespace ConfigCat.Cli.Commands
             return ExitCodes.Ok;
         }
 
-        private async Task ValidateAddModel(AddTargetinRuleModel addTargetinRuleModel, CancellationToken token, TargetingModel defaultModel = null)
+        private async Task ValidateAddModel(AddTargetinRuleModel addTargetingRuleModel, string environmentId, CancellationToken token, TargetingModel defaultModel = null)
         {
-            if (addTargetinRuleModel.Attribute.IsEmpty())
-                addTargetinRuleModel.Attribute = await this.prompt.GetStringAsync("Comparison attribute", token, defaultModel?.ComparisonAttribute ?? "Identifier");
-
-            if (addTargetinRuleModel.Comparator.IsEmpty())
+            var isSegment = !addTargetingRuleModel.SegmentId.IsEmpty() || defaultModel?.Segment is not null;
+            if (addTargetingRuleModel.SegmentId.IsEmpty() && addTargetingRuleModel.Attribute.IsEmpty() && defaultModel?.Segment is null && defaultModel?.ComparisonAttribute is null)
             {
-                var preSelectedKey = defaultModel?.Comparator ?? "sensitiveIsOneOf";
-                var preSelected = Constants.ComparatorTypes.Single(c => c.Key == preSelectedKey);
-                var selected = await this.prompt.ChooseFromListAsync("Choose comparator", Constants.ComparatorTypes.ToList(), c => $"{c.Key} [{c.Value}]", token, preSelected);
-
-                addTargetinRuleModel.Comparator = selected.Key;
+                var options = new List<string> { "Targeting rule", "Segment rule" };
+                var selected = await this.prompt.ChooseFromListAsync("Choose rule type", options, t => t, token);
+                isSegment = selected == options[1];
             }
-                
-            if (addTargetinRuleModel.CompareTo.IsEmpty())
-                addTargetinRuleModel.CompareTo = await this.prompt.GetStringAsync("Value to compare", token, defaultModel?.ComparisonValue);
 
-            if (addTargetinRuleModel.FlagValue.IsEmpty())
-                addTargetinRuleModel.FlagValue = await this.prompt.GetStringAsync($"Value", token, defaultModel?.Value?.ToString());
+            if (isSegment)
+            {
+                if (addTargetingRuleModel.SegmentId.IsEmpty())
+                {
+                    var environment = await this.environmentClient.GetEnvironmentAsync(environmentId, token);
+                    var segments = await this.segmentClient.GetSegmentsAsync(environment.Product.ProductId, token);
+                    var selectedSegment = await this.prompt.ChooseFromListAsync("Choose segment", segments.ToList(), s => s.Name, token);
+                    addTargetingRuleModel.SegmentId = selectedSegment.SegmentId;
+                }
 
-            if (!Constants.ComparatorTypes.Keys.Contains(addTargetinRuleModel.Comparator, StringComparer.OrdinalIgnoreCase))
-                throw new ShowHelpException($"Comparator must be one of the following: {string.Join('|', Constants.ComparatorTypes)}");
+                if (addTargetingRuleModel.SegmentComparator.IsEmpty())
+                {
+                    var preSelectedKey = defaultModel?.SegmentComparator ?? "isIn";
+                    var preSelected = Constants.SegmentComparatorTypes.Single(c => c.Key == preSelectedKey);
+                    var selected = await this.prompt.ChooseFromListAsync("Choose segment comparator", Constants.SegmentComparatorTypes.ToList(), c => $"{c.Key} [{c.Value}]", token, preSelected);
+                    addTargetingRuleModel.SegmentComparator = selected.Key;
+                }
+
+                if (!Constants.SegmentComparatorTypes.Keys.Contains(addTargetingRuleModel.SegmentComparator, StringComparer.OrdinalIgnoreCase))
+                    throw new ShowHelpException($"Segment comparator must be one of the following: {string.Join('|', Constants.SegmentComparatorTypes)}");
+            }
+            else
+            {
+                if (addTargetingRuleModel.Attribute.IsEmpty())
+                    addTargetingRuleModel.Attribute = await this.prompt.GetStringAsync("Comparison attribute", token, defaultModel?.ComparisonAttribute ?? "Identifier");
+
+                if (addTargetingRuleModel.Comparator.IsEmpty())
+                {
+                    var preSelectedKey = defaultModel?.Comparator ?? "sensitiveIsOneOf";
+                    var preSelected = Constants.ComparatorTypes.Single(c => c.Key == preSelectedKey);
+                    var selected = await this.prompt.ChooseFromListAsync("Choose comparator", Constants.ComparatorTypes.ToList(), c => $"{c.Key} [{c.Value}]", token, preSelected);
+
+                    addTargetingRuleModel.Comparator = selected.Key;
+                }
+
+                if (addTargetingRuleModel.CompareTo.IsEmpty())
+                    addTargetingRuleModel.CompareTo = await this.prompt.GetStringAsync("Value to compare", token, defaultModel?.ComparisonValue);
+
+                if (!Constants.ComparatorTypes.Keys.Contains(addTargetingRuleModel.Comparator, StringComparer.OrdinalIgnoreCase))
+                    throw new ShowHelpException($"Comparator must be one of the following: {string.Join('|', Constants.ComparatorTypes)}");
+            }
+
+            if (addTargetingRuleModel.FlagValue.IsEmpty())
+                addTargetingRuleModel.FlagValue = await this.prompt.GetStringAsync($"Value", token, defaultModel?.Value?.ToString());
         }
 
         private async Task<(TargetingModel, int)> GetRuleAsync(string label, int settingId, string environmentId, int? positionFromInput, CancellationToken token)
@@ -153,19 +203,20 @@ namespace ConfigCat.Cli.Commands
             if(value.TargetingRules.Count == 0)
                 throw new Exception("No rules found in the selected environment.");
 
-            TargetingModel existing = null;
-            if (positionFromInput is null)
+            foreach (var rule in value.TargetingRules.Where(rule => !rule.SegmentId.IsEmpty()))
             {
-                existing = await this.prompt.ChooseFromListAsync(label, value.TargetingRules, r =>
-                {
-                    var comparatorName = Constants.ComparatorTypes.GetValueOrDefault(r.Comparator) ?? r.Comparator.ToUpperInvariant();
-                    return $"When {r.ComparisonAttribute} {comparatorName} {r.ComparisonValue} then {r.Value}";
-                }, token);
-
+                rule.Segment = await this.segmentClient.GetSegmentAsync(rule.SegmentId, token);
             }
-            else
-                existing = value.TargetingRules.ElementAtOrDefault(positionFromInput.Value - 1);
 
+            var existing = positionFromInput switch
+            {
+                null => await this.prompt.ChooseFromListAsync(label, value.TargetingRules, r => r.Segment switch 
+                    {
+                        null => $"When {r.ComparisonAttribute} {Constants.ComparatorTypes.GetValueOrDefault(r.Comparator) ?? r.Comparator.ToUpperInvariant()} {r.ComparisonValue} then {r.Value}",
+                        _ => $"When {Constants.SegmentComparatorTypes.GetValueOrDefault(r.SegmentComparator) ?? r.SegmentComparator.ToUpperInvariant()} {r.Segment.Name} then {r.Value}"
+                    }, token),
+                _ => value.TargetingRules.ElementAtOrDefault(positionFromInput.Value - 1)
+            };
 
             if (existing is null)
                 throw new ShowHelpException($"Rule not found.");
@@ -174,7 +225,7 @@ namespace ConfigCat.Cli.Commands
         }
     }
 
-    class AddTargetinRuleModel
+    internal class AddTargetinRuleModel
     {
         public string Attribute { get; set; }
 
@@ -183,5 +234,9 @@ namespace ConfigCat.Cli.Commands
         public string CompareTo { get; set; }
 
         public string FlagValue { get; set; }
+
+        public string SegmentId { get; set; }
+
+        public string SegmentComparator { get; set; }
     }
 }

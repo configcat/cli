@@ -25,7 +25,7 @@ namespace ConfigCat.Cli
 {
     internal static class Program
     {
-        static async Task<int> Main(string[] args)
+        private static async Task<int> Main(string[] args)
         {
             await using var container = new StashboxContainer(c => c.WithDefaultLifetime(Lifetimes.Singleton));
 
