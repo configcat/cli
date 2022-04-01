@@ -72,7 +72,7 @@ namespace ConfigCat.Cli.Services.Api
             }
             catch (JsonException exception)
             {
-                throw new JsonParsingFailedException("Parsing JSON failed. Make sure your Management API Host URL is valid.", exception);
+                throw new JsonParsingFailedException("Invalid JSON response. Please make sure you're using the proper Management API URL (usually: api.configcat.com).", exception);
             }
         }
 
@@ -127,7 +127,7 @@ namespace ConfigCat.Cli.Services.Api
             }
             catch (JsonException exception)
             {
-                throw new JsonParsingFailedException("Parsing JSON failed. Make sure your Management API Host URL is valid.", exception);
+                throw new JsonParsingFailedException("Invalid JSON response. Please make sure you're using the proper Management API URL (usually: api.configcat.com).", exception);
             }
         }
 
