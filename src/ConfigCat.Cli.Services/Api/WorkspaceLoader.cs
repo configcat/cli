@@ -15,7 +15,7 @@ namespace ConfigCat.Cli.Services.Api
 
         Task<ProductModel> LoadProductAsync(CancellationToken token);
 
-        Task<ConfigModel> LoadConfigAsync(CancellationToken token, string chooseLabel = "Choose config");
+        Task<ConfigModel> LoadConfigAsync(CancellationToken token);
 
         Task<SegmentModel> LoadSegmentAsync(CancellationToken token);
 
@@ -82,7 +82,7 @@ namespace ConfigCat.Cli.Services.Api
             return selected;
         }
 
-        public async Task<ConfigModel> LoadConfigAsync(CancellationToken token, string chooseLabel = "Choose config")
+        public async Task<ConfigModel> LoadConfigAsync(CancellationToken token)
         {
             var products = await this.productClient.GetProductsAsync(token);
             var configs = new List<ConfigModel>();
@@ -92,7 +92,7 @@ namespace ConfigCat.Cli.Services.Api
             if (!configs.Any())
                 this.ThrowInformalException("config", "config create");
 
-            var selected = await this.prompt.ChooseFromListAsync(chooseLabel, configs.ToList(), c => $"{c.Name} ({c.Product.Name})", token);
+            var selected = await this.prompt.ChooseFromListAsync("Choose config", configs.ToList(), c => $"{c.Name} ({c.Product.Name})", token);
             if (selected == null)
                 this.ThrowHelpException("--config-id");
 

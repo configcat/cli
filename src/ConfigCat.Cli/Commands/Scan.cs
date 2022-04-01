@@ -55,7 +55,10 @@ namespace ConfigCat.Cli.Commands
                 throw new ShowHelpException("The --repo argument is required for code reference upload.");
 
             if (scanArguments.ConfigId.IsEmpty())
-                scanArguments.ConfigId = (await this.workspaceLoader.LoadConfigAsync(token, "We will compare the feature flags in the code to the feature flags in a ConfigCat config. Choose config")).ConfigId;
+            {
+                this.output.WriteLine("We will compare the feature flags in the code to the feature flags in a ConfigCat config.");
+                scanArguments.ConfigId = (await this.workspaceLoader.LoadConfigAsync(token)).ConfigId;
+            }
 
             scanArguments.LineCount = scanArguments.LineCount is < 0 or > 10
                 ? 4
