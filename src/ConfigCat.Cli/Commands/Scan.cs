@@ -56,7 +56,7 @@ namespace ConfigCat.Cli.Commands
 
             if (scanArguments.ConfigId.IsEmpty())
             {
-                this.output.WriteLine("We will compare the feature flags in the code to the feature flags in a ConfigCat config.");
+                this.output.WriteLine("Comparing the feature flags in the code to the feature flags in the ConfigCat Dashboard.");
                 scanArguments.ConfigId = (await this.workspaceLoader.LoadConfigAsync(token)).ConfigId;
             }
 
