@@ -66,7 +66,14 @@ namespace ConfigCat.Cli.Services.Api
 
             ValidateResponse(response);
 
-            return JsonSerializer.Deserialize<TResult>(content, Constants.CamelCaseOptions);
+            try
+            {
+                return JsonSerializer.Deserialize<TResult>(content, Constants.CamelCaseOptions);
+            }
+            catch (JsonException exception)
+            {
+                throw new JsonParsingFailedException("Invalid JSON response. Please make sure you're using the proper Management API URL (usually: api.configcat.com).", exception);
+            }
         }
 
         protected async Task SendAsync(HttpMethod method, string path, object body, CancellationToken token)
@@ -114,7 +121,14 @@ namespace ConfigCat.Cli.Services.Api
 
             ValidateResponse(response);
 
-            return JsonSerializer.Deserialize<TResult>(content, Constants.CamelCaseOptions);
+            try
+            {
+                return JsonSerializer.Deserialize<TResult>(content, Constants.CamelCaseOptions);
+            }
+            catch (JsonException exception)
+            {
+                throw new JsonParsingFailedException("Invalid JSON response. Please make sure you're using the proper Management API URL (usually: api.configcat.com).", exception);
+            }
         }
 
         private async Task<HttpResponseMessage> SendRequest(HttpRequestMessage request, CancellationToken token)
