@@ -1,9 +1,8 @@
-﻿namespace ConfigCat.Cli.Models.Api
-{
-    public class PercentageModel
-    {
-        public int Percentage { get; set; }
+﻿namespace ConfigCat.Cli.Models.Api;
 
-        public object Value { get; set; }
-    }
+public class PercentageModel
+{
+    public int Percentage { get; set; }
+
+    public object Value { get; set; }
 }

@@ -2,7 +2,7 @@
   "profiles": {
     "ConfigCat.Cli": {
       "commandName": "Project",
-      "commandLineArgs": "scan c:/temp/scan_test --config-id=08d98745-0dc3-4128-89d6-d02480332193 --repo cli --print --non-interactive"
+      "commandLineArgs": "f v show"
     }
   }
 }

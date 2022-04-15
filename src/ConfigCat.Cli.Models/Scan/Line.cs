@@ -1,9 +1,8 @@
-﻿namespace ConfigCat.Cli.Models.Scan
-{
-    public class Line
-    {
-        public string LineText { get; set; }
+﻿namespace ConfigCat.Cli.Models.Scan;
 
-        public int LineNumber { get; set; }
-    }
+public class Line
+{
+    public string LineText { get; set; }
+
+    public int LineNumber { get; set; }
 }

@@ -1,25 +1,24 @@
 ﻿using System.CommandLine;
 
-namespace ConfigCat.Cli.Options
+namespace ConfigCat.Cli.Options;
+
+internal class VerboseOption : Option<bool>
 {
-    internal class VerboseOption : Option<bool>
+    public VerboseOption() : base(new[]
     {
-        public VerboseOption() : base(new[]
-        {
-            "--verbose",
-            "-v",
-            "/v",
-        }, "Print detailed execution information")
-        { }
+        "--verbose",
+        "-v",
+        "/v",
+    }, "Print detailed execution information")
+    { }
 
-        public override bool Equals(object obj)
-        {
-            return obj is VerboseOption;
-        }
+    public override bool Equals(object obj)
+    {
+        return obj is VerboseOption;
+    }
 
-        public override int GetHashCode()
-        {
-            return typeof(VerboseOption).GetHashCode();
-        }
+    public override int GetHashCode()
+    {
+        return typeof(VerboseOption).GetHashCode();
     }
 }

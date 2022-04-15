@@ -1,15 +1,14 @@
 ﻿using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace ConfigCat.Cli.Models.Api
+namespace ConfigCat.Cli.Models.Api;
+
+public class UpdateFlagModel
 {
-    public class UpdateFlagModel
-    {
-        public string Name { get; set; }
+    public string Name { get; set; }
 
-        public string Hint { get; set; }
+    public string Hint { get; set; }
 
-        [JsonPropertyName("tags")]
-        public IEnumerable<int> TagIds { get; set; }
-    }
+    [JsonPropertyName("tags")]
+    public IEnumerable<int> TagIds { get; set; }
 }
