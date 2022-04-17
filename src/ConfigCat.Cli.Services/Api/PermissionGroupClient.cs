@@ -42,7 +42,7 @@ public class PermissionGroupClient : ApiClient, IPermissionGroupClient
 
     public async Task DeletePermissionGroupAsync(string permissionGroupId, CancellationToken token)
     {
-        this.Output.Write($"Deleting Config... ");
+        this.Output.Write($"Deleting Permission Group... ");
         await this.SendAsync(HttpMethod.Delete, $"v1/permissions/{permissionGroupId}", null, token);
         this.Output.WriteSuccess();
         this.Output.WriteLine();
@@ -50,7 +50,7 @@ public class PermissionGroupClient : ApiClient, IPermissionGroupClient
 
     public async Task UpdatePermissionGroupAsync(string permissionGroupId, PermissionGroupModel model, CancellationToken token)
     {
-        this.Output.Write($"Updating Config... ");
+        this.Output.Write($"Updating Permission Group... ");
         await this.SendAsync(HttpMethod.Put, $"v1/permissions/{permissionGroupId}", model, token);
         this.Output.WriteSuccess();
         this.Output.WriteLine();

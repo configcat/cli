@@ -6,6 +6,7 @@ using Stashbox;
 using System.CommandLine;
 using System.IO;
 using System.Linq;
+using ConfigCat.Cli.Commands.PermissionGroups;
 
 namespace ConfigCat.Cli;
 
@@ -29,16 +30,18 @@ public static class CommandBuilder
                   $"hosted feature flag service: https://configcat.com{System.Environment.NewLine}For more information, " +
                   $"see the documentation here: https://configcat.com/docs/advanced/cli")
         {
-            SubCommands = new CommandDescriptor[]
+            SubCommands = new[]
             {
                 BuildSetupCommand(),
                 BuildListAllCommand(),
                 BuildProductCommand(),
                 BuildConfigCommand(),
-                BuildSegmentCommand(),
                 BuildEnvironmentCommand(),
-                BuildTagCommand(),
                 BuildFlagCommand(),
+                BuildSegmentCommand(),
+                BuildPermissionGroupCommand(),
+                BuildMemberCommand(),
+                BuildTagCommand(),
                 BuildSdkKeyCommand(),
                 BuildScanCommand(),
                 BuildCatCommand(),
@@ -113,6 +116,34 @@ public static class CommandBuilder
                 },
             },
         };
+    
+    private static CommandDescriptor BuildMemberCommand() =>
+        new("member", "Manage Members")
+        {
+            Aliases = new[] { "m" },
+            SubCommands = new[]
+            {
+                new CommandDescriptor("ls-org", "List all Members that belongs to a Organization")
+                {
+                    Handler = CreateHandler<Member>(nameof(Member.ListOrganizationMembersAsync)),
+                    Options = new Option[]
+                    {
+                        new Option<string>(new[] { "--organization-id", "-i" }, "Show only an Organization's Members"),
+                        new Option<bool>(new[] { "--json" }, "Format the output in JSON"),
+                    }
+                },
+                new CommandDescriptor("ls-prod", "List all Members that belongs to a Product")
+                {
+                    Handler = CreateHandler<Member>(nameof(Member.ListProductMembersAsync)),
+                    Options = new Option[]
+                    {
+                        new Option<string>(new[] { "--product-id", "-i" }, "Show only a Product's Members"),
+                        new Option<bool>(new[] { "--json" }, "Format the output in JSON"),
+                    }
+                },
+            },
+        };
+
 
     private static CommandDescriptor BuildConfigCommand() =>
         new("config", "Manage Configs")
@@ -157,6 +188,104 @@ public static class CommandBuilder
                         new Option<string>(new[] { "--config-id", "-i" }, "ID of the Config to update"),
                         new Option<string>(new[] { "--name", "-n" }, "The updated name"),
                         new Option<string>(new[] { "--description", "-d" }, "The updated description"),
+                    }
+                },
+            },
+        };
+    
+    private static CommandDescriptor BuildPermissionGroupCommand() =>
+        new("permission-group", "Manage Permission Groups")
+        {
+            Aliases = new[] { "pg" },
+            SubCommands = new[]
+            {
+                new CommandDescriptor("ls", "List all Permission Groups that manageable by the configured user")
+                {
+                    Options = new Option[]
+                    {
+                        new Option<string>(new[] { "--product-id", "-p" }, "Show only a Product's Permission Groups"),
+                        new Option<bool>(new[] { "--json" }, "Format the output in JSON"),
+                    },
+                    Handler = CreateHandler<PermissionGroup>(nameof(PermissionGroup.ListAllPermissionGroupsAsync))
+                },
+                new CommandDescriptor("create", "Create a new Permission Group in a specified Product identified by the `--product-id` option")
+                {
+                    Aliases = new[] { "cr" },
+                    Handler = CreateHandler<PermissionGroup>(nameof(PermissionGroup.CreatePermissionGroupAsync)),
+                    Options = new Option[]
+                    {
+                        new Option<string>(new[] { "--product-id", "-p" }, "ID of the Product where the Config must be created"),
+                        new Option<string>(new[] { "--name", "-n" }, "Name of the new Config"),
+                        new Option<bool>(new[] { "--interactive", "-in" }, "Enable interactive permission setting"),
+                        new Option<bool>(new[] { "--can-manage-members" }, () => true, Constants.Permissions[0]),
+                        new Option<bool>(new[] { "--can-create-or-update-config" }, () => true, Constants.Permissions[1]),
+                        new Option<bool>(new[] { "--can-delete-config" }, () => true, Constants.Permissions[2]),
+                        new Option<bool>(new[] { "--can-create-or-update-environment" }, () => true, Constants.Permissions[3]),
+                        new Option<bool>(new[] { "--can-delete-environment" }, () => true, Constants.Permissions[4]),
+                        new Option<bool>(new[] { "--can-create-or-update-setting" }, () => true, Constants.Permissions[5]),
+                        new Option<bool>(new[] { "--can-tag-setting" }, () => true, Constants.Permissions[6]),
+                        new Option<bool>(new[] { "--can-delete-setting" }, () => true, Constants.Permissions[7]),
+                        new Option<bool>(new[] { "--can-create-or-update-tag" }, () => true, Constants.Permissions[8]),
+                        new Option<bool>(new[] { "--can-delete-tag" }, () => true, Constants.Permissions[9]),
+                        new Option<bool>(new[] { "--can-manage-webhook" }, () => true, Constants.Permissions[10]),
+                        new Option<bool>(new[] { "--can-use-export-import" }, () => true, Constants.Permissions[11]),
+                        new Option<bool>(new[] { "--can-manage-product-preferences" }, () => true, Constants.Permissions[12]),
+                        new Option<bool>(new[] { "--can-manage-integrations" }, () => true, Constants.Permissions[13]),
+                        new Option<bool>(new[] { "--can-view-sdk-key" }, () => true, Constants.Permissions[14]),
+                        new Option<bool>(new[] { "--can-rotate-sdk-key" }, () => true, Constants.Permissions[15]),
+                        new Option<bool>(new[] { "--can-view-product-statistics" }, () => true, Constants.Permissions[16]),
+                        new Option<bool>(new[] { "--can-view-product-audit-log" }, () => true, Constants.Permissions[17]),
+                        new Option<bool>(new[] { "--can-create-or-update-segments" }, () => true, Constants.Permissions[18]),
+                        new Option<bool>(new[] { "--can-delete-segment" }, () => true, Constants.Permissions[19]),
+                    }
+                },
+                new CommandDescriptor("rm", "Remove a Permission Group identified by the `--permission-group-id` option")
+                {
+                    Handler = CreateHandler<PermissionGroup>(nameof(PermissionGroup.DeletePermissionGroupAsync)),
+                    Options = new[]
+                    {
+                        new Option<string>(new[] { "--permission-group-id", "-i" }, "ID of the Permission Group to delete"),
+                    }
+                },
+                new CommandDescriptor("update", "Update a Permission Group identified by the `--permission-group-id` option")
+                {
+                    Aliases = new[] { "up" },
+                    Handler = CreateHandler<PermissionGroup>(nameof(PermissionGroup.UpdatePermissionGroupAsync)),
+                    Options = new Option[]
+                    {
+                        new Option<string>(new[] { "--permission-group-id", "-i" }, "ID of the Config to update"),
+                        new Option<string>(new[] { "--name", "-n" }, "The updated name"),
+                        new Option<bool>(new[] { "--interactive", "-in" }, "Enable interactive permission setting"),
+                        new Option<bool?>(new[] { "--can-manage-members" }, Constants.Permissions[0]),
+                        new Option<bool?>(new[] { "--can-create-or-update-config" }, Constants.Permissions[1]),
+                        new Option<bool?>(new[] { "--can-delete-config" }, Constants.Permissions[2]),
+                        new Option<bool?>(new[] { "--can-create-or-update-environment" }, Constants.Permissions[3]),
+                        new Option<bool?>(new[] { "--can-delete-environment" }, Constants.Permissions[4]),
+                        new Option<bool?>(new[] { "--can-create-or-update-setting" }, Constants.Permissions[5]),
+                        new Option<bool?>(new[] { "--can-tag-setting" }, Constants.Permissions[6]),
+                        new Option<bool?>(new[] { "--can-delete-setting" }, Constants.Permissions[7]),
+                        new Option<bool?>(new[] { "--can-create-or-update-tag" }, Constants.Permissions[8]),
+                        new Option<bool?>(new[] { "--can-delete-tag" }, Constants.Permissions[9]),
+                        new Option<bool?>(new[] { "--can-manage-webhook" }, Constants.Permissions[10]),
+                        new Option<bool?>(new[] { "--can-use-export-import" }, Constants.Permissions[11]),
+                        new Option<bool?>(new[] { "--can-manage-product-preferences" }, Constants.Permissions[12]),
+                        new Option<bool?>(new[] { "--can-manage-integrations" }, Constants.Permissions[13]),
+                        new Option<bool?>(new[] { "--can-view-sdk-key" }, Constants.Permissions[14]),
+                        new Option<bool?>(new[] { "--can-rotate-sdk-key" }, Constants.Permissions[15]),
+                        new Option<bool?>(new[] { "--can-view-product-statistics" }, Constants.Permissions[16]),
+                        new Option<bool?>(new[] { "--can-view-product-audit-log" }, Constants.Permissions[17]),
+                        new Option<bool?>(new[] { "--can-create-or-update-segments" }, Constants.Permissions[18]),
+                        new Option<bool?>(new[] { "--can-delete-segment" }, Constants.Permissions[19]),
+                    }
+                },
+                new CommandDescriptor("show", "Show details of a Permission Group identified by the `--permission-group-id` option")
+                {
+                    Aliases = new[] { "sh", "pr", "print" },
+                    Handler = CreateHandler<PermissionGroup>(nameof(PermissionGroup.ShowPermissionGroupAsync)),
+                    Options = new Option[]
+                    {
+                        new Option<string>(new[] { "--permission-group-id", "-i" }, "ID of the Permission Group"),
+                        new Option<bool>(new[] { "--json" }, "Format the output in JSON"),
                     }
                 },
             },

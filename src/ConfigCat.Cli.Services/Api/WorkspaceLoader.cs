@@ -25,6 +25,8 @@ public interface IWorkspaceLoader
 
     Task<FlagModel> LoadFlagAsync(CancellationToken token);
 
+    Task<PermissionGroupModel> LoadPermissionGroupAsync(CancellationToken token);
+
     Task<List<TagModel>> LoadTagsAsync(CancellationToken token, string configId = null, List<TagModel> defaultTags = null, bool optional = false);
 }
 
@@ -38,6 +40,7 @@ public class WorkspaceLoader : IWorkspaceLoader
     private readonly ISegmentClient segmentClient;
     private readonly ITagClient tagClient;
     private readonly IFlagClient flagClient;
+    private readonly IPermissionGroupClient permissionGroupClient;
 
     public WorkspaceLoader(IConfigClient configClient,
         IOrganizationClient organizationClient,
@@ -46,6 +49,7 @@ public class WorkspaceLoader : IWorkspaceLoader
         ISegmentClient segmentClient,
         ITagClient tagClient,
         IFlagClient flagClient,
+        IPermissionGroupClient permissionGroupClient,
         IPrompt prompt)
     {
         this.configClient = configClient;
@@ -56,6 +60,7 @@ public class WorkspaceLoader : IWorkspaceLoader
         this.segmentClient = segmentClient;
         this.tagClient = tagClient;
         this.flagClient = flagClient;
+        this.permissionGroupClient = permissionGroupClient;
     }
 
     public async Task<OrganizationModel> LoadOrganizationAsync(CancellationToken token)
@@ -95,6 +100,29 @@ public class WorkspaceLoader : IWorkspaceLoader
         var selected = await this.prompt.ChooseFromListAsync("Choose config", configs.ToList(), c => $"{c.Name} ({c.Product.Name})", token);
         if (selected == null)
             this.ThrowHelpException("--config-id");
+
+        return selected;
+    }
+    
+    public async Task<PermissionGroupModel> LoadPermissionGroupAsync(CancellationToken token)
+    {
+        var products = await this.productClient.GetProductsAsync(token);
+        var permissionGroups = new List<PermissionGroupModel>();
+        foreach (var product in products)
+            permissionGroups.AddRange((await this.permissionGroupClient.GetPermissionGroupsAsync(product.ProductId, token)).Select(
+                pg =>
+                {
+                    pg.Product = product;
+                    return pg;
+                }));
+
+        if (!permissionGroups.Any())
+            this.ThrowInformalException("permission-group", "permission-group create");
+
+        var selected = await this.prompt.ChooseFromListAsync("Choose permission group", 
+            permissionGroups.ToList(), c => $"{c.Name} ({c.Product.Name})", token);
+        if (selected == null)
+            this.ThrowHelpException("--group-id");
 
         return selected;
     }

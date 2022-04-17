@@ -25,7 +25,7 @@ public class FlagModel
 
     public List<TagModel> Tags { get; set; }
 
-    public List<string> Aliases { get; set; } = new List<string>();
+    public List<string> Aliases { get; set; } = new();
 
     public UpdateFlagModel ToUpdateModel() =>
         new()

@@ -1,5 +1,4 @@
-﻿using ConfigCat.Cli.Models.Api;
-using ConfigCat.Cli.Services;
+﻿using ConfigCat.Cli.Services;
 using ConfigCat.Cli.Services.Api;
 using ConfigCat.Cli.Services.Rendering;
 using System;

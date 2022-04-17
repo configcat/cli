@@ -63,7 +63,7 @@ internal static class Program
             })
             .UseMiddleware(async (context, next) =>
             {
-                var descriptor = container.Resolve<HandlerDescriptor>(context.ParseResult.CommandResult.Command.GetHashCode(), nullResultAllowed: true);
+                var descriptor = container.ResolveOrDefault<HandlerDescriptor>(context.ParseResult.CommandResult.Command.GetHashCode());
                 if (descriptor is not null)
                     context.BindingContext.AddService(descriptor.HandlerType,
                         c => container.Resolve(descriptor.HandlerType));
