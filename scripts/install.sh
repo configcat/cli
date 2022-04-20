@@ -33,7 +33,7 @@ if ! command -v curl &> /dev/null; then
 fi
 
 if [ -z "$VERSION" ]; then
-	VERSION=$(curl -s "https://api.github.com/repos/configcat/cli/releases/latest" | grep -Po '"tag_name": "v\K.*?(?=")')
+    VERSION=$(curl -s "https://api.github.com/repos/configcat/cli/releases/latest" | awk '/tag_name/{gsub(/("v|"|",)/,"",$2);print $2}')
 fi
 
 DIR="${DIR:-/usr/local/bin}"
