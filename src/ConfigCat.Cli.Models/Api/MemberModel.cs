@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace ConfigCat.Cli.Models.Api;
 
 public class MemberModel
