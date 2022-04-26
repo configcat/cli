@@ -35,15 +35,6 @@ This is the complete list of the available commands provided by the CLI.
 | [configcat config create](configcat-config-create.md) | Create a new Config in a specified Product identified by the `--product-id` option |
 | [configcat config rm](configcat-config-rm.md) | Remove a Config identified by the `--config-id` option |
 | [configcat config update](configcat-config-update.md) | Update a Config identified by the `--config-id` option |
-### configcat segment
-| Command | Description |
-| ------ | ----------- |
-| [configcat segment](configcat-segment.md) | Manage Segments |
-| [configcat segment ls](configcat-segment-ls.md) | List all Segments that belongs to the configured user |
-| [configcat segment create](configcat-segment-create.md) | Create a new Segment in a specified Product identified by the `--product-id` option |
-| [configcat segment rm](configcat-segment-rm.md) | Remove a Segment identified by the `--segment-id` option |
-| [configcat segment update](configcat-segment-update.md) | Update a Segment identified by the `--segment-id` option |
-| [configcat segment show](configcat-segment-show.md) | Show details of a Segment identified by the `--segment-id` option |
 ### configcat environment
 | Command | Description |
 | ------ | ----------- |
@@ -52,14 +43,6 @@ This is the complete list of the available commands provided by the CLI.
 | [configcat environment create](configcat-environment-create.md) | Create a new Environment in a specified Product identified by the `--product-id` option |
 | [configcat environment rm](configcat-environment-rm.md) | Remove an Environment identified by the `--environment-id` option |
 | [configcat environment update](configcat-environment-update.md) | Update environment |
-### configcat tag
-| Command | Description |
-| ------ | ----------- |
-| [configcat tag](configcat-tag.md) | Manage Tags |
-| [configcat tag ls](configcat-tag-ls.md) | List all Tags that belongs to the configured user |
-| [configcat tag create](configcat-tag-create.md) | Create a new Tag in a specified Product identified by the `--product-id` option |
-| [configcat tag rm](configcat-tag-rm.md) | Remove a Tag identified by the `--tag-id` option |
-| [configcat tag update](configcat-tag-update.md) | Update a Tag identified by the `--tag-id` option |
 ### configcat flag
 | Command | Description |
 | ------ | ----------- |
@@ -81,6 +64,43 @@ This is the complete list of the available commands provided by the CLI.
 | [configcat flag percentage](configcat-flag-percentage.md) | Manage percentage rules |
 | [configcat flag percentage update](configcat-flag-percentage-update.md) | Update percentage rules |
 | [configcat flag percentage clear](configcat-flag-percentage-clear.md) | Delete all percentage rules |
+### configcat segment
+| Command | Description |
+| ------ | ----------- |
+| [configcat segment](configcat-segment.md) | Manage Segments |
+| [configcat segment ls](configcat-segment-ls.md) | List all Segments that belongs to the configured user |
+| [configcat segment create](configcat-segment-create.md) | Create a new Segment in a specified Product identified by the `--product-id` option |
+| [configcat segment rm](configcat-segment-rm.md) | Remove a Segment identified by the `--segment-id` option |
+| [configcat segment update](configcat-segment-update.md) | Update a Segment identified by the `--segment-id` option |
+| [configcat segment show](configcat-segment-show.md) | Show details of a Segment identified by the `--segment-id` option |
+### configcat permission-group
+| Command | Description |
+| ------ | ----------- |
+| [configcat permission-group](configcat-permission-group.md) | Manage Permission Groups |
+| [configcat permission-group ls](configcat-permission-group-ls.md) | List all Permission Groups that manageable by the configured user |
+| [configcat permission-group create](configcat-permission-group-create.md) | Create a new Permission Group in a specified Product identified by the `--product-id` option |
+| [configcat permission-group rm](configcat-permission-group-rm.md) | Remove a Permission Group identified by the `--permission-group-id` option |
+| [configcat permission-group update](configcat-permission-group-update.md) | Update a Permission Group identified by the `--permission-group-id` option |
+| [configcat permission-group show](configcat-permission-group-show.md) | Show details of a Permission Group identified by the `--permission-group-id` option |
+| [configcat permission-group env](configcat-permission-group-env.md) | Update the environment specific permissions of a Permission Group |
+### configcat member
+| Command | Description |
+| ------ | ----------- |
+| [configcat member](configcat-member.md) | Manage Members |
+| [configcat member lso](configcat-member-lso.md) | List all Members that belongs to an Organization |
+| [configcat member lsp](configcat-member-lsp.md) | List all Members that belongs to a Product |
+| [configcat member rm](configcat-member-rm.md) | Remove Member from an Organization |
+| [configcat member invite](configcat-member-invite.md) | Invite Member(s) into a Product |
+| [configcat member add-permission](configcat-member-add-permission.md) | Add Member to Permission Groups |
+| [configcat member rm-permission](configcat-member-rm-permission.md) | Remove Member from Permission Groups |
+### configcat tag
+| Command | Description |
+| ------ | ----------- |
+| [configcat tag](configcat-tag.md) | Manage Tags |
+| [configcat tag ls](configcat-tag-ls.md) | List all Tags that belongs to the configured user |
+| [configcat tag create](configcat-tag-create.md) | Create a new Tag in a specified Product identified by the `--product-id` option |
+| [configcat tag rm](configcat-tag-rm.md) | Remove a Tag identified by the `--tag-id` option |
+| [configcat tag update](configcat-tag-update.md) | Update a Tag identified by the `--tag-id` option |
 ### configcat sdk-key
 | Command | Description |
 | ------ | ----------- |

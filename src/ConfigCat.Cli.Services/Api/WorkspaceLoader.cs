@@ -109,12 +109,7 @@ public class WorkspaceLoader : IWorkspaceLoader
         var products = await this.productClient.GetProductsAsync(token);
         var permissionGroups = new List<PermissionGroupModel>();
         foreach (var product in products)
-            permissionGroups.AddRange((await this.permissionGroupClient.GetPermissionGroupsAsync(product.ProductId, token)).Select(
-                pg =>
-                {
-                    pg.Product = product;
-                    return pg;
-                }));
+            permissionGroups.AddRange(await this.permissionGroupClient.GetPermissionGroupsAsync(product.ProductId, token));
 
         if (!permissionGroups.Any())
             this.ThrowInformalException("permission-group", "permission-group create");
@@ -122,7 +117,7 @@ public class WorkspaceLoader : IWorkspaceLoader
         var selected = await this.prompt.ChooseFromListAsync("Choose permission group", 
             permissionGroups.ToList(), c => $"{c.Name} ({c.Product.Name})", token);
         if (selected == null)
-            this.ThrowHelpException("--group-id");
+            this.ThrowHelpException("--permission-group-id");
 
         return selected;
     }

@@ -64,4 +64,12 @@ public class UpdatePermissionGroupModel
         public bool? CanViewProductAuditLog { get; set; }
         public bool? CanCreateOrUpdateSegments { get; set; }
         public bool? CanDeleteSegments { get; set; }
+
+        public bool IsAnyPermissionSet() => this.CanManageMembers != null || this.CanCreateOrUpdateConfig != null ||
+            this.CanDeleteConfig != null || this.CanCreateOrUpdateEnvironment != null || this.CanDeleteEnvironment != null ||
+            this.CanCreateOrUpdateSetting != null || this.CanTagSetting != null || this.CanDeleteSetting != null ||
+            this.CanCreateOrUpdateTag != null || this.CanDeleteTag != null || this.CanManageWebhook != null ||
+            this.CanUseExportImport != null || this.CanManageProductPreferences != null || this.CanManageIntegrations != null ||
+            this.CanViewSdkKey != null || this.CanRotateSdkKey != null || this.CanViewProductStatistics != null ||
+            this.CanViewProductAuditLog != null || this.CanCreateOrUpdateSegments != null || this.CanDeleteSegments != null;
 }

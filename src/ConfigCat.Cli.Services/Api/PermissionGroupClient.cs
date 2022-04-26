@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,11 +16,11 @@ public interface IPermissionGroupClient
 
     Task<PermissionGroupModel> CreatePermissionGroupAsync(string productId, PermissionGroupModel model, CancellationToken token);
 
-    Task<PermissionGroupModel> GetPermissionGroupAsync(string configId, CancellationToken token);
+    Task<PermissionGroupModel> GetPermissionGroupAsync(long permissionGroupId, CancellationToken token);
 
-    Task UpdatePermissionGroupAsync(string permissionGroupId, PermissionGroupModel model, CancellationToken token);
+    Task UpdatePermissionGroupAsync(long permissionGroupId, PermissionGroupModel model, CancellationToken token);
 
-    Task DeletePermissionGroupAsync(string permissionGroupId, CancellationToken token);
+    Task DeletePermissionGroupAsync(long permissionGroupId, CancellationToken token);
 }
 
 public class PermissionGroupClient : ApiClient, IPermissionGroupClient
@@ -37,10 +38,10 @@ public class PermissionGroupClient : ApiClient, IPermissionGroupClient
     public Task<PermissionGroupModel> CreatePermissionGroupAsync(string productId, PermissionGroupModel model, CancellationToken token) =>
         this.SendAsync<PermissionGroupModel>(HttpMethod.Post, $"v1/products/{productId}/permissions", model, token);
 
-    public Task<PermissionGroupModel> GetPermissionGroupAsync(string permissionGroupId, CancellationToken token) =>
+    public Task<PermissionGroupModel> GetPermissionGroupAsync(long permissionGroupId, CancellationToken token) =>
         this.GetAsync<PermissionGroupModel>(HttpMethod.Get, $"v1/permissions/{permissionGroupId}", token);
 
-    public async Task DeletePermissionGroupAsync(string permissionGroupId, CancellationToken token)
+    public async Task DeletePermissionGroupAsync(long permissionGroupId, CancellationToken token)
     {
         this.Output.Write($"Deleting Permission Group... ");
         await this.SendAsync(HttpMethod.Delete, $"v1/permissions/{permissionGroupId}", null, token);
@@ -48,7 +49,7 @@ public class PermissionGroupClient : ApiClient, IPermissionGroupClient
         this.Output.WriteLine();
     }
 
-    public async Task UpdatePermissionGroupAsync(string permissionGroupId, PermissionGroupModel model, CancellationToken token)
+    public async Task UpdatePermissionGroupAsync(long permissionGroupId, PermissionGroupModel model, CancellationToken token)
     {
         this.Output.Write($"Updating Permission Group... ");
         await this.SendAsync(HttpMethod.Put, $"v1/permissions/{permissionGroupId}", model, token);

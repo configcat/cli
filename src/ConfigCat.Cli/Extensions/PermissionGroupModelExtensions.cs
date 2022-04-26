@@ -82,35 +82,26 @@ public static class PermissionGroupModelExtensions
     
     public static void UpdateFromUpdateModel(this PermissionGroupModel model,  UpdatePermissionGroupModel updateModel)
     {
+        if (!updateModel.Name.IsEmpty()) model.Name = updateModel.Name;
         if (updateModel.CanManageMembers != null) model.CanManageMembers = updateModel.CanManageMembers.Value;
-        if (updateModel.CanCreateOrUpdateConfig != null)
-            model.CanCreateOrUpdateConfig = updateModel.CanCreateOrUpdateConfig.Value;
+        if (updateModel.CanCreateOrUpdateConfig != null) model.CanCreateOrUpdateConfig = updateModel.CanCreateOrUpdateConfig.Value;
         if (updateModel.CanDeleteConfig != null) model.CanDeleteConfig = updateModel.CanDeleteConfig.Value;
-        if (updateModel.CanCreateOrUpdateEnvironment != null)
-            model.CanCreateOrUpdateEnvironment = updateModel.CanCreateOrUpdateEnvironment.Value;
-        if (updateModel.CanDeleteEnvironment != null)
-            model.CanDeleteEnvironment = updateModel.CanDeleteEnvironment.Value;
-        if (updateModel.CanCreateOrUpdateSetting != null)
-            model.CanCreateOrUpdateSetting = updateModel.CanCreateOrUpdateSetting.Value;
+        if (updateModel.CanCreateOrUpdateEnvironment != null) model.CanCreateOrUpdateEnvironment = updateModel.CanCreateOrUpdateEnvironment.Value;
+        if (updateModel.CanDeleteEnvironment != null) model.CanDeleteEnvironment = updateModel.CanDeleteEnvironment.Value;
+        if (updateModel.CanCreateOrUpdateSetting != null) model.CanCreateOrUpdateSetting = updateModel.CanCreateOrUpdateSetting.Value;
         if (updateModel.CanTagSetting != null) model.CanTagSetting = updateModel.CanTagSetting.Value;
         if (updateModel.CanDeleteSetting != null) model.CanDeleteSetting = updateModel.CanDeleteSetting.Value;
-        if (updateModel.CanCreateOrUpdateTag != null)
-            model.CanCreateOrUpdateTag = updateModel.CanCreateOrUpdateTag.Value;
+        if (updateModel.CanCreateOrUpdateTag != null) model.CanCreateOrUpdateTag = updateModel.CanCreateOrUpdateTag.Value;
         if (updateModel.CanDeleteTag != null) model.CanDeleteTag = updateModel.CanDeleteTag.Value;
         if (updateModel.CanManageWebhook != null) model.CanManageWebhook = updateModel.CanManageWebhook.Value;
         if (updateModel.CanUseExportImport != null) model.CanUseExportImport = updateModel.CanUseExportImport.Value;
-        if (updateModel.CanManageProductPreferences != null)
-            model.CanManageProductPreferences = updateModel.CanManageProductPreferences.Value;
-        if (updateModel.CanManageIntegrations != null)
-            model.CanManageIntegrations = updateModel.CanManageIntegrations.Value;
+        if (updateModel.CanManageProductPreferences != null) model.CanManageProductPreferences = updateModel.CanManageProductPreferences.Value;
+        if (updateModel.CanManageIntegrations != null) model.CanManageIntegrations = updateModel.CanManageIntegrations.Value;
         if (updateModel.CanViewSdkKey != null) model.CanViewSdkKey = updateModel.CanViewSdkKey.Value;
         if (updateModel.CanRotateSdkKey != null) model.CanRotateSdkKey = updateModel.CanRotateSdkKey.Value;
-        if (updateModel.CanViewProductStatistics != null)
-            model.CanViewProductStatistics = updateModel.CanViewProductStatistics.Value;
-        if (updateModel.CanViewProductAuditLog != null)
-            model.CanViewProductAuditLog = updateModel.CanViewProductAuditLog.Value;
-        if (updateModel.CanCreateOrUpdateSegments != null)
-            model.CanCreateOrUpdateSegments = updateModel.CanCreateOrUpdateSegments.Value;
+        if (updateModel.CanViewProductStatistics != null) model.CanViewProductStatistics = updateModel.CanViewProductStatistics.Value;
+        if (updateModel.CanViewProductAuditLog != null) model.CanViewProductAuditLog = updateModel.CanViewProductAuditLog.Value;
+        if (updateModel.CanCreateOrUpdateSegments != null) model.CanCreateOrUpdateSegments = updateModel.CanCreateOrUpdateSegments.Value;
         if (updateModel.CanDeleteSegments != null) model.CanDeleteSegments = updateModel.CanDeleteSegments.Value;
     }
 }

@@ -37,23 +37,13 @@ internal class PermissionGroup
         if (!productId.IsEmpty())
         {
             var product = await this.productClient.GetProductAsync(productId, token);
-            permissionGroups.AddRange((await this.permissionGroupClient.GetPermissionGroupsAsync(productId, token)).Select(
-                pg =>
-                {
-                    pg.Product = product;
-                    return pg;
-                }));
+            permissionGroups.AddRange(await this.permissionGroupClient.GetPermissionGroupsAsync(product.ProductId, token));
         }
         else
         {
             var products = await this.productClient.GetProductsAsync(token);
             foreach (var product in products)
-                permissionGroups.AddRange((await this.permissionGroupClient.GetPermissionGroupsAsync(product.ProductId, token)).Select(
-                    pg =>
-                    {
-                        pg.Product = product;
-                        return pg;
-                    }));
+                permissionGroups.AddRange(await this.permissionGroupClient.GetPermissionGroupsAsync(product.ProductId, token));
         }
 
         if (json)
@@ -73,7 +63,7 @@ internal class PermissionGroup
         return ExitCodes.Ok;
     }
 
-    public async Task<int> CreatePermissionGroupAsync(string productId, bool interactive, PermissionGroupModel model, CancellationToken token)
+    public async Task<int> CreatePermissionGroupAsync(string productId, UpdatePermissionGroupModel model, CancellationToken token)
     {
         if (productId.IsEmpty())
             productId = (await this.workspaceLoader.LoadProductAsync(token)).ProductId;
@@ -81,41 +71,43 @@ internal class PermissionGroup
         if (model.Name.IsEmpty())
             model.Name = await this.prompt.GetStringAsync("Name", token);
 
-        if (interactive)
+        var initial = new PermissionGroupModel();
+        initial.UpdateFromUpdateModel(model);
+
+        if (!model.IsAnyPermissionSet())
         {
             var permissions = await this.prompt.ChooseMultipleFromListAsync("Select permissions", Constants.Permissions, s => s, token,
-                model.ToSelectedPermissions().ToList());
-            
-            model.UpdateFromSelectedPermissions(permissions);
+                initial.ToSelectedPermissions().ToList());
+
+            initial.UpdateFromSelectedPermissions(permissions);
         }
         
-        var result = await this.permissionGroupClient.CreatePermissionGroupAsync(productId, model, token);
+        var result = await this.permissionGroupClient.CreatePermissionGroupAsync(productId, initial, token);
         this.output.Write(result.PermissionGroupId.ToString());
         return ExitCodes.Ok;
     }
 
-    public async Task<int> DeletePermissionGroupAsync(string permissionGroupId, CancellationToken token)
+    public async Task<int> DeletePermissionGroupAsync(long? permissionGroupId, CancellationToken token)
     {
-        if (permissionGroupId.IsEmpty())
-            permissionGroupId = (await this.workspaceLoader.LoadPermissionGroupAsync(token)).PermissionGroupId.ToString();
+        if (permissionGroupId == null)
+            permissionGroupId = (await this.workspaceLoader.LoadPermissionGroupAsync(token)).PermissionGroupId;
 
-        await this.permissionGroupClient.DeletePermissionGroupAsync(permissionGroupId, token);
+        await this.permissionGroupClient.DeletePermissionGroupAsync(permissionGroupId.Value, token);
         return ExitCodes.Ok;
     }
 
-    public async Task<int> UpdatePermissionGroupAsync(string permissionGroupId, bool interactive, UpdatePermissionGroupModel model, CancellationToken token)
+    public async Task<int> UpdatePermissionGroupAsync(long? permissionGroupId, UpdatePermissionGroupModel model, CancellationToken token)
     {
-        var permissionGroup = permissionGroupId.IsEmpty()
+        var permissionGroup = permissionGroupId == null
             ? await this.workspaceLoader.LoadPermissionGroupAsync(token)
-            : await this.permissionGroupClient.GetPermissionGroupAsync(permissionGroupId, token);
+            : await this.permissionGroupClient.GetPermissionGroupAsync(permissionGroupId.Value, token);
 
         if (model.Name.IsEmpty())
             model.Name = await this.prompt.GetStringAsync("Name", token, permissionGroup.Name);
 
-        permissionGroup.Name = model.Name;
         permissionGroup.UpdateFromUpdateModel(model);
         
-        if (interactive)
+        if (!model.IsAnyPermissionSet())
         {
             var permissions = await this.prompt.ChooseMultipleFromListAsync("Select permissions", Constants.Permissions, s => s, token,
                 permissionGroup.ToSelectedPermissions().ToList());
@@ -123,16 +115,15 @@ internal class PermissionGroup
             permissionGroup.UpdateFromSelectedPermissions(permissions);
         }
         
-        await this.permissionGroupClient.UpdatePermissionGroupAsync(permissionGroup.PermissionGroupId.ToString(), 
-            permissionGroup, token);
+        await this.permissionGroupClient.UpdatePermissionGroupAsync(permissionGroup.PermissionGroupId, permissionGroup, token);
         return ExitCodes.Ok;
     }
     
-    public async Task<int> ShowPermissionGroupAsync(string permissionGroupId, bool json, CancellationToken token)
+    public async Task<int> ShowPermissionGroupAsync(long? permissionGroupId, bool json, CancellationToken token)
     {
-        var permissionGroup = permissionGroupId.IsEmpty()
+        var permissionGroup = permissionGroupId == null
             ? await this.workspaceLoader.LoadPermissionGroupAsync(token)
-            : await this.permissionGroupClient.GetPermissionGroupAsync(permissionGroupId, token);
+            : await this.permissionGroupClient.GetPermissionGroupAsync(permissionGroupId.Value, token);
 
         if (json)
         {
@@ -140,13 +131,12 @@ internal class PermissionGroup
             return ExitCodes.Ok;
         }
 
-        permissionGroupId = permissionGroup.PermissionGroupId.ToString();
-        var separatorLength = permissionGroup.Name.Length + permissionGroupId.Length + 9;
+        var separatorLength = permissionGroup.Name.Length + permissionGroup.PermissionGroupId.ToString().Length + 9;
 
         this.output.WriteDarkGray(new string('-', separatorLength));
         this.output.WriteLine().Write(" ");
         this.output.WriteColor($" {permissionGroup.Name} ", ConsoleColor.White, ConsoleColor.DarkGreen);
-        this.output.WriteDarkGray($" [{permissionGroupId}]").WriteLine();
+        this.output.WriteDarkGray($" [{permissionGroup.PermissionGroupId}]").WriteLine();
         this.output.WriteDarkGray(new string('-', separatorLength));
 
         foreach (var permission in Constants.Permissions)
