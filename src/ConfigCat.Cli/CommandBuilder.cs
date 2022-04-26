@@ -8,30 +8,30 @@ using System.IO;
 using System.Linq;
 using ConfigCat.Cli.Commands.PermissionGroups;
 
-namespace ConfigCat.Cli;
-
-public static class CommandBuilder
+namespace ConfigCat.Cli
 {
-    public static readonly Option VerboseOption = new VerboseOption();
-    public static readonly Option NonInteractiveOption = new NonInteractiveOption();
-
-    public static Command BuildRootCommand(IDependencyRegistrator dependencyRegistrator = null, bool asRootCommand = true)
+    public static class CommandBuilder
     {
-        var root = BuildDescriptors();
-        var rootCommand = asRootCommand ? new RootCommand(root.Description) : new Command("configcat", root.Description);
-        rootCommand.AddGlobalOption(VerboseOption);
-        rootCommand.AddGlobalOption(NonInteractiveOption);
-        rootCommand.Configure(root.SubCommands, dependencyRegistrator);
-        return rootCommand;
-    }
+        public static readonly Option VerboseOption = new VerboseOption();
+        public static readonly Option NonInteractiveOption = new NonInteractiveOption();
 
-    private static CommandDescriptor BuildDescriptors() =>
-        new(null, $"This is the Command Line Tool of ConfigCat.{System.Environment.NewLine}ConfigCat is a " +
-                  $"hosted feature flag service: https://configcat.com{System.Environment.NewLine}For more information, " +
-                  $"see the documentation here: https://configcat.com/docs/advanced/cli")
+        public static Command BuildRootCommand(IDependencyRegistrator dependencyRegistrator = null, bool asRootCommand = true)
         {
-            SubCommands = new[]
+            var root = BuildDescriptors();
+            var rootCommand = asRootCommand ? new RootCommand(root.Description) : new Command("configcat", root.Description);
+            rootCommand.AddGlobalOption(VerboseOption);
+            rootCommand.AddGlobalOption(NonInteractiveOption);
+            rootCommand.Configure(root.SubCommands, dependencyRegistrator);
+            return rootCommand;
+        }
+
+        private static CommandDescriptor BuildDescriptors() =>
+            new(null, $"This is the Command Line Tool of ConfigCat.{System.Environment.NewLine}ConfigCat is a " +
+                      $"hosted feature flag service: https://configcat.com{System.Environment.NewLine}For more information, " +
+                      $"see the documentation here: https://configcat.com/docs/advanced/cli")
             {
+                SubCommands = new[]
+                {
                 BuildSetupCommand(),
                 BuildListAllCommand(),
                 BuildProductCommand(),
@@ -45,37 +45,37 @@ public static class CommandBuilder
                 BuildSdkKeyCommand(),
                 BuildScanCommand(),
                 BuildCatCommand(),
-            }
-        };
+                }
+            };
 
-    private static CommandDescriptor BuildSetupCommand() =>
-        new("setup", $"Setup the CLI with Public Management API host and credentials")
-        {
-            Options = new[]
+        private static CommandDescriptor BuildSetupCommand() =>
+            new("setup", $"Setup the CLI with Public Management API host and credentials")
             {
+                Options = new[]
+                {
                 new Option<string>(new[] { "--api-host", "-H" }, $"The Management API host, also used from {Constants.ApiHostEnvironmentVariableName}. (default '{Constants.DefaultApiHost}')"),
                 new Option<string>(new[] { "--username", "-u" }, $"The Management API basic authentication username, also used from {Constants.ApiUserNameEnvironmentVariableName}"),
                 new Option<string>(new[] { "--password", "-p" }, $"The Management API basic authentication password, also used from {Constants.ApiPasswordEnvironmentVariableName}"),
-            },
-            Handler = CreateHandler<Setup>(nameof(Setup.InvokeAsync))
-        };
+                },
+                Handler = CreateHandler<Setup>(nameof(Setup.InvokeAsync))
+            };
 
-    private static CommandDescriptor BuildListAllCommand() =>
-        new("ls", "List all Product, Config, and Environment IDs")
-        {
-            Handler = CreateHandler<ListAll>(nameof(ListAll.InvokeAsync)),
-            Options = new[]
+        private static CommandDescriptor BuildListAllCommand() =>
+            new("ls", "List all Product, Config, and Environment IDs")
             {
+                Handler = CreateHandler<ListAll>(nameof(ListAll.InvokeAsync)),
+                Options = new[]
+                {
                 new Option<bool>(new[] { "--json" }, "Format the output in JSON"),
-            }
-        };
+                }
+            };
 
-    private static CommandDescriptor BuildProductCommand() =>
-        new("product", "Manage Products")
-        {
-            Aliases = new[] { "p" },
-            SubCommands = new[]
+        private static CommandDescriptor BuildProductCommand() =>
+            new("product", "Manage Products")
             {
+                Aliases = new[] { "p" },
+                SubCommands = new[]
+                {
                 new CommandDescriptor("ls", "List all Products that belongs to the configured user")
                 {
                     Handler = CreateHandler<Product>(nameof(Product.ListAllProductsAsync)),
@@ -114,15 +114,15 @@ public static class CommandBuilder
                         new Option<string>(new[] { "--description", "-d" }, "The updated description"),
                     }
                 },
-            },
-        };
+                },
+            };
 
-    private static CommandDescriptor BuildMemberCommand() =>
-        new("member", "Manage Members")
-        {
-            Aliases = new[] { "m" },
-            SubCommands = new[]
+        private static CommandDescriptor BuildMemberCommand() =>
+            new("member", "Manage Members")
             {
+                Aliases = new[] { "m" },
+                SubCommands = new[]
+                {
                 new CommandDescriptor("lso", "List all Members that belongs to an Organization")
                 {
                     Handler = CreateHandler<Member>(nameof(Member.ListOrganizationMembersAsync)),
@@ -187,16 +187,16 @@ public static class CommandBuilder
                         new Option<long[]>(new[] { "--permission-group-ids", "-pgi" }, "Permission Group IDs the Member must be removed from"),
                     }
                 },
-            },
-        };
+                },
+            };
 
 
-    private static CommandDescriptor BuildConfigCommand() =>
-        new("config", "Manage Configs")
-        {
-            Aliases = new[] { "c" },
-            SubCommands = new[]
+        private static CommandDescriptor BuildConfigCommand() =>
+            new("config", "Manage Configs")
             {
+                Aliases = new[] { "c" },
+                SubCommands = new[]
+                {
                 new CommandDescriptor("ls", "List all Configs that belongs to the configured user")
                 {
                     Options = new Option[]
@@ -236,15 +236,15 @@ public static class CommandBuilder
                         new Option<string>(new[] { "--description", "-d" }, "The updated description"),
                     }
                 },
-            },
-        };
+                },
+            };
 
-    private static CommandDescriptor BuildPermissionGroupCommand() =>
-        new("permission-group", "Manage Permission Groups")
-        {
-            Aliases = new[] { "pg" },
-            SubCommands = new[]
+        private static CommandDescriptor BuildPermissionGroupCommand() =>
+            new("permission-group", "Manage Permission Groups")
             {
+                Aliases = new[] { "pg" },
+                SubCommands = new[]
+                {
                 new CommandDescriptor("ls", "List all Permission Groups that manageable by the configured user")
                 {
                     Options = new Option[]
@@ -345,15 +345,15 @@ public static class CommandBuilder
                         new PermissionGroupEnvironmentAccessOption()
                     }
                 },
-            },
-        };
+                },
+            };
 
-    private static CommandDescriptor BuildSegmentCommand() =>
-        new("segment", "Manage Segments")
-        {
-            Aliases = new[] { "seg" },
-            SubCommands = new[]
+        private static CommandDescriptor BuildSegmentCommand() =>
+            new("segment", "Manage Segments")
             {
+                Aliases = new[] { "seg" },
+                SubCommands = new[]
+                {
                 new CommandDescriptor("ls", "List all Segments that belongs to the configured user")
                 {
                     Options = new Option[]
@@ -411,15 +411,15 @@ public static class CommandBuilder
                         new Option<bool>(new[] { "--json" }, "Format the output in JSON"),
                     }
                 },
-            },
-        };
+                },
+            };
 
-    private static CommandDescriptor BuildEnvironmentCommand() =>
-        new("environment", "Manage Environments")
-        {
-            Aliases = new[] { "e" },
-            SubCommands = new[]
+        private static CommandDescriptor BuildEnvironmentCommand() =>
+            new("environment", "Manage Environments")
             {
+                Aliases = new[] { "e" },
+                SubCommands = new[]
+                {
                 new CommandDescriptor("ls", "List all Environments that belongs to the configured user")
                 {
                     Options = new Option[]
@@ -461,15 +461,15 @@ public static class CommandBuilder
                         new Option<string>(new[] { "--color", "-c" }, "The updated color"),
                     }
                 },
-            },
-        };
+                },
+            };
 
-    private static CommandDescriptor BuildTagCommand() =>
-        new("tag", "Manage Tags")
-        {
-            Aliases = new[] { "t" },
-            SubCommands = new[]
+        private static CommandDescriptor BuildTagCommand() =>
+            new("tag", "Manage Tags")
             {
+                Aliases = new[] { "t" },
+                SubCommands = new[]
+                {
                 new CommandDescriptor("ls", "List all Tags that belongs to the configured user")
                 {
                     Options = new Option[]
@@ -509,16 +509,16 @@ public static class CommandBuilder
                         new Option<string>(new[] { "--color", "-c" }, "The updated color"),
                     }
                 },
-            },
-        };
+                },
+            };
 
 
-    private static CommandDescriptor BuildFlagCommand() =>
-        new("flag", "Manage Feature Flags & Settings")
-        {
-            Aliases = new[] { "setting", "f", "s" },
-            SubCommands = new[]
+        private static CommandDescriptor BuildFlagCommand() =>
+            new("flag", "Manage Feature Flags & Settings")
             {
+                Aliases = new[] { "setting", "f", "s" },
+                SubCommands = new[]
+                {
                 new CommandDescriptor("ls", "List all Feature Flags & Settings that belongs to the configured user")
                 {
                     Options = new Option[]
@@ -601,16 +601,16 @@ public static class CommandBuilder
                 BuildFlagValueCommand(),
                 BuildFlagTargetingCommand(),
                 BuildFlagPercentageCommand()
-            },
-        };
+                },
+            };
 
 
-    private static CommandDescriptor BuildFlagValueCommand() =>
-        new("value", "Manage Feature Flag & Setting values in different Environments")
-        {
-            Aliases = new[] { "v" },
-            SubCommands = new[]
+        private static CommandDescriptor BuildFlagValueCommand() =>
+            new("value", "Manage Feature Flag & Setting values in different Environments")
             {
+                Aliases = new[] { "v" },
+                SubCommands = new[]
+                {
                 new CommandDescriptor("show", "Show Feature Flag or Setting values, targeting, and percentage rules for each environment")
                 {
                     Aliases = new[] { "sh", "pr", "print" },
@@ -638,15 +638,15 @@ public static class CommandBuilder
                         new Option<string>(new[] { "--flag-value", "-f" }, "The value to serve, it must respect the setting type"),
                     }
                 }
-            }
-        };
+                }
+            };
 
-    private static CommandDescriptor BuildFlagTargetingCommand() =>
-        new("targeting", "Manage targeting rules")
-        {
-            Aliases = new[] { "t" },
-            SubCommands = new[]
+        private static CommandDescriptor BuildFlagTargetingCommand() =>
+            new("targeting", "Manage targeting rules")
             {
+                Aliases = new[] { "t" },
+                SubCommands = new[]
+                {
                 new CommandDescriptor("create", "Create new targeting rule")
                 {
                     Aliases = new[] { "cr" },
@@ -718,15 +718,15 @@ public static class CommandBuilder
                         new Option<int?>(new[] { "--to" }, "The desired position of the targeting rule"),
                     }
                 },
-            }
-        };
+                }
+            };
 
-    private static CommandDescriptor BuildFlagPercentageCommand() =>
-        new("percentage", "Manage percentage rules")
-        {
-            Aliases = new[] { "%" },
-            SubCommands = new[]
+        private static CommandDescriptor BuildFlagPercentageCommand() =>
+            new("percentage", "Manage percentage rules")
             {
+                Aliases = new[] { "%" },
+                SubCommands = new[]
+                {
                 new CommandDescriptor("update", "Update percentage rules")
                 {
                     Aliases = new[] { "up" },
@@ -757,30 +757,30 @@ public static class CommandBuilder
                         new Option<string>(new[] { "--environment-id", "-e" }, "ID of the Environment from where the rules must be deleted"),
                     }
                 },
-            }
-        };
+                }
+            };
 
-    private static CommandDescriptor BuildSdkKeyCommand() =>
-        new("sdk-key", "List SDK Keys")
-        {
-            Aliases = new[] { "k" },
-            Handler = CreateHandler<SdkKey>(nameof(SdkKey.InvokeAsync)),
-            Options = new[]
+        private static CommandDescriptor BuildSdkKeyCommand() =>
+            new("sdk-key", "List SDK Keys")
             {
+                Aliases = new[] { "k" },
+                Handler = CreateHandler<SdkKey>(nameof(SdkKey.InvokeAsync)),
+                Options = new[]
+                {
                 new Option<bool>(new[] { "--json" }, "Format the output in JSON"),
-            }
-        };
+                }
+            };
 
-    private static CommandDescriptor BuildScanCommand() =>
-        new("scan", "Scan files for Feature Flag & Setting usages")
-        {
-            Handler = CreateHandler<Scan>(nameof(Scan.InvokeAsync)),
-            Arguments = new[]
+        private static CommandDescriptor BuildScanCommand() =>
+            new("scan", "Scan files for Feature Flag & Setting usages")
             {
+                Handler = CreateHandler<Scan>(nameof(Scan.InvokeAsync)),
+                Arguments = new[]
+                {
                 new Argument<DirectoryInfo>("directory", "Directory to scan").ExistingOnly(),
-            },
-            Options = new Option[]
-            {
+                },
+                Options = new Option[]
+                {
                 new Option<string>(new[] { "--config-id", "-c" }, "ID of the Config to scan against"),
                 new Option<int>(new[] { "--line-count", "-l" }, () => 4, "Context line count before and after the reference line (min: 1, max: 10)"),
                 new Option<bool>(new[] { "--print", "-p" }, "Print found references to output"),
@@ -792,20 +792,21 @@ public static class CommandBuilder
                 new Option<string>(new[] { "--commit-url-template", "-ct" }, "Template url used to generate VCS commit links. Available template parameters: `commitHash`. Example: https://github.com/my/repo/commit/{commitHash}"),
                 new Option<string>(new[] { "--runner", "-ru" }, "Overrides the default `ConfigCat CLI {version}` executor label on the ConfigCat dashboard"),
 
-            }
-        };
+                }
+            };
 
-    private static CommandDescriptor BuildCatCommand() =>
-        new("whoisthebestcat", "Well, who?")
+        private static CommandDescriptor BuildCatCommand() =>
+            new("whoisthebestcat", "Well, who?")
+            {
+                Aliases = new[] { "cat" },
+                Handler = CreateHandler<Cat>(nameof(Cat.InvokeAsync)),
+                IsHidden = true,
+            };
+
+        private static HandlerDescriptor CreateHandler<THandler>(string methodName)
         {
-            Aliases = new[] { "cat" },
-            Handler = CreateHandler<Cat>(nameof(Cat.InvokeAsync)),
-            IsHidden = true,
-        };
-
-    private static HandlerDescriptor CreateHandler<THandler>(string methodName)
-    {
-        var handlerType = typeof(THandler);
-        return new HandlerDescriptor(handlerType, handlerType.GetMethod(methodName));
+            var handlerType = typeof(THandler);
+            return new HandlerDescriptor(handlerType, handlerType.GetMethod(methodName));
+        }
     }
 }

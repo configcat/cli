@@ -7,66 +7,67 @@ using System.Threading;
 using System.Threading.Tasks;
 using Trybot;
 
-namespace ConfigCat.Cli.Services.Api;
-
-public interface ICodeReferenceClient
+namespace ConfigCat.Cli.Services.Api
 {
-    Task UploadAsync(CodeReferenceRequest request, CancellationToken token);
-}
-
-public class CodeReferenceClient : ApiClient, ICodeReferenceClient
-{
-    public CodeReferenceClient(IOutput output,
-        CliConfig config,
-        IBotPolicy<HttpResponseMessage> botPolicy,
-        HttpClient httpClient)
-        : base(output, config, botPolicy, httpClient)
-    { }
-
-    public async Task UploadAsync(CodeReferenceRequest request, CancellationToken token)
+    public interface ICodeReferenceClient
     {
-        this.Output.Write($"Uploading code references... ");
-        await this.SendAsync(HttpMethod.Post, $"v1/code-references", request, token);
-        this.Output.WriteSuccess();
-        this.Output.WriteLine();
+        Task UploadAsync(CodeReferenceRequest request, CancellationToken token);
     }
-}
 
-public class CodeReferenceRequest
-{
-    public string CommitUrl { get; set; }
+    public class CodeReferenceClient : ApiClient, ICodeReferenceClient
+    {
+        public CodeReferenceClient(IOutput output,
+            CliConfig config,
+            IBotPolicy<HttpResponseMessage> botPolicy,
+            HttpClient httpClient)
+            : base(output, config, botPolicy, httpClient)
+        { }
 
-    public string CommitHash { get; set; }
+        public async Task UploadAsync(CodeReferenceRequest request, CancellationToken token)
+        {
+            this.Output.Write($"Uploading code references... ");
+            await this.SendAsync(HttpMethod.Post, $"v1/code-references", request, token);
+            this.Output.WriteSuccess();
+            this.Output.WriteLine();
+        }
+    }
 
-    public string Repository { get; set; }
+    public class CodeReferenceRequest
+    {
+        public string CommitUrl { get; set; }
 
-    public string Branch { get; set; }
+        public string CommitHash { get; set; }
 
-    public string ConfigId { get; set; }
+        public string Repository { get; set; }
 
-    public List<string> ActiveBranches { get; set; }
+        public string Branch { get; set; }
 
-    public List<FlagReference> FlagReferences { get; set; }
+        public string ConfigId { get; set; }
 
-    public string Uploader { get; set; }
-}
+        public List<string> ActiveBranches { get; set; }
 
-public class FlagReference
-{
-    public int SettingId { get; set; }
+        public List<FlagReference> FlagReferences { get; set; }
 
-    public List<ReferenceLines> References { get; set; }
-}
+        public string Uploader { get; set; }
+    }
 
-public class ReferenceLines
-{
-    public string File { get; set; }
+    public class FlagReference
+    {
+        public int SettingId { get; set; }
 
-    public string FileUrl { get; set; }
+        public List<ReferenceLines> References { get; set; }
+    }
 
-    public List<Line> PreLines { get; set; } = new();
+    public class ReferenceLines
+    {
+        public string File { get; set; }
 
-    public List<Line> PostLines { get; set; } = new();
+        public string FileUrl { get; set; }
 
-    public Line ReferenceLine { get; set; }
+        public List<Line> PreLines { get; set; } = new();
+
+        public List<Line> PostLines { get; set; } = new();
+
+        public Line ReferenceLine { get; set; }
+    }
 }

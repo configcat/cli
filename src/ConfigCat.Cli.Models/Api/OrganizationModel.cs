@@ -1,8 +1,9 @@
-﻿namespace ConfigCat.Cli.Models.Api;
-
-public class OrganizationModel
+﻿namespace ConfigCat.Cli.Models.Api
 {
-    public string OrganizationId { get; set; }
+    public class OrganizationModel
+    {
+        public string OrganizationId { get; set; }
 
-    public string Name { get; set; }
+        public string Name { get; set; }
+    }
 }

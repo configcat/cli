@@ -1,8 +1,9 @@
-﻿namespace ConfigCat.Cli.Models.Api;
-
-public class SdkKeyModel
+﻿namespace ConfigCat.Cli.Models.Api
 {
-    public string Primary { get; set; }
+    public class SdkKeyModel
+    {
+        public string Primary { get; set; }
 
-    public string Secondary { get; set; }
+        public string Secondary { get; set; }
+    }
 }

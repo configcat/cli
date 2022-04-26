@@ -4,52 +4,53 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ConfigCat.Cli.Services.FileSystem.Ignore;
-
-internal class IgnoreFile : IgnorePolicy
+namespace ConfigCat.Cli.Services.FileSystem.Ignore
 {
-    public static readonly string[] IgnoreFileNames = new[] { ".gitignore", ".ccignore", ".ignore" };
-
-    public FileInfo File { get; }
-
-    public IgnoreFile(FileInfo ignoreFileInfo, DirectoryInfo rootDirectory)
+    internal class IgnoreFile : IgnorePolicy
     {
-        this.File = ignoreFileInfo;
-        this.Rank = this.File.FullName.Replace(rootDirectory.FullName, string.Empty).Count(c => c.Equals(Path.DirectorySeparatorChar));
-    }
+        public static readonly string[] IgnoreFileNames = new[] { ".gitignore", ".ccignore", ".ignore" };
 
-    public async Task LoadIgnoreFileAsync(CancellationToken token)
-    {
-        var lines = await System.IO.File.ReadAllLinesAsync(this.File.FullName, token);
-        this.ProcessPatterns(lines);
-    }
+        public FileInfo File { get; }
 
-    public override bool IsAccepting(FileInfo file) => base.IsAcceptingInternal(file.FullName.Replace(this.File.DirectoryName, string.Empty));
-
-    public override bool IsIgnoring(FileInfo file) => base.IsIgnoringInternal(file.FullName.Replace(this.File.DirectoryName, string.Empty));
-
-    public override bool Handles(FileInfo file) =>
-        file.DirectoryName.IndexOf(this.File.DirectoryName) != -1;
-
-    private void ProcessPatterns(string[] patterns)
-    {
-        foreach (var pattern in patterns)
+        public IgnoreFile(FileInfo ignoreFileInfo, DirectoryInfo rootDirectory)
         {
-            var current = pattern;
-            if (current.Trim().IsEmpty() || current.StartsWith('#'))
-                continue;
+            this.File = ignoreFileInfo;
+            this.Rank = this.File.FullName.Replace(rootDirectory.FullName, string.Empty).Count(c => c.Equals(Path.DirectorySeparatorChar));
+        }
 
-            if (current.StartsWith('!'))
+        public async Task LoadIgnoreFileAsync(CancellationToken token)
+        {
+            var lines = await System.IO.File.ReadAllLinesAsync(this.File.FullName, token);
+            this.ProcessPatterns(lines);
+        }
+
+        public override bool IsAccepting(FileInfo file) => base.IsAcceptingInternal(file.FullName.Replace(this.File.DirectoryName, string.Empty));
+
+        public override bool IsIgnoring(FileInfo file) => base.IsIgnoringInternal(file.FullName.Replace(this.File.DirectoryName, string.Empty));
+
+        public override bool Handles(FileInfo file) =>
+            file.DirectoryName.IndexOf(this.File.DirectoryName) != -1;
+
+        private void ProcessPatterns(string[] patterns)
+        {
+            foreach (var pattern in patterns)
             {
-                current = current.Substring(1);
-                base.AcceptMatcher.Add(current);
-                continue;
+                var current = pattern;
+                if (current.Trim().IsEmpty() || current.StartsWith('#'))
+                    continue;
+
+                if (current.StartsWith('!'))
+                {
+                    current = current.Substring(1);
+                    base.AcceptMatcher.Add(current);
+                    continue;
+                }
+
+                if (pattern.StartsWith(@"\#") || pattern.StartsWith(@"\!"))
+                    current = current.Substring(1);
+
+                base.IgnoreMatcher.Add(current);
             }
-
-            if (pattern.StartsWith(@"\#") || pattern.StartsWith(@"\!"))
-                current = current.Substring(1);
-
-            base.IgnoreMatcher.Add(current);
         }
     }
 }

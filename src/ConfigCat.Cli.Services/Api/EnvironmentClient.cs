@@ -7,52 +7,53 @@ using System.Threading;
 using System.Threading.Tasks;
 using Trybot;
 
-namespace ConfigCat.Cli.Services.Api;
-
-public interface IEnvironmentClient
+namespace ConfigCat.Cli.Services.Api
 {
-    Task<IEnumerable<EnvironmentModel>> GetEnvironmentsAsync(string productId, CancellationToken token);
-
-    Task<EnvironmentModel> GetEnvironmentAsync(string environmentId, CancellationToken token);
-
-    Task<EnvironmentModel> CreateEnvironmentAsync(string productId, string name, string description, string color, CancellationToken token);
-
-    Task UpdateEnvironmentAsync(string environmentId, string name, string description, string color, CancellationToken token);
-
-    Task DeleteEnvironmentAsync(string environmentId, CancellationToken token);
-}
-
-public class EnvironmentClient : ApiClient, IEnvironmentClient
-{
-    public EnvironmentClient(IOutput output,
-        CliConfig config,
-        IBotPolicy<HttpResponseMessage> botPolicy,
-        HttpClient httpClient)
-        : base(output, config, botPolicy, httpClient)
-    { }
-
-    public Task<IEnumerable<EnvironmentModel>> GetEnvironmentsAsync(string productId, CancellationToken token) =>
-        this.GetAsync<IEnumerable<EnvironmentModel>>(HttpMethod.Get, $"v1/products/{productId}/environments", token);
-
-    public Task<EnvironmentModel> GetEnvironmentAsync(string environmentId, CancellationToken token) =>
-        this.GetAsync<EnvironmentModel>(HttpMethod.Get, $"v1/environments/{environmentId}", token);
-
-    public Task<EnvironmentModel> CreateEnvironmentAsync(string productId, string name, string description, string color, CancellationToken token) =>
-        this.SendAsync<EnvironmentModel>(HttpMethod.Post, $"v1/products/{productId}/environments", new { Name = name, Description = description, Color = color }, token);
-
-    public async Task DeleteEnvironmentAsync(string environmentId, CancellationToken token)
+    public interface IEnvironmentClient
     {
-        this.Output.Write($"Deleting Environment... ");
-        await this.SendAsync(HttpMethod.Delete, $"v1/environments/{environmentId}", null, token);
-        this.Output.WriteSuccess();
-        this.Output.WriteLine();
+        Task<IEnumerable<EnvironmentModel>> GetEnvironmentsAsync(string productId, CancellationToken token);
+
+        Task<EnvironmentModel> GetEnvironmentAsync(string environmentId, CancellationToken token);
+
+        Task<EnvironmentModel> CreateEnvironmentAsync(string productId, string name, string description, string color, CancellationToken token);
+
+        Task UpdateEnvironmentAsync(string environmentId, string name, string description, string color, CancellationToken token);
+
+        Task DeleteEnvironmentAsync(string environmentId, CancellationToken token);
     }
 
-    public async Task UpdateEnvironmentAsync(string environmentId, string name, string description, string color, CancellationToken token)
+    public class EnvironmentClient : ApiClient, IEnvironmentClient
     {
-        this.Output.Write($"Updating Environment... ");
-        await this.SendAsync(HttpMethod.Put, $"v1/environments/{environmentId}", new { Name = name, Description = description, Color = color }, token);
-        this.Output.WriteSuccess();
-        this.Output.WriteLine();
+        public EnvironmentClient(IOutput output,
+            CliConfig config,
+            IBotPolicy<HttpResponseMessage> botPolicy,
+            HttpClient httpClient)
+            : base(output, config, botPolicy, httpClient)
+        { }
+
+        public Task<IEnumerable<EnvironmentModel>> GetEnvironmentsAsync(string productId, CancellationToken token) =>
+            this.GetAsync<IEnumerable<EnvironmentModel>>(HttpMethod.Get, $"v1/products/{productId}/environments", token);
+
+        public Task<EnvironmentModel> GetEnvironmentAsync(string environmentId, CancellationToken token) =>
+            this.GetAsync<EnvironmentModel>(HttpMethod.Get, $"v1/environments/{environmentId}", token);
+
+        public Task<EnvironmentModel> CreateEnvironmentAsync(string productId, string name, string description, string color, CancellationToken token) =>
+            this.SendAsync<EnvironmentModel>(HttpMethod.Post, $"v1/products/{productId}/environments", new { Name = name, Description = description, Color = color }, token);
+
+        public async Task DeleteEnvironmentAsync(string environmentId, CancellationToken token)
+        {
+            this.Output.Write($"Deleting Environment... ");
+            await this.SendAsync(HttpMethod.Delete, $"v1/environments/{environmentId}", null, token);
+            this.Output.WriteSuccess();
+            this.Output.WriteLine();
+        }
+
+        public async Task UpdateEnvironmentAsync(string environmentId, string name, string description, string color, CancellationToken token)
+        {
+            this.Output.Write($"Updating Environment... ");
+            await this.SendAsync(HttpMethod.Put, $"v1/environments/{environmentId}", new { Name = name, Description = description, Color = color }, token);
+            this.Output.WriteSuccess();
+            this.Output.WriteLine();
+        }
     }
 }

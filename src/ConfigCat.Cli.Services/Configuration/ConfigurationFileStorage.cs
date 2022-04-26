@@ -5,54 +5,55 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ConfigCat.Cli.Services.Configuration;
-
-public interface IConfigurationStorage
+namespace ConfigCat.Cli.Services.Configuration
 {
-    Task<CliConfig> ReadConfigOrDefaultAsync(CancellationToken cancellationToken);
-
-    Task WriteConfigAsync(CliConfig configuration, CancellationToken cancellationToken);
-}
-
-public class ConfigurationFileStorage : IConfigurationStorage
-{
-    private static readonly JsonSerializerOptions Options = new JsonSerializerOptions
+    public interface IConfigurationStorage
     {
-        WriteIndented = true,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-    };
+        Task<CliConfig> ReadConfigOrDefaultAsync(CancellationToken cancellationToken);
 
-    private readonly IOutput output;
-
-    public ConfigurationFileStorage(IOutput output)
-    {
-        this.output = output;
+        Task WriteConfigAsync(CliConfig configuration, CancellationToken cancellationToken);
     }
 
-    public async Task<CliConfig> ReadConfigOrDefaultAsync(CancellationToken cancellationToken)
+    public class ConfigurationFileStorage : IConfigurationStorage
     {
-        if(!File.Exists(Constants.ConfigFilePath))
-            return null;
-
-        var content = await File.ReadAllTextAsync(Constants.ConfigFilePath, cancellationToken);
-        var config = JsonSerializer.Deserialize<CliConfig>(content, Options);
-        this.output.Verbose($"Config loaded from '{Constants.ConfigFilePath}'");
-        return config;
-    }
-
-    public async Task WriteConfigAsync(CliConfig configuration, CancellationToken cancellationToken)
-    {
-        var directory = Path.GetDirectoryName(Constants.ConfigFilePath);
-        if (!Directory.Exists(directory))
+        private static readonly JsonSerializerOptions Options = new JsonSerializerOptions
         {
-            output.Verbose($"Directory '{directory}' not found, creating...");
-            Directory.CreateDirectory(directory);
+            WriteIndented = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
+
+        private readonly IOutput output;
+
+        public ConfigurationFileStorage(IOutput output)
+        {
+            this.output = output;
         }
 
-        var serialized = JsonSerializer.Serialize(configuration, Options);
+        public async Task<CliConfig> ReadConfigOrDefaultAsync(CancellationToken cancellationToken)
+        {
+            if (!File.Exists(Constants.ConfigFilePath))
+                return null;
 
-        this.output.Verbose($"Writing the configuration into '{Constants.ConfigFilePath}'");
-        using var spinner = output.CreateSpinner(cancellationToken);
-        await File.WriteAllTextAsync(Constants.ConfigFilePath, serialized, cancellationToken);
+            var content = await File.ReadAllTextAsync(Constants.ConfigFilePath, cancellationToken);
+            var config = JsonSerializer.Deserialize<CliConfig>(content, Options);
+            this.output.Verbose($"Config loaded from '{Constants.ConfigFilePath}'");
+            return config;
+        }
+
+        public async Task WriteConfigAsync(CliConfig configuration, CancellationToken cancellationToken)
+        {
+            var directory = Path.GetDirectoryName(Constants.ConfigFilePath);
+            if (!Directory.Exists(directory))
+            {
+                output.Verbose($"Directory '{directory}' not found, creating...");
+                Directory.CreateDirectory(directory);
+            }
+
+            var serialized = JsonSerializer.Serialize(configuration, Options);
+
+            this.output.Verbose($"Writing the configuration into '{Constants.ConfigFilePath}'");
+            using var spinner = output.CreateSpinner(cancellationToken);
+            await File.WriteAllTextAsync(Constants.ConfigFilePath, serialized, cancellationToken);
+        }
     }
 }

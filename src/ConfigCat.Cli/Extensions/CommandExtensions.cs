@@ -3,39 +3,40 @@ using Stashbox;
 using System.Collections.Generic;
 using System.CommandLine.Invocation;
 
-namespace System.CommandLine;
-
-public static class CommandExtensions
+namespace System.CommandLine
 {
-    public static void Configure(this Command command,
-        IEnumerable<CommandDescriptor> commandDescriptors,
-        IDependencyRegistrator registrator = null)
+    public static class CommandExtensions
     {
-        foreach (var commandDescriptor in commandDescriptors)
+        public static void Configure(this Command command,
+            IEnumerable<CommandDescriptor> commandDescriptors,
+            IDependencyRegistrator registrator = null)
         {
-            var subCommand = new Command(commandDescriptor.Name, commandDescriptor.Description);
-
-            foreach (var option in commandDescriptor.Options)
-                subCommand.AddOption(option);
-
-            foreach (var argument in commandDescriptor.Arguments)
-                subCommand.AddArgument(argument);
-
-            foreach (var alias in commandDescriptor.Aliases)
-                subCommand.AddAlias(alias);
-
-            subCommand.TreatUnmatchedTokensAsErrors = true;
-            subCommand.IsHidden = commandDescriptor.IsHidden;
-            subCommand.Configure(commandDescriptor.SubCommands, registrator);
-
-            if (commandDescriptor.Handler is not null && registrator is not null)
+            foreach (var commandDescriptor in commandDescriptors)
             {
-                registrator.Register(commandDescriptor.Handler.HandlerType);
-                registrator.RegisterInstance(commandDescriptor.Handler, subCommand.GetHashCode());
-                subCommand.Handler = CommandHandler.Create(commandDescriptor.Handler.Method);
-            }
+                var subCommand = new Command(commandDescriptor.Name, commandDescriptor.Description);
 
-            command.AddCommand(subCommand);
+                foreach (var option in commandDescriptor.Options)
+                    subCommand.AddOption(option);
+
+                foreach (var argument in commandDescriptor.Arguments)
+                    subCommand.AddArgument(argument);
+
+                foreach (var alias in commandDescriptor.Aliases)
+                    subCommand.AddAlias(alias);
+
+                subCommand.TreatUnmatchedTokensAsErrors = true;
+                subCommand.IsHidden = commandDescriptor.IsHidden;
+                subCommand.Configure(commandDescriptor.SubCommands, registrator);
+
+                if (commandDescriptor.Handler is not null && registrator is not null)
+                {
+                    registrator.Register(commandDescriptor.Handler.HandlerType);
+                    registrator.RegisterInstance(commandDescriptor.Handler, subCommand.GetHashCode());
+                    subCommand.Handler = CommandHandler.Create(commandDescriptor.Handler.Method);
+                }
+
+                command.AddCommand(subCommand);
+            }
         }
     }
 }

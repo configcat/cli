@@ -1,8 +1,9 @@
-﻿namespace ConfigCat.Cli.Models.Api;
-
-public class MeModel
+﻿namespace ConfigCat.Cli.Models.Api
 {
-    public string Email { get; set; }
+    public class MeModel
+    {
+        public string Email { get; set; }
 
-    public string FullName { get; set; }
+        public string FullName { get; set; }
+    }
 }

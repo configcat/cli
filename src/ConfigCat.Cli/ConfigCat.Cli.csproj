@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <LangVersion>preview</LangVersion>
+    <LangVersion>latest</LangVersion>
     <Product>ConfigCat CLI</Product>
     <Company>ConfigCat</Company>
     <Description>Command Line Interface for ConfigCat.</Description>

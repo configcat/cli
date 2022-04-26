@@ -7,52 +7,53 @@ using System.Threading;
 using System.Threading.Tasks;
 using Trybot;
 
-namespace ConfigCat.Cli.Services.Api;
-
-public interface IProductClient
+namespace ConfigCat.Cli.Services.Api
 {
-    Task<IEnumerable<ProductModel>> GetProductsAsync(CancellationToken token);
-
-    Task<ProductModel> GetProductAsync(string productId, CancellationToken token);
-
-    Task<ProductModel> CreateProductAsync(string organizationId, string name, string description, CancellationToken token);
-
-    Task UpdateProductAsync(string productId, string name, string description, CancellationToken token);
-
-    Task DeleteProductAsync(string productId, CancellationToken token);
-}
-
-public class ProductClient : ApiClient, IProductClient
-{
-    public ProductClient(IOutput output,
-        CliConfig config,
-        IBotPolicy<HttpResponseMessage> botPolicy,
-        HttpClient httpClient)
-        : base(output, config, botPolicy, httpClient)
-    { }
-
-    public Task<IEnumerable<ProductModel>> GetProductsAsync(CancellationToken token) =>
-        this.GetAsync<IEnumerable<ProductModel>>(HttpMethod.Get, "v1/products", token);
-
-    public Task<ProductModel> GetProductAsync(string productId, CancellationToken token) =>
-        this.GetAsync<ProductModel>(HttpMethod.Get, $"v1/products/{productId}", token);
-
-    public Task<ProductModel> CreateProductAsync(string organizationId, string name, string description, CancellationToken token) =>
-        this.SendAsync<ProductModel>(HttpMethod.Post, $"v1/organizations/{organizationId}/products", new { Name = name, Description = description }, token);
-
-    public async Task DeleteProductAsync(string productId, CancellationToken token)
+    public interface IProductClient
     {
-        this.Output.Write($"Deleting Product... ");
-        await this.SendAsync(HttpMethod.Delete, $"v1/products/{productId}", null, token);
-        this.Output.WriteSuccess();
-        this.Output.WriteLine();
+        Task<IEnumerable<ProductModel>> GetProductsAsync(CancellationToken token);
+
+        Task<ProductModel> GetProductAsync(string productId, CancellationToken token);
+
+        Task<ProductModel> CreateProductAsync(string organizationId, string name, string description, CancellationToken token);
+
+        Task UpdateProductAsync(string productId, string name, string description, CancellationToken token);
+
+        Task DeleteProductAsync(string productId, CancellationToken token);
     }
 
-    public async Task UpdateProductAsync(string productId, string name, string description, CancellationToken token)
+    public class ProductClient : ApiClient, IProductClient
     {
-        this.Output.Write($"Updating Product... ");
-        await this.SendAsync(HttpMethod.Put, $"v1/products/{productId}", new { Name = name, Description = description }, token);
-        this.Output.WriteSuccess();
-        this.Output.WriteLine();
+        public ProductClient(IOutput output,
+            CliConfig config,
+            IBotPolicy<HttpResponseMessage> botPolicy,
+            HttpClient httpClient)
+            : base(output, config, botPolicy, httpClient)
+        { }
+
+        public Task<IEnumerable<ProductModel>> GetProductsAsync(CancellationToken token) =>
+            this.GetAsync<IEnumerable<ProductModel>>(HttpMethod.Get, "v1/products", token);
+
+        public Task<ProductModel> GetProductAsync(string productId, CancellationToken token) =>
+            this.GetAsync<ProductModel>(HttpMethod.Get, $"v1/products/{productId}", token);
+
+        public Task<ProductModel> CreateProductAsync(string organizationId, string name, string description, CancellationToken token) =>
+            this.SendAsync<ProductModel>(HttpMethod.Post, $"v1/organizations/{organizationId}/products", new { Name = name, Description = description }, token);
+
+        public async Task DeleteProductAsync(string productId, CancellationToken token)
+        {
+            this.Output.Write($"Deleting Product... ");
+            await this.SendAsync(HttpMethod.Delete, $"v1/products/{productId}", null, token);
+            this.Output.WriteSuccess();
+            this.Output.WriteLine();
+        }
+
+        public async Task UpdateProductAsync(string productId, string name, string description, CancellationToken token)
+        {
+            this.Output.Write($"Updating Product... ");
+            await this.SendAsync(HttpMethod.Put, $"v1/products/{productId}", new { Name = name, Description = description }, token);
+            this.Output.WriteSuccess();
+            this.Output.WriteLine();
+        }
     }
 }

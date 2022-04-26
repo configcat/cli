@@ -1,12 +1,13 @@
-﻿namespace ConfigCat.Cli.Models.Api;
-
-public class ConfigModel
+﻿namespace ConfigCat.Cli.Models.Api
 {
-    public ProductModel Product { get; set; }
+    public class ConfigModel
+    {
+        public ProductModel Product { get; set; }
 
-    public string ConfigId { get; set; }
+        public string ConfigId { get; set; }
 
-    public string Name { get; set; }
+        public string Name { get; set; }
 
-    public string Description { get; set; }
+        public string Description { get; set; }
+    }
 }

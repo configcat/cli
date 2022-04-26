@@ -1,6 +1,7 @@
-namespace ConfigCat.Cli.Models.Configuration;
-
-public class CliConfig
+namespace ConfigCat.Cli.Models.Configuration
 {
-    public Auth Auth { get; set; }
+    public class CliConfig
+    {
+        public Auth Auth { get; set; }
+    }
 }

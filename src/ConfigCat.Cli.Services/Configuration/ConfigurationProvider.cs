@@ -5,55 +5,56 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ConfigCat.Cli.Services.Configuration;
-
-public interface IConfigurationProvider
+namespace ConfigCat.Cli.Services.Configuration
 {
-    Task<CliConfig> GetConfigAsync(CancellationToken cancellationToken);
-}
-
-public class ConfigurationProvider : IConfigurationProvider
-{
-    private readonly IOutput output;
-    private readonly IConfigurationStorage configurationStorage;
-
-    public ConfigurationProvider(IOutput output, IConfigurationStorage configurationStorage)
+    public interface IConfigurationProvider
     {
-        this.output = output;
-        this.configurationStorage = configurationStorage;
+        Task<CliConfig> GetConfigAsync(CancellationToken cancellationToken);
     }
 
-    public async Task<CliConfig> GetConfigAsync(CancellationToken cancellationToken)
+    public class ConfigurationProvider : IConfigurationProvider
     {
-        var host = Environment.GetEnvironmentVariable(Constants.ApiHostEnvironmentVariableName);
-        var user = Environment.GetEnvironmentVariable(Constants.ApiUserNameEnvironmentVariableName);
-        var pass = Environment.GetEnvironmentVariable(Constants.ApiPasswordEnvironmentVariableName);
+        private readonly IOutput output;
+        private readonly IConfigurationStorage configurationStorage;
 
-        var config = await this.configurationStorage.ReadConfigOrDefaultAsync(cancellationToken);
-
-        if ((pass is null && config?.Auth?.Password is null) ||
-            (user is null && config?.Auth?.UserName is null))
-            throw new ShowHelpException($"The CLI is not configured properly, please execute the `configcat setup` command, or set the {Constants.ApiUserNameEnvironmentVariableName} and {Constants.ApiPasswordEnvironmentVariableName} environment variables.");
-
-        var fromHost = host is not null ? $"(from env:{Constants.ApiHostEnvironmentVariableName})"
-            : config?.Auth?.ApiHost is not null
-                ? "(from config file)"
-                : "(default)";
-        var fromUser = user is not null ? $"(from env:{Constants.ApiUserNameEnvironmentVariableName})" : "(from config file)";
-        var fromPass = pass is not null ? $"(from env:{Constants.ApiPasswordEnvironmentVariableName})" : "(from config file)";
-
-        this.output.Verbose($"Host: {host ?? config?.Auth?.ApiHost ?? Constants.DefaultApiHost} {fromHost}");
-        this.output.Verbose($"Username: {user ?? config.Auth.UserName} {fromUser}");
-        this.output.Verbose($"Password: <masked> {fromPass}");
-
-        return new CliConfig
+        public ConfigurationProvider(IOutput output, IConfigurationStorage configurationStorage)
         {
-            Auth = new Auth
+            this.output = output;
+            this.configurationStorage = configurationStorage;
+        }
+
+        public async Task<CliConfig> GetConfigAsync(CancellationToken cancellationToken)
+        {
+            var host = Environment.GetEnvironmentVariable(Constants.ApiHostEnvironmentVariableName);
+            var user = Environment.GetEnvironmentVariable(Constants.ApiUserNameEnvironmentVariableName);
+            var pass = Environment.GetEnvironmentVariable(Constants.ApiPasswordEnvironmentVariableName);
+
+            var config = await this.configurationStorage.ReadConfigOrDefaultAsync(cancellationToken);
+
+            if ((pass is null && config?.Auth?.Password is null) ||
+                (user is null && config?.Auth?.UserName is null))
+                throw new ShowHelpException($"The CLI is not configured properly, please execute the `configcat setup` command, or set the {Constants.ApiUserNameEnvironmentVariableName} and {Constants.ApiPasswordEnvironmentVariableName} environment variables.");
+
+            var fromHost = host is not null ? $"(from env:{Constants.ApiHostEnvironmentVariableName})"
+                : config?.Auth?.ApiHost is not null
+                    ? "(from config file)"
+                    : "(default)";
+            var fromUser = user is not null ? $"(from env:{Constants.ApiUserNameEnvironmentVariableName})" : "(from config file)";
+            var fromPass = pass is not null ? $"(from env:{Constants.ApiPasswordEnvironmentVariableName})" : "(from config file)";
+
+            this.output.Verbose($"Host: {host ?? config?.Auth?.ApiHost ?? Constants.DefaultApiHost} {fromHost}");
+            this.output.Verbose($"Username: {user ?? config.Auth.UserName} {fromUser}");
+            this.output.Verbose($"Password: <masked> {fromPass}");
+
+            return new CliConfig
             {
-                ApiHost = host ?? config?.Auth?.ApiHost ?? Constants.DefaultApiHost,
-                Password = pass ?? config.Auth.Password,
-                UserName = user ?? config.Auth.UserName
-            }
-        };
+                Auth = new Auth
+                {
+                    ApiHost = host ?? config?.Auth?.ApiHost ?? Constants.DefaultApiHost,
+                    Password = pass ?? config.Auth.Password,
+                    UserName = user ?? config.Auth.UserName
+                }
+            };
+        }
     }
 }

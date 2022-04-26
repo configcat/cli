@@ -1,18 +1,19 @@
 ﻿using System;
 
-namespace ConfigCat.Cli.Services.Rendering;
-
-public class CursorHider : IDisposable
+namespace ConfigCat.Cli.Services.Rendering
 {
-    private readonly IOutput output;
-
-    public CursorHider(IOutput output)
+    public class CursorHider : IDisposable
     {
-        this.output = output;
-        output.HideCursor();
+        private readonly IOutput output;
+
+        public CursorHider(IOutput output)
+        {
+            this.output = output;
+            output.HideCursor();
+        }
+
+        public void ShowCursor() => this.output?.ShowCursor();
+
+        public void Dispose() => this.ShowCursor();
     }
-
-    public void ShowCursor() => this.output?.ShowCursor();
-
-    public void Dispose() => this.ShowCursor();
 }

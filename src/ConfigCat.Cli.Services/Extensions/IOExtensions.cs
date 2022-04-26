@@ -3,27 +3,28 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace System.IO;
-
-public static class FileSystemExtensions
+namespace System.IO
 {
-    public static bool IsIgnoreFile(this FileInfo info) => IgnoreFile.IgnoreFileNames.Contains(info.Name);
-
-    public static async Task<bool> IsBinaryAsync(this FileStream stream, CancellationToken token)
+    public static class FileSystemExtensions
     {
-        const int readLimit = 8000;
+        public static bool IsIgnoreFile(this FileInfo info) => IgnoreFile.IgnoreFileNames.Contains(info.Name);
 
-        var readBuffer = new byte[readLimit];
-        var readBytes = await stream.ReadAsync(readBuffer, token);
-
-        while (readBytes-- > 0)
+        public static async Task<bool> IsBinaryAsync(this FileStream stream, CancellationToken token)
         {
-            if (readBuffer[readBytes] != char.MinValue) continue;
-            stream.Seek(0, SeekOrigin.Begin);
-            return true;
-        }
+            const int readLimit = 8000;
 
-        stream.Seek(0, SeekOrigin.Begin);
-        return false;
+            var readBuffer = new byte[readLimit];
+            var readBytes = await stream.ReadAsync(readBuffer, token);
+
+            while (readBytes-- > 0)
+            {
+                if (readBuffer[readBytes] != char.MinValue) continue;
+                stream.Seek(0, SeekOrigin.Begin);
+                return true;
+            }
+
+            stream.Seek(0, SeekOrigin.Begin);
+            return false;
+        }
     }
 }

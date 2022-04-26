@@ -1,8 +1,9 @@
-﻿namespace ConfigCat.Cli.Models;
-
-public class CliOptions
+﻿namespace ConfigCat.Cli.Models
 {
-    public bool IsVerboseEnabled { get; set; }
+    public class CliOptions
+    {
+        public bool IsVerboseEnabled { get; set; }
 
-    public bool IsNonInteractive { get; set; }
+        public bool IsNonInteractive { get; set; }
+    }
 }

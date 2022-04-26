@@ -7,86 +7,87 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ConfigCat.Cli.Commands;
-
-internal class ListAll
+namespace ConfigCat.Cli.Commands
 {
-    private readonly IProductClient productClient;
-    private readonly IConfigClient configClient;
-    private readonly IEnvironmentClient environmentClient;
-    private readonly IOutput output;
-
-    public ListAll(IProductClient productClient,
-        IConfigClient configClient,
-        IEnvironmentClient environmentClient,
-        IOutput output)
+    internal class ListAll
     {
-        this.productClient = productClient;
-        this.configClient = configClient;
-        this.environmentClient = environmentClient;
-        this.output = output;
-    }
+        private readonly IProductClient productClient;
+        private readonly IConfigClient configClient;
+        private readonly IEnvironmentClient environmentClient;
+        private readonly IOutput output;
 
-    public async Task<int> InvokeAsync(bool json, CancellationToken token)
-    {
-            
-        var products = await this.productClient.GetProductsAsync(token);
-
-        if (json)
+        public ListAll(IProductClient productClient,
+            IConfigClient configClient,
+            IEnvironmentClient environmentClient,
+            IOutput output)
         {
-            var jsonOutput = new List<ProductJsonOutput>();
+            this.productClient = productClient;
+            this.configClient = configClient;
+            this.environmentClient = environmentClient;
+            this.output = output;
+        }
+
+        public async Task<int> InvokeAsync(bool json, CancellationToken token)
+        {
+
+            var products = await this.productClient.GetProductsAsync(token);
+
+            if (json)
+            {
+                var jsonOutput = new List<ProductJsonOutput>();
+                foreach (var product in products)
+                {
+                    var configs = await this.configClient.GetConfigsAsync(product.ProductId, token);
+                    var environments = await this.environmentClient.GetEnvironmentsAsync(product.ProductId, token);
+                    jsonOutput.Add(new ProductJsonOutput
+                    {
+                        Configs = configs,
+                        Environments = environments,
+                        Name = product.Name,
+                        ProductId = product.ProductId,
+                        Organization = product.Organization
+                    });
+                }
+
+                this.output.RenderJson(jsonOutput);
+                return ExitCodes.Ok;
+            }
+
+            var items = new List<ConfigEnvironment>();
             foreach (var product in products)
             {
                 var configs = await this.configClient.GetConfigsAsync(product.ProductId, token);
                 var environments = await this.environmentClient.GetEnvironmentsAsync(product.ProductId, token);
-                jsonOutput.Add(new ProductJsonOutput
-                {
-                    Configs = configs,
-                    Environments = environments,
-                    Name = product.Name,
-                    ProductId = product.ProductId,
-                    Organization = product.Organization
-                });
+
+                items.AddRange(from config in configs
+                               from environment in environments
+                               select new ConfigEnvironment { Config = config, Environment = environment });
             }
 
-            this.output.RenderJson(jsonOutput);
+            var itemsToRender = items.Select(p => new
+            {
+                Organization = $"{p.Config.Product.Organization.OrganizationId} ({p.Config.Product.Organization.Name})",
+                Product = $"{p.Config.Product.ProductId} ({p.Config.Product.Name})",
+                Config = $"{p.Config.ConfigId} ({p.Config.Name})",
+                Environment = $"{p.Environment.EnvironmentId} ({p.Environment.Name})",
+            });
+            this.output.RenderTable(itemsToRender);
+
             return ExitCodes.Ok;
         }
 
-        var items = new List<ConfigEnvironment>();
-        foreach (var product in products)
+        private class ConfigEnvironment
         {
-            var configs = await this.configClient.GetConfigsAsync(product.ProductId, token);
-            var environments = await this.environmentClient.GetEnvironmentsAsync(product.ProductId, token);
+            public ConfigModel Config { get; set; }
 
-            items.AddRange(from config in configs 
-                from environment in environments 
-                select new ConfigEnvironment { Config = config, Environment = environment });
+            public EnvironmentModel Environment { get; set; }
         }
 
-        var itemsToRender = items.Select(p => new
+        private class ProductJsonOutput : ProductModel
         {
-            Organization = $"{p.Config.Product.Organization.OrganizationId} ({p.Config.Product.Organization.Name})",
-            Product = $"{p.Config.Product.ProductId} ({p.Config.Product.Name})",
-            Config = $"{p.Config.ConfigId} ({p.Config.Name})",
-            Environment = $"{p.Environment.EnvironmentId} ({p.Environment.Name})",
-        });
-        this.output.RenderTable(itemsToRender);
+            public IEnumerable<EnvironmentModel> Environments { get; set; }
 
-        return ExitCodes.Ok;
-    }
-
-    private class ConfigEnvironment
-    {
-        public ConfigModel Config { get; set; }
-
-        public EnvironmentModel Environment { get; set; }
-    }
-
-    private class ProductJsonOutput : ProductModel
-    {
-        public IEnumerable<EnvironmentModel> Environments { get; set; }
-
-        public IEnumerable<ConfigModel> Configs { get; set; }
+            public IEnumerable<ConfigModel> Configs { get; set; }
+        }
     }
 }

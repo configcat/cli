@@ -1,20 +1,21 @@
 ﻿using System;
 using System.Net;
 
-namespace ConfigCat.Cli.Services.Exceptions;
-
-public class HttpStatusException : Exception
+namespace ConfigCat.Cli.Services.Exceptions
 {
-    public HttpStatusException(HttpStatusCode statusCode, 
-        string reason,
-        string message = null, 
-        Exception innerException = null) : base(message, innerException)
+    public class HttpStatusException : Exception
     {
-        this.StatusCode = statusCode;
-        this.ReasonPhrase = reason;
+        public HttpStatusException(HttpStatusCode statusCode,
+            string reason,
+            string message = null,
+            Exception innerException = null) : base(message, innerException)
+        {
+            this.StatusCode = statusCode;
+            this.ReasonPhrase = reason;
+        }
+
+        public HttpStatusCode StatusCode { get; }
+
+        public string ReasonPhrase { get; }
     }
-
-    public HttpStatusCode StatusCode { get; }
-
-    public string ReasonPhrase { get; }
 }

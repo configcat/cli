@@ -1,22 +1,23 @@
-﻿namespace ConfigCat.Cli.Models.Api;
-
-public class TagModel
+﻿namespace ConfigCat.Cli.Models.Api
 {
-    public ProductModel Product { get; set; }
-
-    public int TagId { get; set; }
-
-    public string Name { get; set; }
-
-    public string Color { get; set; }
-
-    public override bool Equals(object obj)
+    public class TagModel
     {
-        if(obj is not TagModel model)
-            return false;
+        public ProductModel Product { get; set; }
 
-        return this.TagId.Equals(model.TagId);
+        public int TagId { get; set; }
+
+        public string Name { get; set; }
+
+        public string Color { get; set; }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is not TagModel model)
+                return false;
+
+            return this.TagId.Equals(model.TagId);
+        }
+
+        public override int GetHashCode() => this.TagId.GetHashCode();
     }
-
-    public override int GetHashCode() => this.TagId.GetHashCode();
 }

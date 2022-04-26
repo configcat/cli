@@ -6,60 +6,61 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ConfigCat.Cli.Services.FileSystem;
-
-public interface IFileCollector
+namespace ConfigCat.Cli.Services.FileSystem
 {
-    Task<IEnumerable<FileInfo>> CollectAsync(DirectoryInfo rootDirectory, CancellationToken token);
-}
-
-public class FileCollector : IFileCollector
-{
-    private readonly IOutput output;
-
-    public FileCollector(IOutput output)
+    public interface IFileCollector
     {
-        this.output = output;
+        Task<IEnumerable<FileInfo>> CollectAsync(DirectoryInfo rootDirectory, CancellationToken token);
     }
 
-    public async Task<IEnumerable<FileInfo>> CollectAsync(DirectoryInfo rootDirectory, CancellationToken token)
+    public class FileCollector : IFileCollector
     {
-        using var spinner = this.output.CreateSpinner(token);
+        private readonly IOutput output;
 
-        var files = rootDirectory.GetFiles("*", new EnumerationOptions
+        public FileCollector(IOutput output)
         {
-            RecurseSubdirectories = true,
-            IgnoreInaccessible = true,
-            AttributesToSkip = FileAttributes.System
-        });
-        var ignoreFiles = files.Where(f => f.IsIgnoreFile()).ToArray();
-        var filesToReturn = files.Except(ignoreFiles);
-        var ignores = ignoreFiles
-            .Select(ignoreFile => new IgnoreFile(ignoreFile, rootDirectory))
-            .Cast<IgnorePolicy>()
-            .ToList();
-
-        ignores.Add(new GlobalIgnorePolicy(rootDirectory, "**/.git/**"));
-
-        foreach (var ignore in ignores)
-        {
-            if (ignore is not IgnoreFile ignoreFile) continue;
-            output.Verbose($"Using ignore file {ignoreFile.File.FullName}");
-            await ignoreFile.LoadIgnoreFileAsync(token);
+            this.output = output;
         }
 
-        return filesToReturn.Where(f =>
+        public async Task<IEnumerable<FileInfo>> CollectAsync(DirectoryInfo rootDirectory, CancellationToken token)
         {
-            foreach (var ignore in ignores.Where(i => i.Handles(f)).OrderByDescending(i => i.Rank))
-            {
-                if (ignore.IsAccepting(f))
-                    return true;
+            using var spinner = this.output.CreateSpinner(token);
 
-                if (ignore.IsIgnoring(f))
-                    return false;
+            var files = rootDirectory.GetFiles("*", new EnumerationOptions
+            {
+                RecurseSubdirectories = true,
+                IgnoreInaccessible = true,
+                AttributesToSkip = FileAttributes.System
+            });
+            var ignoreFiles = files.Where(f => f.IsIgnoreFile()).ToArray();
+            var filesToReturn = files.Except(ignoreFiles);
+            var ignores = ignoreFiles
+                .Select(ignoreFile => new IgnoreFile(ignoreFile, rootDirectory))
+                .Cast<IgnorePolicy>()
+                .ToList();
+
+            ignores.Add(new GlobalIgnorePolicy(rootDirectory, "**/.git/**"));
+
+            foreach (var ignore in ignores)
+            {
+                if (ignore is not IgnoreFile ignoreFile) continue;
+                output.Verbose($"Using ignore file {ignoreFile.File.FullName}");
+                await ignoreFile.LoadIgnoreFileAsync(token);
             }
 
-            return true;
-        });
+            return filesToReturn.Where(f =>
+            {
+                foreach (var ignore in ignores.Where(i => i.Handles(f)).OrderByDescending(i => i.Rank))
+                {
+                    if (ignore.IsAccepting(f))
+                        return true;
+
+                    if (ignore.IsIgnoring(f))
+                        return false;
+                }
+
+                return true;
+            });
+        }
     }
 }

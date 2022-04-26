@@ -1,13 +1,13 @@
 using System.Collections.Generic;
 
-namespace ConfigCat.Cli.Models.Api;
-
-public class PermissionGroupModel
+namespace ConfigCat.Cli.Models.Api
 {
+    public class PermissionGroupModel
+    {
         public long PermissionGroupId { get; set; }
         public string Name { get; set; }
         public bool CanManageMembers { get; set; } = true;
-        public bool CanCreateOrUpdateConfig { get; set; } = true; 
+        public bool CanCreateOrUpdateConfig { get; set; } = true;
         public bool CanDeleteConfig { get; set; } = true;
         public bool CanCreateOrUpdateEnvironment { get; set; } = true;
         public bool CanDeleteEnvironment { get; set; } = true;
@@ -31,17 +31,17 @@ public class PermissionGroupModel
         public List<EnvironmentAccessModel> EnvironmentAccesses { get; set; } = new();
 
         public ProductModel Product { get; set; }
-}
+    }
 
-public class EnvironmentAccessModel
-{
+    public class EnvironmentAccessModel
+    {
         public string EnvironmentId { get; set; }
         public string Name { get; set; }
         public string EnvironmentAccessType { get; set; }
-}
+    }
 
-public class UpdatePermissionGroupModel
-{
+    public class UpdatePermissionGroupModel
+    {
         public long PermissionGroupId { get; set; }
         public string Name { get; set; }
         public bool? CanManageMembers { get; set; }
@@ -72,4 +72,5 @@ public class UpdatePermissionGroupModel
             this.CanUseExportImport != null || this.CanManageProductPreferences != null || this.CanManageIntegrations != null ||
             this.CanViewSdkKey != null || this.CanRotateSdkKey != null || this.CanViewProductStatistics != null ||
             this.CanViewProductAuditLog != null || this.CanCreateOrUpdateSegments != null || this.CanDeleteSegments != null;
+    }
 }
