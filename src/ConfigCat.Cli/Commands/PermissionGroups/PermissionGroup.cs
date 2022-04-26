@@ -67,7 +67,7 @@ internal class PermissionGroup
     {
         if (productId.IsEmpty())
             productId = (await this.workspaceLoader.LoadProductAsync(token)).ProductId;
-        
+
         if (model.Name.IsEmpty())
             model.Name = await this.prompt.GetStringAsync("Name", token);
 
@@ -79,9 +79,10 @@ internal class PermissionGroup
             var permissions = await this.prompt.ChooseMultipleFromListAsync("Select permissions", Constants.Permissions, s => s, token,
                 initial.ToSelectedPermissions().ToList());
 
-            initial.UpdateFromSelectedPermissions(permissions);
+            if (permissions != null)
+                initial.UpdateFromSelectedPermissions(permissions);
         }
-        
+
         var result = await this.permissionGroupClient.CreatePermissionGroupAsync(productId, initial, token);
         this.output.Write(result.PermissionGroupId.ToString());
         return ExitCodes.Ok;
@@ -89,8 +90,7 @@ internal class PermissionGroup
 
     public async Task<int> DeletePermissionGroupAsync(long? permissionGroupId, CancellationToken token)
     {
-        if (permissionGroupId == null)
-            permissionGroupId = (await this.workspaceLoader.LoadPermissionGroupAsync(token)).PermissionGroupId;
+        permissionGroupId ??= (await this.workspaceLoader.LoadPermissionGroupAsync(token)).PermissionGroupId;
 
         await this.permissionGroupClient.DeletePermissionGroupAsync(permissionGroupId.Value, token);
         return ExitCodes.Ok;
@@ -106,19 +106,20 @@ internal class PermissionGroup
             model.Name = await this.prompt.GetStringAsync("Name", token, permissionGroup.Name);
 
         permissionGroup.UpdateFromUpdateModel(model);
-        
+
         if (!model.IsAnyPermissionSet())
         {
             var permissions = await this.prompt.ChooseMultipleFromListAsync("Select permissions", Constants.Permissions, s => s, token,
                 permissionGroup.ToSelectedPermissions().ToList());
-            
-            permissionGroup.UpdateFromSelectedPermissions(permissions);
+
+            if (permissions != null)
+                permissionGroup.UpdateFromSelectedPermissions(permissions);
         }
-        
+
         await this.permissionGroupClient.UpdatePermissionGroupAsync(permissionGroup.PermissionGroupId, permissionGroup, token);
         return ExitCodes.Ok;
     }
-    
+
     public async Task<int> ShowPermissionGroupAsync(long? permissionGroupId, bool json, CancellationToken token)
     {
         var permissionGroup = permissionGroupId == null
@@ -147,7 +148,7 @@ internal class PermissionGroup
                 .Write(" ")
                 .Write(permission);
         }
-        
+
         this.output.WriteLine()
             .WriteDarkGray($"| ");
 
@@ -156,7 +157,7 @@ internal class PermissionGroup
             .WriteDarkGray($"| ")
             .WriteCyan(accessTypeName)
             .Write(" access in all environments");
-        
+
         var newEnvAccessTypeName = Constants.EnvironmentAccessTypes.GetValueOrDefault(permissionGroup.NewEnvironmentAccessType) ?? permissionGroup.NewEnvironmentAccessType.ToUpperInvariant();
         this.output.WriteLine()
             .WriteDarkGray($"| ")
@@ -179,7 +180,7 @@ internal class PermissionGroup
                     .WriteMagenta(environmentAccess.Name);
             }
         }
-        
+
         this.output.WriteLine()
             .WriteDarkGray(new string('-', separatorLength))
             .WriteLine();

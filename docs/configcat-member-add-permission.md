@@ -9,9 +9,9 @@ configcat [options] member add-permission
 ## Options
 | Option | Description |
 | ------ | ----------- |
-| `--organization-id`, `-i` | ID of the Organization |
-| `--user-id`, `-u` | ID of the Member to add |
-| `--permission-group-ids`, `-p` | Permission Group IDs the Member must be put into |
+| `--organization-id`, `-o` | ID of the Organization |
+| `--user-id`, `-i` | ID of the Member to add |
+| `--permission-group-ids`, `-pgi` | Permission Group IDs the Member must be put into |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |
 | `--non-interactive`, `-ni` | Turn off progress rendering and interactive features |
 | `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |

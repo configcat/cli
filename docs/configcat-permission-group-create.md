@@ -9,8 +9,8 @@ configcat [options] permission-group create
 ## Options
 | Option | Description |
 | ------ | ----------- |
-| `--product-id`, `-p` | ID of the Product where the Config must be created |
-| `--name`, `-n` | Name of the new Config |
+| `--product-id`, `-p` | ID of the Product where the Permission Group must be created |
+| `--name`, `-n` | Name of the new Permission Group |
 | `--can-manage-members` | Manage Members and Permission Groups |
 | `--can-create-or-update-config` | Create, edit, and reorder Configs |
 | `--can-delete-config` | Delete Configs |

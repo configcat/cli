@@ -7,7 +7,7 @@ configcat [options] member lso
 ## Options
 | Option | Description |
 | ------ | ----------- |
-| `--organization-id`, `-i` | Show only an Organization's Members |
+| `--organization-id`, `-o` | Show only an Organization's Members |
 | `--json` | Format the output in JSON |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |
 | `--non-interactive`, `-ni` | Turn off progress rendering and interactive features |

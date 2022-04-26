@@ -9,9 +9,9 @@ configcat [options] member rm-permission
 ## Options
 | Option | Description |
 | ------ | ----------- |
-| `--organization-id`, `-i` | ID of the Organization |
-| `--user-id`, `-u` | ID of the Member to remove |
-| `--permission-group-ids`, `-p` | Permission Group IDs the Member must be removed from |
+| `--organization-id`, `-o` | ID of the Organization |
+| `--user-id`, `-i` | ID of the Member to remove |
+| `--permission-group-ids`, `-pgi` | Permission Group IDs the Member must be removed from |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |
 | `--non-interactive`, `-ni` | Turn off progress rendering and interactive features |
 | `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |

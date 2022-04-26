@@ -9,7 +9,7 @@ configcat [options] permission-group update
 ## Options
 | Option | Description |
 | ------ | ----------- |
-| `--permission-group-id`, `-i` | ID of the Config to update |
+| `--permission-group-id`, `-i` | ID of the Permission Group to update |
 | `--name`, `-n` | The updated name |
 | `--can-manage-members` | Manage Members and Permission Groups |
 | `--can-create-or-update-config` | Create, edit, and reorder Configs |

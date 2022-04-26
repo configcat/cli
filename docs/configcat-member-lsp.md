@@ -7,7 +7,7 @@ configcat [options] member lsp
 ## Options
 | Option | Description |
 | ------ | ----------- |
-| `--product-id`, `-i` | Show only a Product's Members |
+| `--product-id`, `-p` | Show only a Product's Members |
 | `--json` | Format the output in JSON |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |
 | `--non-interactive`, `-ni` | Turn off progress rendering and interactive features |

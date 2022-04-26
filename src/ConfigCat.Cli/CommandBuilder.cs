@@ -128,7 +128,7 @@ public static class CommandBuilder
                     Handler = CreateHandler<Member>(nameof(Member.ListOrganizationMembersAsync)),
                     Options = new Option[]
                     {
-                        new Option<string>(new[] { "--organization-id", "-i" }, "Show only an Organization's Members"),
+                        new Option<string>(new[] { "--organization-id", "-o" }, "Show only an Organization's Members"),
                         new Option<bool>(new[] { "--json" }, "Format the output in JSON"),
                     }
                 },
@@ -137,7 +137,7 @@ public static class CommandBuilder
                     Handler = CreateHandler<Member>(nameof(Member.ListProductMembersAsync)),
                     Options = new Option[]
                     {
-                        new Option<string>(new[] { "--product-id", "-i" }, "Show only a Product's Members"),
+                        new Option<string>(new[] { "--product-id", "-p" }, "Show only a Product's Members"),
                         new Option<bool>(new[] { "--json" }, "Format the output in JSON"),
                     }
                 },
@@ -146,8 +146,8 @@ public static class CommandBuilder
                     Handler = CreateHandler<Member>(nameof(Member.RemoveMemberFromOrganizationAsync)),
                     Options = new Option[]
                     {
-                        new Option<string>(new[] { "--organization-id", "-i" }, "The Organization's ID from where the Member must be removed"),
-                        new Option<bool>(new[] { "--user-id", "-u" }, "ID of the Member to remove"),
+                        new Option<string>(new[] { "--organization-id", "-o" }, "The Organization's ID from where the Member must be removed"),
+                        new Option<string>(new[] { "--user-id", "-i" }, "ID of the Member to remove"),
                     }
                 },
 
@@ -161,8 +161,8 @@ public static class CommandBuilder
                     },
                     Options = new Option[]
                     {
-                        new Option<string>(new[] { "--product-id", "-i" }, "The Product's ID to where the Members will be invited"),
-                        new Option<long?>(new[] { "--permission-group-id", "-p" }, "The Permission Group's ID to where the invited Members will join"),
+                        new Option<string>(new[] { "--product-id", "-p" }, "The Product's ID to where the Members will be invited"),
+                        new Option<long?>(new[] { "--permission-group-id", "-pgi" }, "The Permission Group's ID to where the invited Members will join"),
                     }
                 },
                 new CommandDescriptor("add-permission", "Add Member to Permission Groups")
@@ -171,9 +171,9 @@ public static class CommandBuilder
                     Handler = CreateHandler<Member>(nameof(Member.AddPermissionsAsync)),
                     Options = new Option[]
                     {
-                        new Option<string>(new[] { "--organization-id", "-i" }, "ID of the Organization"),
-                        new Option<bool>(new[] { "--user-id", "-u" }, "ID of the Member to add"),
-                        new Option<long[]>(new[] { "--permission-group-ids", "-p" }, "Permission Group IDs the Member must be put into"),
+                        new Option<string>(new[] { "--organization-id", "-o" }, "ID of the Organization"),
+                        new Option<string>(new[] { "--user-id", "-i" }, "ID of the Member to add"),
+                        new Option<long[]>(new[] { "--permission-group-ids", "-pgi" }, "Permission Group IDs the Member must be put into"),
                     }
                 },
                 new CommandDescriptor("rm-permission", "Remove Member from Permission Groups")
@@ -182,9 +182,9 @@ public static class CommandBuilder
                     Handler = CreateHandler<Member>(nameof(Member.RemovePermissionsAsync)),
                     Options = new Option[]
                     {
-                        new Option<string>(new[] { "--organization-id", "-i" }, "ID of the Organization"),
-                        new Option<bool>(new[] { "--user-id", "-u" }, "ID of the Member to remove"),
-                        new Option<long[]>(new[] { "--permission-group-ids", "-p" }, "Permission Group IDs the Member must be removed from"),
+                        new Option<string>(new[] { "--organization-id", "-o" }, "ID of the Organization"),
+                        new Option<string>(new[] { "--user-id", "-i" }, "ID of the Member to remove"),
+                        new Option<long[]>(new[] { "--permission-group-ids", "-pgi" }, "Permission Group IDs the Member must be removed from"),
                     }
                 },
             },
@@ -260,8 +260,8 @@ public static class CommandBuilder
                     Handler = CreateHandler<PermissionGroup>(nameof(PermissionGroup.CreatePermissionGroupAsync)),
                     Options = new Option[]
                     {
-                        new Option<string>(new[] { "--product-id", "-p" }, "ID of the Product where the Config must be created"),
-                        new Option<string>(new[] { "--name", "-n" }, "Name of the new Config"),
+                        new Option<string>(new[] { "--product-id", "-p" }, "ID of the Product where the Permission Group must be created"),
+                        new Option<string>(new[] { "--name", "-n" }, "Name of the new Permission Group"),
                         new Option<bool>(new[] { "--can-manage-members" }, Constants.Permissions[0]),
                         new Option<bool>(new[] { "--can-create-or-update-config" }, Constants.Permissions[1]),
                         new Option<bool>(new[] { "--can-delete-config" }, Constants.Permissions[2]),
@@ -298,7 +298,7 @@ public static class CommandBuilder
                     Handler = CreateHandler<PermissionGroup>(nameof(PermissionGroup.UpdatePermissionGroupAsync)),
                     Options = new Option[]
                     {
-                        new Option<long?>(new[] { "--permission-group-id", "-i" }, "ID of the Config to update"),
+                        new Option<long?>(new[] { "--permission-group-id", "-i" }, "ID of the Permission Group to update"),
                         new Option<string>(new[] { "--name", "-n" }, "The updated name"),
                         new Option<bool?>(new[] { "--can-manage-members" }, Constants.Permissions[0]),
                         new Option<bool?>(new[] { "--can-create-or-update-config" }, Constants.Permissions[1]),

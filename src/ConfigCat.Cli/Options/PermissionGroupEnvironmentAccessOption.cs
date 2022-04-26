@@ -7,7 +7,7 @@ namespace ConfigCat.Cli.Options;
 
 internal sealed class PermissionGroupEnvironmentAccessOption : Option<EnvironmentSpecificAccess[]>
 {
-    public PermissionGroupEnvironmentAccessOption() : base(new string[] { "--environment-specific-access-types", "-esat" }, argumentResult =>
+    public PermissionGroupEnvironmentAccessOption() : base(new[] { "--environment-specific-access-types", "-esat" }, argumentResult =>
     {
         var length = argumentResult.Tokens.Count;
         if (length == 0)
@@ -27,7 +27,7 @@ internal sealed class PermissionGroupEnvironmentAccessOption : Option<Environmen
             var environmentId = value[..indexOfSeparator];
             var accessType = value[(indexOfSeparator + 1)..];
 
-            if (!Guid.TryParse(environmentId, out var parsedEnvironmentId))
+            if (!Guid.TryParse(environmentId, out _))
             {
                 argumentResult.ErrorMessage = $"The <environment-id> part of the expression `{value}` is not a valid GUID.";
                 return null;

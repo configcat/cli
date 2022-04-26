@@ -7,8 +7,8 @@ configcat [options] member rm
 ## Options
 | Option | Description |
 | ------ | ----------- |
-| `--organization-id`, `-i` | The Organization's ID from where the Member must be removed |
-| `--user-id`, `-u` | ID of the Member to remove |
+| `--organization-id`, `-o` | The Organization's ID from where the Member must be removed |
+| `--user-id`, `-i` | ID of the Member to remove |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |
 | `--non-interactive`, `-ni` | Turn off progress rendering and interactive features |
 | `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |

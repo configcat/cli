@@ -9,8 +9,8 @@ configcat [options] member invite [<emails>...]
 ## Options
 | Option | Description |
 | ------ | ----------- |
-| `--product-id`, `-i` | The Product's ID to where the Members will be invited |
-| `--permission-group-id`, `-p` | The Permission Group's ID to where the invited Members will join |
+| `--product-id`, `-p` | The Product's ID to where the Members will be invited |
+| `--permission-group-id`, `-pgi` | The Permission Group's ID to where the invited Members will join |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |
 | `--non-interactive`, `-ni` | Turn off progress rendering and interactive features |
 | `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |
