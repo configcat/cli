@@ -55,14 +55,6 @@ namespace ConfigCat.Cli.Services.Api
             this.Output.WriteLine();
         }
 
-        public async Task InviteMembersAsync(string productId, string userId, CancellationToken token)
-        {
-            this.Output.Write($"Removing Member... ");
-            await this.SendAsync(HttpMethod.Delete, $"v1/products/{productId}/members/{userId}", null, token);
-            this.Output.WriteSuccess();
-            this.Output.WriteLine();
-        }
-
         public async Task InviteMemberAsync(string productId, InviteMemberModel model, CancellationToken token)
         {
             this.Output.Write($"Inviting Member(s)... ");
