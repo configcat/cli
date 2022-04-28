@@ -17,7 +17,7 @@ namespace ConfigCat.Cli.Commands
         private readonly IOutput output;
         private readonly CliConfig cliConfig;
 
-        public Setup(IPrompt prompt, 
+        public Setup(IPrompt prompt,
             IMeClient meClient,
             IConfigurationStorage configurationStorage,
             IOutput output,

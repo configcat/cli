@@ -15,13 +15,13 @@ namespace ConfigCat.Cli.Services.Rendering
         private readonly int left;
         private readonly bool isVerboseEnabled;
 
-        private static string[] SpinnerFragments = new[]
+        private static readonly string[] SpinnerFragments =
         {
-            "/",
-            "-",
-            "\\",
-            "|",
-        };
+        "/",
+        "-",
+        "\\",
+        "|",
+    };
 
         public Spinner(CancellationToken token, IOutput output, bool isVerboseEnabled, bool isNonInteractive)
         {
@@ -56,7 +56,7 @@ namespace ConfigCat.Cli.Services.Rendering
             this.isVerboseEnabled = isVerboseEnabled;
         }
 
-        public void Stop()
+        private void Stop()
         {
             if (this.output is null || this.isVerboseEnabled)
                 return;

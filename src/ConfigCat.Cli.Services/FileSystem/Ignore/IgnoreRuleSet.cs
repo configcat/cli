@@ -18,7 +18,7 @@ namespace ConfigCat.Cli.Services.FileSystem.Ignore
 
             pattern = pattern.Replace(@"\ ", " ");
 
-            if(pattern.StartsWith('/') && !pattern.EndsWith("/**"))
+            if (pattern.StartsWith('/') && !pattern.EndsWith("/**"))
                 this.rules.Add(Glob.Parse($"{pattern}{(pattern.EndsWith('/') ? "**" : "/**")}".Trim()));
 
             this.rules.Add(Glob.Parse(pattern.Trim()));

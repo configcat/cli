@@ -200,7 +200,7 @@ namespace ConfigCat.Cli.Commands.Flags
         {
             var value = await this.flagValueClient.GetValueAsync(settingId, environmentId, token);
 
-            if(value.TargetingRules.Count == 0)
+            if (value.TargetingRules.Count == 0)
                 throw new Exception("No rules found in the selected environment.");
 
             foreach (var rule in value.TargetingRules.Where(rule => !rule.SegmentId.IsEmpty()))
@@ -210,11 +210,11 @@ namespace ConfigCat.Cli.Commands.Flags
 
             var existing = positionFromInput switch
             {
-                null => await this.prompt.ChooseFromListAsync(label, value.TargetingRules, r => r.Segment switch 
-                    {
-                        null => $"When {r.ComparisonAttribute} {Constants.ComparatorTypes.GetValueOrDefault(r.Comparator) ?? r.Comparator.ToUpperInvariant()} {r.ComparisonValue} then {r.Value}",
-                        _ => $"When {Constants.SegmentComparatorTypes.GetValueOrDefault(r.SegmentComparator) ?? r.SegmentComparator.ToUpperInvariant()} {r.Segment.Name} then {r.Value}"
-                    }, token),
+                null => await this.prompt.ChooseFromListAsync(label, value.TargetingRules, r => r.Segment switch
+                {
+                    null => $"When {r.ComparisonAttribute} {Constants.ComparatorTypes.GetValueOrDefault(r.Comparator) ?? r.Comparator.ToUpperInvariant()} {r.ComparisonValue} then {r.Value}",
+                    _ => $"When {Constants.SegmentComparatorTypes.GetValueOrDefault(r.SegmentComparator) ?? r.SegmentComparator.ToUpperInvariant()} {r.Segment.Name} then {r.Value}"
+                }, token),
                 _ => value.TargetingRules.ElementAtOrDefault(positionFromInput.Value - 1)
             };
 

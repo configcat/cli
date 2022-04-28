@@ -85,7 +85,7 @@ namespace ConfigCat.Cli.Services.Rendering
             CancellationToken token,
             TItem selectedValue = default)
         {
-            if (token.IsCancellationRequested || 
+            if (token.IsCancellationRequested ||
                 this.output.IsOutputRedirected ||
                 options.IsNonInteractive)
                 return default;
@@ -107,7 +107,7 @@ namespace ConfigCat.Cli.Services.Rendering
                 do
                 {
                     key = await this.output.ReadKeyAsync(token, true);
-                    switch(key.Key)
+                    switch (key.Key)
                     {
                         case ConsoleKey.UpArrow:
                             if (index <= 0)
@@ -130,7 +130,7 @@ namespace ConfigCat.Cli.Services.Rendering
                             break;
 
                         case ConsoleKey.LeftArrow:
-                            if(pageIndex <= 0)
+                            if (pageIndex <= 0)
                                 continue;
 
                             this.output.SetCursorPosition(0, this.output.CursorTop - index);
@@ -148,7 +148,7 @@ namespace ConfigCat.Cli.Services.Rendering
                             break;
                     }
                 } while (!token.IsCancellationRequested &&
-                     key.Key != ConsoleKey.Enter);
+                         key.Key != ConsoleKey.Enter);
 
                 this.output.ClearCurrentLine();
                 this.PrintSelected(page[index], labelSelector, true);
@@ -169,7 +169,7 @@ namespace ConfigCat.Cli.Services.Rendering
             CancellationToken token,
             List<TItem> preSelectedItems = null)
         {
-            if (token.IsCancellationRequested || 
+            if (token.IsCancellationRequested ||
                 this.output.IsOutputRedirected ||
                 options.IsNonInteractive)
                 return default;
@@ -200,7 +200,7 @@ namespace ConfigCat.Cli.Services.Rendering
                 {
                     key = await this.output.ReadKeyAsync(token, true);
 
-                    switch(key.Key)
+                    switch (key.Key)
                     {
                         case ConsoleKey.UpArrow:
                             if (index <= 0)
@@ -259,7 +259,7 @@ namespace ConfigCat.Cli.Services.Rendering
                             break;
                     }
                 } while (!token.IsCancellationRequested &&
-                     key.Key != ConsoleKey.Enter);
+                         key.Key != ConsoleKey.Enter);
 
                 this.output.ClearCurrentLine();
                 this.PrintNonSelectedInMulti(page[index], labelSelector, selectedItems);
@@ -346,14 +346,14 @@ namespace ConfigCat.Cli.Services.Rendering
         private void RenderPageSection(int pageIndex, int pageLength)
         {
             this.output.WriteLine()
-                    .WriteColor("Page: ", ConsoleColor.DarkGray)
-                    .WriteColor($"{pageIndex + 1} / {pageLength}", ConsoleColor.Green)
-                    .WriteColor(" (Use the ", ConsoleColor.DarkGray)
-                    .WriteColor("<", ConsoleColor.Cyan)
-                    .WriteColor(" and ", ConsoleColor.DarkGray)
-                    .WriteColor(">", ConsoleColor.Cyan)
-                    .WriteColor(" keys to scroll between pages)", ConsoleColor.DarkGray)
-                    .WriteLine();
+                .WriteColor("Page: ", ConsoleColor.DarkGray)
+                .WriteColor($"{pageIndex + 1} / {pageLength}", ConsoleColor.Green)
+                .WriteColor(" (Use the ", ConsoleColor.DarkGray)
+                .WriteColor("<", ConsoleColor.Cyan)
+                .WriteColor(" and ", ConsoleColor.DarkGray)
+                .WriteColor(">", ConsoleColor.Cyan)
+                .WriteColor(" keys to scroll between pages)", ConsoleColor.DarkGray)
+                .WriteLine();
         }
 
         private void PrintSelected<TItem>(TItem item,
@@ -372,7 +372,7 @@ namespace ConfigCat.Cli.Services.Rendering
 
         private void PrintNonSelected<TItem>(TItem item, Func<TItem, string> labelSelector)
         {
-            if(item is null || item.Equals(default(TItem)))
+            if (item is null || item.Equals(default(TItem)))
             {
                 this.output.WriteColor($"|", ConsoleColor.DarkGray);
                 return;

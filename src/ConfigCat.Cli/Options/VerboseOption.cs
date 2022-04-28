@@ -6,10 +6,10 @@ namespace ConfigCat.Cli.Options
     {
         public VerboseOption() : base(new[]
         {
-            "--verbose",
-            "-v",
-            "/v",
-        }, "Print detailed execution information")
+        "--verbose",
+        "-v",
+        "/v",
+    }, "Print detailed execution information")
         { }
 
         public override bool Equals(object obj)

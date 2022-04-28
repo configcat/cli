@@ -19,7 +19,7 @@ namespace ConfigCat.Cli.Options
                 var indexOfSeparator = value.IndexOf(':');
                 if (indexOfSeparator == -1)
                 {
-                    argumentResult.ErrorMessage = $"The expression `{value}` is invalid. Argument format must be: <percentage:value> e.g. --rules 30:true 70:false";
+                    argumentResult.ErrorMessage = $"The expression `{value}` is invalid. Argument format must be: <percentage>:<value> e.g., 30:true 70:false";
                     return null;
                 }
 
@@ -28,7 +28,7 @@ namespace ConfigCat.Cli.Options
 
                 if (!int.TryParse(percentageString, out var percentage))
                 {
-                    argumentResult.ErrorMessage = $"The percentage part of the expression `{value}` is not a number. Argument format must be: <percentage:value> e.g. --rules 30:true 70:false";
+                    argumentResult.ErrorMessage = $"The <percentage> part of the expression `{value}` is not a number. Argument format must be: <percentage>:<value> e.g., 30:true 70:false";
                     return null;
                 }
 
@@ -40,7 +40,7 @@ namespace ConfigCat.Cli.Options
 
                 if (valueString.IsEmpty())
                 {
-                    argumentResult.ErrorMessage = $"The value part of the expression `{value}` is empty. Argument format must be: <percentage:value> e.g. --rules 30:true 70:false";
+                    argumentResult.ErrorMessage = $"The <value> part of the expression `{value}` is empty. Argument format must be: <percentage>:<value> e.g., 30:true 70:false";
                     return null;
                 }
 
@@ -61,7 +61,7 @@ namespace ConfigCat.Cli.Options
         })
         {
             Name = "rules";
-            Description = "Format: `<percentage>:<value>`, e.g. `30:true 70:false`";
+            Description = "Format: `<percentage>:<value>`, e.g., `30:true 70:false`";
         }
 
         public override bool Equals(object obj)

@@ -25,6 +25,8 @@ namespace ConfigCat.Cli.Services.Api
 
         Task<FlagModel> LoadFlagAsync(CancellationToken token);
 
+        Task<PermissionGroupModel> LoadPermissionGroupAsync(CancellationToken token);
+
         Task<List<TagModel>> LoadTagsAsync(CancellationToken token, string configId = null, List<TagModel> defaultTags = null, bool optional = false);
     }
 
@@ -38,6 +40,7 @@ namespace ConfigCat.Cli.Services.Api
         private readonly ISegmentClient segmentClient;
         private readonly ITagClient tagClient;
         private readonly IFlagClient flagClient;
+        private readonly IPermissionGroupClient permissionGroupClient;
 
         public WorkspaceLoader(IConfigClient configClient,
             IOrganizationClient organizationClient,
@@ -46,6 +49,7 @@ namespace ConfigCat.Cli.Services.Api
             ISegmentClient segmentClient,
             ITagClient tagClient,
             IFlagClient flagClient,
+            IPermissionGroupClient permissionGroupClient,
             IPrompt prompt)
         {
             this.configClient = configClient;
@@ -56,6 +60,7 @@ namespace ConfigCat.Cli.Services.Api
             this.segmentClient = segmentClient;
             this.tagClient = tagClient;
             this.flagClient = flagClient;
+            this.permissionGroupClient = permissionGroupClient;
         }
 
         public async Task<OrganizationModel> LoadOrganizationAsync(CancellationToken token)
@@ -72,7 +77,7 @@ namespace ConfigCat.Cli.Services.Api
         {
             var products = await this.productClient.GetProductsAsync(token);
 
-            if(!products.Any())
+            if (!products.Any())
                 this.ThrowInformalException("product", "product create");
 
             var selected = await this.prompt.ChooseFromListAsync("Choose product", products.ToList(), p => $"{p.Name} ({p.Organization.Name})", token);
@@ -95,6 +100,24 @@ namespace ConfigCat.Cli.Services.Api
             var selected = await this.prompt.ChooseFromListAsync("Choose config", configs.ToList(), c => $"{c.Name} ({c.Product.Name})", token);
             if (selected == null)
                 this.ThrowHelpException("--config-id");
+
+            return selected;
+        }
+
+        public async Task<PermissionGroupModel> LoadPermissionGroupAsync(CancellationToken token)
+        {
+            var products = await this.productClient.GetProductsAsync(token);
+            var permissionGroups = new List<PermissionGroupModel>();
+            foreach (var product in products)
+                permissionGroups.AddRange(await this.permissionGroupClient.GetPermissionGroupsAsync(product.ProductId, token));
+
+            if (!permissionGroups.Any())
+                this.ThrowInformalException("permission-group", "permission-group create");
+
+            var selected = await this.prompt.ChooseFromListAsync("Choose permission group",
+                permissionGroups.ToList(), c => $"{c.Name} ({c.Product.Name})", token);
+            if (selected == null)
+                this.ThrowHelpException("--permission-group-id");
 
             return selected;
         }
@@ -196,7 +219,7 @@ namespace ConfigCat.Cli.Services.Api
 
             if (!tags.Any())
             {
-                if(optional)
+                if (optional)
                     return new List<TagModel>();
 
                 this.ThrowInformalException("tag", "tag create");

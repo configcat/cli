@@ -61,7 +61,7 @@ namespace ConfigCat.Cli.Services.Scan
                             return;
 
                         var match = Regex.Match(line, @"[`'""]?([a-zA-Z_$0-9]*)[[`'\""]?\s*(?>\:?\s*(?>[sS]tring)?\s*=?>?\s*(?>new|await)?)\s*\S*[@$]?[`'""](" + keys + ")[`'\"]",
-                                       RegexOptions.Compiled);
+                            RegexOptions.Compiled);
 
                         while (match.Success && !cancellation.IsCancellationRequested)
                         {

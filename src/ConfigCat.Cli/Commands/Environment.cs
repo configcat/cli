@@ -105,8 +105,8 @@ namespace ConfigCat.Cli.Commands
             if (color.IsEmpty())
                 color = await this.prompt.GetStringAsync("Color", token, environment.Color);
 
-            if (name.IsEmptyOrEquals(environment.Name) && 
-                description.IsEmptyOrEquals(environment.Description) && 
+            if (name.IsEmptyOrEquals(environment.Name) &&
+                description.IsEmptyOrEquals(environment.Description) &&
                 color.IsEmptyOrEquals(environment.Color))
             {
                 this.output.WriteNoChange();

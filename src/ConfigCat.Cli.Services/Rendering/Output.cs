@@ -12,7 +12,6 @@ namespace ConfigCat.Cli.Services.Rendering
     public interface IOutput
     {
         IOutput Verbose(string text, ConsoleColor color = default);
-
         IOutput Write(string text);
         IOutput WriteLine(string text = null);
         IOutput WriteGreen(string text);
@@ -26,8 +25,6 @@ namespace ConfigCat.Cli.Services.Rendering
         IOutput WriteNoChange(string noChangeText = "No changes detected... ");
         IOutput WriteSuccess();
 
-        IOutput MoveCursorLeft();
-        IOutput MoveCursorRight();
         IOutput MoveCursorUp(int left);
         IOutput MoveCursorDown(int left);
         IOutput SetCursorPosition(int left, int top);
@@ -55,7 +52,7 @@ namespace ConfigCat.Cli.Services.Rendering
         public int CursorLeft => Console.CursorLeft;
         public int BufferHeight => Console.BufferHeight;
 
-        private readonly object consoleLock = new object();
+        private readonly object consoleLock = new();
 
         private readonly CliOptions options;
 
@@ -155,7 +152,7 @@ namespace ConfigCat.Cli.Services.Rendering
 
         public Spinner CreateSpinner(CancellationToken token) => new Spinner(token, this, this.options.IsVerboseEnabled, this.options.IsNonInteractive);
 
-        public CursorHider CreateCursorHider() => new CursorHider(this);
+        public CursorHider CreateCursorHider() => new(this);
 
         public IOutput MoveCursorLeft()
         {
@@ -185,8 +182,6 @@ namespace ConfigCat.Cli.Services.Rendering
 
         public IOutput SetCursorPosition(int left, int top) { Console.SetCursorPosition(left, top); return this; }
 
-        public (int left, int top) GetCursorPosition() => (Console.CursorLeft, Console.CursorTop);
-
         public IOutput HideCursor() { Console.CursorVisible = false; return this; }
 
         public IOutput ShowCursor() { Console.CursorVisible = true; return this; }
@@ -202,7 +197,7 @@ namespace ConfigCat.Cli.Services.Rendering
         public async Task<string> ReadLineAsync(CancellationToken token, bool masked = false)
         {
             var builder = new StringBuilder();
-            int position = 0;
+            var position = 0;
             var initialLeft = this.CursorLeft;
             ConsoleKeyInfo key;
             do
@@ -317,7 +312,13 @@ namespace ConfigCat.Cli.Services.Rendering
             string FormatColumn(string text, int columnLength) => $"{text}{new string(' ', columnLength - text.Length)}";
         }
 
-        public IOutput RenderJson(object toRender) =>
-            this.Write(JsonSerializer.Serialize(toRender, Constants.CamelCaseOptions));
+        public IOutput RenderJson(object toRender)
+        {
+            var jsonOptions = this.options.IsVerboseEnabled
+                ? Constants.PrettyFormattedCamelCaseOptions
+                : Constants.CamelCaseOptions;
+            return this.Write(JsonSerializer.Serialize(toRender, jsonOptions));
+        }
+
     }
 }

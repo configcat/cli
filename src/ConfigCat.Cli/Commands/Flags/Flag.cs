@@ -151,9 +151,9 @@ namespace ConfigCat.Cli.Commands.Flags
 
             if (updateFlagModel.Hint.IsEmptyOrEquals(flag.Hint) &&
                 updateFlagModel.Name.IsEmptyOrEquals(flag.Name) &&
-                (updateFlagModel.TagIds is null || 
-                !updateFlagModel.TagIds.Any() || 
-                updateFlagModel.TagIds.SequenceEqual(originalTagIds)))
+                (updateFlagModel.TagIds is null ||
+                 !updateFlagModel.TagIds.Any() ||
+                 updateFlagModel.TagIds.SequenceEqual(originalTagIds)))
             {
                 this.output.WriteNoChange();
                 return ExitCodes.Ok;
@@ -198,8 +198,8 @@ namespace ConfigCat.Cli.Commands.Flags
             if (flagId is null && tagIds is null || !tagIds.Any())
                 tagIds = (await this.workspaceLoader.LoadTagsAsync(token, flag.ConfigId, flag.Tags)).Select(t => t.TagId);
 
-            if (tagIds is null || 
-                !tagIds.Any() || 
+            if (tagIds is null ||
+                !tagIds.Any() ||
                 tagIds.SequenceEqual(flagTagIds) ||
                 !tagIds.Except(flagTagIds).Any())
             {

@@ -31,7 +31,7 @@ namespace ConfigCat.Cli.Services.Configuration
 
         public async Task<CliConfig> ReadConfigOrDefaultAsync(CancellationToken cancellationToken)
         {
-            if(!File.Exists(Constants.ConfigFilePath))
+            if (!File.Exists(Constants.ConfigFilePath))
                 return null;
 
             var content = await File.ReadAllTextAsync(Constants.ConfigFilePath, cancellationToken);

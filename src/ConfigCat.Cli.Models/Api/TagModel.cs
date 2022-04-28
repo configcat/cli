@@ -12,7 +12,7 @@
 
         public override bool Equals(object obj)
         {
-            if(obj is not TagModel model)
+            if (obj is not TagModel model)
                 return false;
 
             return this.TagId.Equals(model.TagId);

@@ -49,12 +49,12 @@ namespace ConfigCat.Cli.Commands
                 return ExitCodes.Ok;
             }
 
-            var itemsToRender = tags.Select(t => new 
-            { 
-                Id = t.TagId, 
+            var itemsToRender = tags.Select(t => new
+            {
+                Id = t.TagId,
                 Name = t.Name,
-                Color = t.Color, 
-                Product = $"{t.Product.Name} [{t.Product.ProductId}]" 
+                Color = t.Color,
+                Product = $"{t.Product.Name} [{t.Product.ProductId}]"
             });
             this.output.RenderTable(itemsToRender);
             return ExitCodes.Ok;

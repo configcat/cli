@@ -1,6 +1,4 @@
-﻿using System.Buffers;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 
@@ -40,7 +38,7 @@ namespace ConfigCat.Cli.Services.Json
 
         private static void HandlePropertyChange(JsonProperty original, JsonProperty modified, string path, JsonPatchDocument document)
         {
-            if(modified.Value.ValueKind == JsonValueKind.Null)
+            if (modified.Value.ValueKind == JsonValueKind.Null)
                 return;
 
             switch (original.Value.ValueKind)
@@ -71,13 +69,13 @@ namespace ConfigCat.Cli.Services.Json
                     if (originalItems[i].ValueKind == JsonValueKind.Object && modifiedItems[i].ValueKind == JsonValueKind.Object)
                         WalkOnProperties(originalItems[i], modifiedItems[i], path, document);
                     else if (!originalItems[i].GetRawText().Equals(modifiedItems[i].GetRawText()))
-                        document.Replace(path + PathSeparator + i, 
+                        document.Replace(path + PathSeparator + i,
                             JsonSerializer.Deserialize<object>(modifiedItems[i].GetRawText(), Constants.CamelCaseOptions));
                 }
             }
 
             for (var i = originalItems.Length; i < modifiedItems.Length; i++)
-                document.Add(path + PathSeparator + Dash, 
+                document.Add(path + PathSeparator + Dash,
                     JsonSerializer.Deserialize<object>(modifiedItems[i].GetRawText(), Constants.CamelCaseOptions));
         }
     }

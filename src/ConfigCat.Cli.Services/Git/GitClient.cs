@@ -41,7 +41,7 @@ namespace ConfigCat.Cli.Services.Git
 
         private GitRepositoryInfo CollectInfoFromCli(string path)
         {
-            using var process = GetGitProcess(path);            
+            using var process = GetGitProcess(path);
 
             var repoWorkingDir = ExecuteCommand(process, "rev-parse --show-toplevel");
             if (repoWorkingDir.IsEmpty() || !Directory.Exists(repoWorkingDir))
@@ -58,10 +58,10 @@ namespace ConfigCat.Cli.Services.Git
 
             var activeBranches = new List<string>();
             var regex = Regex.Match(remoteBranches, @"refs\/heads\/(.*)",
-                                       RegexOptions.IgnoreCase | RegexOptions.Compiled,
-                                       TimeSpan.FromSeconds(1));
+                RegexOptions.IgnoreCase | RegexOptions.Compiled,
+                TimeSpan.FromSeconds(1));
 
-            while(regex.Success)
+            while (regex.Success)
             {
                 activeBranches.Add(regex.Groups[1].Value.Trim());
                 regex = regex.NextMatch();

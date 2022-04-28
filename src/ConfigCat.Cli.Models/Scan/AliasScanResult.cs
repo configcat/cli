@@ -1,6 +1,5 @@
 ﻿using ConfigCat.Cli.Models.Api;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.IO;
 
 namespace ConfigCat.Cli.Models.Scan

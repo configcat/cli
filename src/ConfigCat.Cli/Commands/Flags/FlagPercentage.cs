@@ -37,7 +37,7 @@ namespace ConfigCat.Cli.Commands.Flags
                 return ExitCodes.Ok;
             }
 
-            var flag = flagId is null 
+            var flag = flagId is null
                 ? await this.workspaceLoader.LoadFlagAsync(token)
                 : await this.flagClient.GetFlagAsync(flagId.Value, token);
 
@@ -60,7 +60,7 @@ namespace ConfigCat.Cli.Commands.Flags
 
             if (value.Setting.SettingType == SettingTypes.Boolean &&
                 ((bool)result[0].Value && (bool)result[1].Value ||
-                !(bool)result[0].Value && !(bool)result[1].Value))
+                 !(bool)result[0].Value && !(bool)result[1].Value))
                 throw new ShowHelpException($"Boolean percentage rules cannot have the same value.");
 
             value.PercentageRules = result;

@@ -16,8 +16,8 @@ namespace ConfigCat.Cli.Commands
         public Task<int> InvokeAsync()
         {
             this.output.WriteLine();
-            this.output.WriteLine("                                                              oK");        
-            this.output.WriteLine("                                                             koK");     
+            this.output.WriteLine("                                                              oK");
+            this.output.WriteLine("                                                             koK");
             this.output.WriteLine("                                                           Xk;oK");
             this.output.WriteLine("                                                         Xkl;:oK");
             this.output.WriteLine("      No                                               Xkl;;;:oK");

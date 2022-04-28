@@ -5,9 +5,9 @@ namespace ConfigCat.Cli.Services.Exceptions
 {
     public class HttpStatusException : Exception
     {
-        public HttpStatusException(HttpStatusCode statusCode, 
+        public HttpStatusException(HttpStatusCode statusCode,
             string reason,
-            string message = null, 
+            string message = null,
             Exception innerException = null) : base(message, innerException)
         {
             this.StatusCode = statusCode;

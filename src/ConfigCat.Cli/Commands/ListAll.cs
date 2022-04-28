@@ -29,7 +29,7 @@ namespace ConfigCat.Cli.Commands
 
         public async Task<int> InvokeAsync(bool json, CancellationToken token)
         {
-            
+
             var products = await this.productClient.GetProductsAsync(token);
 
             if (json)
@@ -59,9 +59,9 @@ namespace ConfigCat.Cli.Commands
                 var configs = await this.configClient.GetConfigsAsync(product.ProductId, token);
                 var environments = await this.environmentClient.GetEnvironmentsAsync(product.ProductId, token);
 
-                items.AddRange(from config in configs 
-                    from environment in environments 
-                    select new ConfigEnvironment { Config = config, Environment = environment });
+                items.AddRange(from config in configs
+                               from environment in environments
+                               select new ConfigEnvironment { Config = config, Environment = environment });
             }
 
             var itemsToRender = items.Select(p => new

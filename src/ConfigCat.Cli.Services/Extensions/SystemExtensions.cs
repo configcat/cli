@@ -13,7 +13,7 @@ namespace System
 
         public static string Remove(this string text, IEnumerable<string> toRemove) =>
             toRemove.Aggregate(text, (current, remove) => current.Replace(remove, string.Empty));
-        
+
         public static int GetDigitCount(this int number) => (int)Math.Floor(Math.Log10(Math.Abs(number)) + 1);
 
         public static bool IsEmpty(this string value) =>

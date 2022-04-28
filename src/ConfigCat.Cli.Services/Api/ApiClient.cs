@@ -90,7 +90,7 @@ namespace ConfigCat.Cli.Services.Api
             }
 
             using var response = await this.SendRequest(request, token);
-            this.Output.Verbose($"HTTP response: {(int)response.StatusCode} {response.ReasonPhrase}", 
+            this.Output.Verbose($"HTTP response: {(int)response.StatusCode} {response.ReasonPhrase}",
                 response.IsSuccessStatusCode ? ConsoleColor.Green : ConsoleColor.Red);
 
             var content = await response.Content.ReadAsStringAsync();
@@ -139,14 +139,14 @@ namespace ConfigCat.Cli.Services.Api
                 var isRetrying = ctx.GenericData.ContainsKey(RetryingIdentifier);
                 var currentRequest = isRetrying ? await request.CloneAsync() : request;
                 return await this.httpClient.SendAsync(await request.CloneAsync(), cancellationToken);
-            }, token);                
+            }, token);
         }
 
         private HttpRequestMessage CreateRequest(HttpMethod method, string path)
         {
             var configAuth = this.config.Auth;
             var request = new HttpRequestMessage(method, new Uri(new Uri($"https://{configAuth.ApiHost}"), path));
-            request.Headers.Authorization = new AuthenticationHeaderValue("Basic", 
+            request.Headers.Authorization = new AuthenticationHeaderValue("Basic",
                 Convert.ToBase64String(Encoding.ASCII.GetBytes($"{configAuth.UserName}:{configAuth.Password}")));
             return request;
         }
