@@ -20,7 +20,7 @@ function Invoke-ConfigCat {
 
 BeforeAll {
     $organizationId = "08d8f29c-65fc-40d7-852e-4605da10d03c"
-    $productName = "product_${[guid]::NewGuid().ToString()}"
+    $productName = "product_$([guid]::NewGuid().ToString())"
     $productId = Invoke-ConfigCat "product", "create", "-o", $organizationId, "-n", $productName
     Invoke-ConfigCat "product", "ls" | Should -Match ([regex]::Escape($productName))
 
@@ -55,13 +55,13 @@ AfterAll {
 
 Describe "Setup Tests" {
     It "Setup" {
-       Invoke-ConfigCat "setup", "-H", $Env:CONFIGCAT_API_HOST, "-u", $Env:CONFIGCAT_API_USER, "-p", $Env:CONFIGCAT_API_PASS | Should -Match "Setup complete."
+       Invoke-ConfigCat "setup", "-H", $Env:CONFIGCAT_API_HOST, "-u", $Env:CONFIGCAT_API_USER, "-p", $Env:CONFIGCAT_API_PASS | Should -Match ([regex]::Escape("Setup complete."))
     }
 }
 
 Describe "Product / Config / Environment Tests" {
     It "Rename Product" {
-        $newProductName = "product_${[guid]::NewGuid().ToString()}"
+        $newProductName = "product_$([guid]::NewGuid().ToString())"
         Invoke-ConfigCat "product", "update", "-i", $productId, "-n", $newProductName
         Invoke-ConfigCat "product", "ls" | Should -Match ([regex]::Escape($newProductName))
     }
@@ -88,7 +88,7 @@ Describe "Product / Config / Environment Tests" {
 
 Describe "Permission Group Tests" {
     It "Create / Update / Delete" {
-        $groupName = "permgroup_${[guid]::NewGuid().ToString()}"
+        $groupName = "permgroup_$([guid]::NewGuid().ToString())"
         $permissionGroupId = Invoke-ConfigCat "permission-group", "create", "-p", $productId, "-n", $groupName, "--can-delete-config", "false", "--can-use-export-import", "false"
         Invoke-ConfigCat "permission-group", "ls" | Should -Match ([regex]::Escape($groupName))
         $printed1 = Invoke-ConfigCat "permission-group", "show", "-i", $permissionGroupId
@@ -115,7 +115,7 @@ Describe "Permission Group Tests" {
         $printed1 | Should -Match "Read/Write access in all environments"
         $printed1 | Should -Match "Read/Write access in new environments"
 
-        $newGroupName = "permgroup_${[guid]::NewGuid().ToString()}"
+        $newGroupName = "permgroup_$([guid]::NewGuid().ToString())"
         Invoke-ConfigCat "permission-group", "update", "-i", $permissionGroupId, "-n", $newGroupName
         Invoke-ConfigCat "permission-group", "ls" | Should -Match ([regex]::Escape($newGroupName))
 
@@ -177,10 +177,10 @@ Describe "Permission Group Tests" {
 
 Describe "Member tests" {
     It "Add / Remove permissions" {
-        $userId = "d3d3b2bb-18ab-435a-9eee-7515d852848d"
+        $userId = "d21346be-45c9-421f-b9ec-33093ef0464c"
         Invoke-ConfigCat "member", "lsp", "-p", $productId | Should -Not -Match ([regex]::Escape($userId))
 
-        $tempGroupName = "permgroup_${[guid]::NewGuid().ToString()}"
+        $tempGroupName = "permgroup_$([guid]::NewGuid().ToString())"
         $permissionGroupId = Invoke-ConfigCat "permission-group", "create", "-p", $productId, "-n", $tempGroupName
         Invoke-ConfigCat "member", "add-permission", "-o", $organizationId, "-i", $userId, "--permission-group-ids", $permissionGroupId
         Invoke-ConfigCat "member", "lsp", "-p", $productId | Should -Match ([regex]::Escape($userId))
