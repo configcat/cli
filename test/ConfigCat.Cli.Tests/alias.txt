@@ -1,13 +1,14 @@
 ﻿====================== Exclude ======================
 
 notRelevant = "test_flag"
+feature: 'leadershipSurvey',
 
 
 ====================== C# ======================
 
 var cTestFlag = "test_flag";
 const string CTESTFlAG = "test_flag";
-static readonly FlagDescriptor CTestFlagD = new FlagDescriptor("test_flag", false);
+static readonly FlagDescriptor CTestFlagD = new FlagDescriptor("test_flag", false); 
 static readonly FlagDescriptor CTestFlagF = FlagDescriptor.Create("test_flag", false);
 var cvTestFlag = client.GetValue("test_flag", false);
 flags.CMTestFlag = "test_flag";
@@ -48,6 +49,8 @@ export enum Flags {
 const Flags = {
 	TSCTestFlag: 'test_flag'
 }
+
+const {TSCETestFlag} = await featureFlags(['test_flag']);
 
 flags.TSVTestFlag = 'test_flag'
 

@@ -20,11 +20,13 @@ namespace ConfigCat.Cli.Tests
             var aliasCollector = new AliasCollector(new BotPolicy<AliasScanResult>(), Mock.Of<IOutput>());
 
             var flag = new FlagModel { Key = "test_flag" };
+            var flag2 = new FlagModel { Key = "leadershipSurvey" };
 
-            var result = await aliasCollector.CollectAsync(new[] { flag }, new FileInfo("alias.txt"), CancellationToken.None);
+            var result = await aliasCollector.CollectAsync(new[] { flag, flag2 }, new FileInfo("alias.txt"), CancellationToken.None);
 
-            var aliases = result.FlagAliases[flag];
+            var aliases = result.FlagAliases.Values.SelectMany(v => v);
 
+            Assert.DoesNotContain("feature", aliases);
             Assert.DoesNotContain("notRelevant", aliases);
 
             Assert.Contains("cTestFlag", aliases);
@@ -51,6 +53,7 @@ namespace ConfigCat.Cli.Tests
             Assert.Contains("TSETestFlag", aliases);
             Assert.Contains("TSCTestFlag", aliases);
             Assert.Contains("TSVTestFlag", aliases);
+            Assert.Contains("TSCETestFlag", aliases);
 
             Assert.Contains("GTestFlag", aliases);
             Assert.Contains("GDTestFlag", aliases);

@@ -11,6 +11,7 @@ using System.Text.RegularExpressions;
 using System.Linq;
 using ConfigCat.Cli.Models.Scan;
 using System.Collections.Concurrent;
+using System.Collections.ObjectModel;
 
 namespace ConfigCat.Cli.Services.Scan
 {
@@ -60,7 +61,7 @@ namespace ConfigCat.Cli.Services.Scan
                         if (line.Length > Constants.MaxCharCountPerLine || !flagKeys.Any(line.Contains))
                             return;
 
-                        var match = Regex.Match(line, @"[`'""]?([a-zA-Z_$0-9]*)[[`'\""]?\s*(?>\:?\s*(?>[sS]tring)?\s*=?>?\s*(?>new|await)?)\s*\S*[@$]?[`'""](" + keys + ")[`'\"]",
+                        var match = Regex.Match(line, @"[`{'""]?([a-zA-Z_$0-9]*)[[`}'\""]?\s*(?>\:?\s*(?>[sS]tring)?\s*=?>?\s*(?>new|await)?)\s*\S*[@$]?[`'""](" + keys + ")[`'\"]",
                             RegexOptions.Compiled);
 
                         while (match.Success && !cancellation.IsCancellationRequested)
@@ -94,68 +95,61 @@ namespace ConfigCat.Cli.Services.Scan
         {
             a = a.ToLowerInvariant().RemoveDashes();
             b = b.ToLowerInvariant().RemoveDashes();
-            var distance = DamerauLevenshteinDistance(a, b);
-            return 1.0 - (distance / (double)Math.Max(a.Length, b.Length));
+            return QGramSimilarity(a, b);
         }
 
-        private static int DamerauLevenshteinDistance(string source, string target, int threshold = int.MaxValue)
+        private static readonly Regex MULTIPLE_SPACES = new("\\s+");
+
+        private static double QGramSimilarity(string s1, string s2)
         {
-            var length1 = source.Length;
-            var length2 = target.Length;
+            if (s1 == s2) return 1;
 
-            if (Math.Abs(length1 - length2) > threshold) { return int.MaxValue; }
+            var qGrams1 = GetQGrams(s1);
+            var qGrams2 = GetQGrams(s2);
 
-            if (length1 > length2)
+            var sum = qGrams1.Count + qGrams2.Count;
+            return (sum - Distance(qGrams1, qGrams2)) / sum;
+
+
+            IDictionary<string, int> GetQGrams(string s)
             {
-                (target, source) = (source, target);
-                (length1, length2) = (length2, length1);
-            }
+                const int tokenLength = 3;
 
-            var maxi = length1;
-            var maxj = length2;
-
-            var dCurrent = new int[maxi + 1];
-            var dMinus1 = new int[maxi + 1];
-            var dMinus2 = new int[maxi + 1];
-            int[] dSwap;
-
-            for (var i = 0; i <= maxi; i++) { dCurrent[i] = i; }
-
-            var jm1 = 0;
-
-            for (var j = 1; j <= maxj; j++)
-            {
-                dSwap = dMinus2;
-                dMinus2 = dMinus1;
-                dMinus1 = dCurrent;
-                dCurrent = dSwap;
-                var minDistance = int.MaxValue;
-                dCurrent[0] = j;
-                var im1 = 0;
-                var im2 = -1;
-                for (var i = 1; i <= maxi; i++)
+                var shingles = new Dictionary<string, int>();
+                var trimmed = MULTIPLE_SPACES.Replace(s, " ");
+                for (int i = 0; i < (trimmed.Length - tokenLength + 1); i++)
                 {
-                    var cost = source[im1] == target[jm1] ? 0 : 1;
-
-                    var del = dCurrent[im1] + 1;
-                    var ins = dMinus1[i] + 1;
-                    var sub = dMinus1[im1] + cost;
-                    var min = (del > ins) ? (ins > sub ? sub : ins) : (del > sub ? sub : del);
-
-                    if (i > 1 && j > 1 && source[im2] == target[jm1] && source[im1] == target[j - 2])
-                        min = Math.Min(min, dMinus2[im2] + cost);
-
-                    dCurrent[i] = min;
-                    if (min < minDistance) { minDistance = min; }
-                    im1++;
-                    im2++;
+                    var shingle = trimmed.Substring(i, tokenLength);
+                    if (shingles.TryGetValue(shingle, out var old))
+                        shingles[shingle] = old + 1;
+                    else
+                        shingles[shingle] = 1;
                 }
-                jm1++;
-                if (minDistance > threshold) { return int.MaxValue; }
+                return new ReadOnlyDictionary<string, int>(shingles);
             }
 
-            var result = dCurrent[maxi];
-            return (result > threshold) ? int.MaxValue : result;
+            double Distance(IDictionary<string, int> qGrams1, IDictionary<string, int> qGrams2)
+            {
+                var union = new HashSet<string>();
+                union.UnionWith(qGrams1.Keys);
+                union.UnionWith(qGrams2.Keys);
+
+                int distance = 0;
+                foreach (var key in union)
+                {
+                    int v1 = 0;
+                    int v2 = 0;
+
+                    if (qGrams1.TryGetValue(key, out var iv1))
+                        v1 = iv1;
+
+                    if (qGrams2.TryGetValue(key, out var iv2))
+                        v2 = iv2;
+
+                    distance += Math.Abs(v1 - v2);
+                }
+                return distance;
+            }
         }
     }
 }
