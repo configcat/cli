@@ -98,7 +98,7 @@ namespace ConfigCat.Cli.Services.Scan
             return QGramSimilarity(a, b);
         }
 
-        private static readonly Regex MULTIPLE_SPACES = new("\\s+");
+        private static readonly Regex MultipleSpaces = new("\\s+");
 
         private static double QGramSimilarity(string s1, string s2)
         {
@@ -108,16 +108,15 @@ namespace ConfigCat.Cli.Services.Scan
             var qGrams2 = GetQGrams(s2);
 
             var sum = qGrams1.Values.Sum() + qGrams2.Values.Sum();
-            return (sum - Distance(qGrams1, qGrams2)) / sum;
-
+            return (sum - Distance()) / sum;
 
             IDictionary<string, int> GetQGrams(string s)
             {
                 const int tokenLength = 3;
 
                 var shingles = new Dictionary<string, int>();
-                var trimmed = MULTIPLE_SPACES.Replace(s, " ");
-                for (int i = 0; i < (trimmed.Length - tokenLength + 1); i++)
+                var trimmed = MultipleSpaces.Replace(s, " ");
+                for (var i = 0; i < (trimmed.Length - tokenLength + 1); i++)
                 {
                     var shingle = trimmed.Substring(i, tokenLength);
                     if (shingles.TryGetValue(shingle, out var old))
@@ -128,17 +127,17 @@ namespace ConfigCat.Cli.Services.Scan
                 return new ReadOnlyDictionary<string, int>(shingles);
             }
 
-            double Distance(IDictionary<string, int> qGrams1, IDictionary<string, int> qGrams2)
+            double Distance()
             {
                 var union = new HashSet<string>();
                 union.UnionWith(qGrams1.Keys);
                 union.UnionWith(qGrams2.Keys);
 
-                int distance = 0;
+                var distance = 0;
                 foreach (var key in union)
                 {
-                    int v1 = 0;
-                    int v2 = 0;
+                    var v1 = 0;
+                    var v2 = 0;
 
                     if (qGrams1.TryGetValue(key, out var iv1))
                         v1 = iv1;
