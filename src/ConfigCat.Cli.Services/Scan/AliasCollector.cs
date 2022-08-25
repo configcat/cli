@@ -107,7 +107,7 @@ namespace ConfigCat.Cli.Services.Scan
             var qGrams1 = GetQGrams(s1);
             var qGrams2 = GetQGrams(s2);
 
-            var sum = qGrams1.Count + qGrams2.Count;
+            var sum = qGrams1.Values.Sum() + qGrams2.Values.Sum();
             return (sum - Distance(qGrams1, qGrams2)) / sum;
 
 
