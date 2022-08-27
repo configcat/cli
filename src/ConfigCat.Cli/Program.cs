@@ -10,11 +10,11 @@ using Stashbox;
 using Stashbox.Configuration;
 using Stashbox.Lifetime;
 using System;
-using System.CommandLine;
 using System.CommandLine.Builder;
 using System.CommandLine.Invocation;
 using System.CommandLine.IO;
 using System.CommandLine.Parsing;
+using System.Diagnostics.CodeAnalysis;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Trybot;
@@ -33,7 +33,7 @@ namespace ConfigCat.Cli
                 serviceTypeSelector: Rules.ServiceRegistrationFilters.Interfaces,
                 registerSelf: false);
 
-            container.Register(typeof(IBotPolicy<>), typeof(BotPolicy<>), c => c.WithTransientLifetime());
+            RegisterWithDynamicMemberAccess(typeof(IBotPolicy<>), typeof(BotPolicy<>), container);
             container.RegisterInstance(new HttpClient());
 
             var parser = new CommandLineBuilder(CommandBuilder.BuildRootCommand(container))
@@ -63,7 +63,7 @@ namespace ConfigCat.Cli
                 })
                 .UseMiddleware(async (context, next) =>
                 {
-                    var descriptor = container.ResolveOrDefault<HandlerDescriptor>(context.ParseResult.CommandResult.Command.GetHashCode());
+                    var descriptor = container.ResolveOrDefault<HandlerDescriptor>(name: context.ParseResult.CommandResult.Command.GetHashCode());
                     if (descriptor is not null)
                         context.BindingContext.AddService(descriptor.HandlerType,
                             c => container.Resolve(descriptor.HandlerType));
@@ -122,6 +122,13 @@ namespace ConfigCat.Cli
                 .Build();
 
             return await parser.InvokeAsync(args);
+        }
+        
+        private static void RegisterWithDynamicMemberAccess(Type serviceType, 
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type implementationType, 
+            StashboxContainer container)
+        {
+            container.Register(serviceType, implementationType, c => c.WithTransientLifetime());
         }
     }
 }

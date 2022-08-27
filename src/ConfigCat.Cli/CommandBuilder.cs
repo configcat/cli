@@ -4,6 +4,7 @@ using ConfigCat.Cli.Options;
 using ConfigCat.Cli.Services;
 using Stashbox;
 using System.CommandLine;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using ConfigCat.Cli.Commands.PermissionGroups;
@@ -803,7 +804,8 @@ namespace ConfigCat.Cli
                 IsHidden = true,
             };
 
-        private static HandlerDescriptor CreateHandler<THandler>(string methodName)
+        private static HandlerDescriptor CreateHandler<
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicMethods | DynamicallyAccessedMemberTypes.PublicConstructors)] THandler>(string methodName)
         {
             var handlerType = typeof(THandler);
             return new HandlerDescriptor(handlerType, handlerType.GetMethod(methodName));

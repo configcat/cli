@@ -1,6 +1,7 @@
 ﻿using ConfigCat.Cli.Models;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
@@ -41,7 +42,7 @@ namespace ConfigCat.Cli.Services.Rendering
 
         Spinner CreateSpinner(CancellationToken token);
         CursorHider CreateCursorHider();
-        IOutput RenderTable<T>(IEnumerable<T> items);
+        IOutput RenderTable<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(IEnumerable<T> items);
         IOutput RenderJson(object toRender);
     }
 
@@ -280,7 +281,7 @@ namespace ConfigCat.Cli.Services.Rendering
             return this.CursorTop - lineCount + whichLine;
         }
 
-        public IOutput RenderTable<T>(IEnumerable<T> items)
+        public IOutput RenderTable<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(IEnumerable<T> items)
         {
             const int padding = 2;
 

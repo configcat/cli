@@ -30,28 +30,28 @@ namespace ConfigCat.Cli.Commands
             this.cliConfig = cliConfig;
         }
 
-        public async Task<int> InvokeAsync(SetupArgs arguments, CancellationToken token)
+        public async Task<int> InvokeAsync(string apiHost, string userName, string password, CancellationToken token)
         {
-            if (arguments.ApiHost.IsEmpty())
-                arguments.ApiHost = await this.prompt.GetStringAsync("API Host", token, Constants.DefaultApiHost);
+            if (apiHost.IsEmpty())
+                apiHost = await this.prompt.GetStringAsync("API Host", token, Constants.DefaultApiHost);
 
-            if (arguments.UserName.IsEmpty())
-                arguments.UserName = await this.prompt.GetStringAsync("Username", token);
+            if (userName.IsEmpty())
+                userName = await this.prompt.GetStringAsync("Username", token);
 
-            if (arguments.Password.IsEmpty())
-                arguments.Password = await this.prompt.GetMaskedStringAsync("Password", token);
+            if (password.IsEmpty())
+                password = await this.prompt.GetMaskedStringAsync("Password", token);
 
             this.output.WriteLine();
             this.output.Write($"Saving the configuration to '{Constants.ConfigFilePath}'... ");
             this.cliConfig.Auth = new Auth
             {
-                ApiHost = arguments.ApiHost,
-                UserName = arguments.UserName,
-                Password = arguments.Password
+                ApiHost = apiHost,
+                UserName = userName,
+                Password = password
             };
             await this.configurationStorage.WriteConfigAsync(this.cliConfig, token);
 
-            this.output.WriteSuccess().WriteLine().Write($"Verifying your credentials against '{arguments.ApiHost}'... ");
+            this.output.WriteSuccess().WriteLine().Write($"Verifying your credentials against '{apiHost}'... ");
 
             var me = await this.meClient.GetMeAsync(token);
 
