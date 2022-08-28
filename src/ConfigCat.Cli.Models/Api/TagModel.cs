@@ -10,13 +10,7 @@ public class TagModel
 
     public string Color { get; set; }
 
-    public override bool Equals(object obj)
-    {
-        if (obj is not TagModel model)
-            return false;
-
-        return this.TagId.Equals(model.TagId);
-    }
+    public override bool Equals(object obj) => obj is TagModel model && this.TagId.Equals(model.TagId);
 
     public override int GetHashCode() => this.TagId.GetHashCode();
 }

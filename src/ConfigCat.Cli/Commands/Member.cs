@@ -108,25 +108,25 @@ internal class Member
         return ExitCodes.Ok;
     }
 
-    public async Task<int> InviteMembersAsync(string productId, InviteMemberModel model, CancellationToken token)
+    public async Task<int> InviteMembersAsync(string productId, string[] emails, long? permissionGroupId, CancellationToken token)
     {
-        if (model.Emails.Length == 0)
+        if (emails.Length == 0)
             throw new ShowHelpException("Required argument <emails> is missing.");
 
         if (productId.IsEmpty())
             productId = (await this.workspaceLoader.LoadProductAsync(token)).ProductId;
 
-        if (model.PermissionGroupId == null)
+        if (permissionGroupId == null)
         {
             var permissionGroups = await this.permissionGroupClient.GetPermissionGroupsAsync(productId, token);
-            model.PermissionGroupId = (await this.prompt.ChooseFromListAsync("Choose permission group", permissionGroups.ToList(), pg => pg.Name, token)).PermissionGroupId;
+            permissionGroupId = (await this.prompt.ChooseFromListAsync("Choose permission group", permissionGroups.ToList(), pg => pg.Name, token)).PermissionGroupId;
         }
 
-        await this.memberClient.InviteMemberAsync(productId, model, token);
+        await this.memberClient.InviteMemberAsync(productId, new InviteMemberModel { Emails = emails, PermissionGroupId = permissionGroupId }, token);
         return ExitCodes.Ok;
     }
 
-    public async Task<int> AddPermissionsAsync(string organizationId, string userId, UpdateMembersModel model, CancellationToken token)
+    public async Task<int> AddPermissionsAsync(string organizationId, string userId, long[] permissionGroupIds, CancellationToken token)
     {
         if (organizationId.IsEmpty())
             organizationId = (await this.workspaceLoader.LoadOrganizationAsync(token)).OrganizationId;
@@ -148,7 +148,7 @@ internal class Member
         }
 
 
-        if (model.PermissionGroupIds == null || !model.PermissionGroupIds.Any())
+        if (permissionGroupIds == null || !permissionGroupIds.Any())
         {
             var permissionGroups = new List<PermissionGroupModel>();
             foreach (var product in products)
@@ -167,14 +167,14 @@ internal class Member
                 return ExitCodes.Ok;
             }
 
-            model.PermissionGroupIds = selected.Select(pg => pg.PermissionGroupId).ToArray();
+            permissionGroupIds = selected.Select(pg => pg.PermissionGroupId).ToArray();
         }
 
-        await this.memberClient.UpdateMemberAsync(organizationId, userId, model, token);
+        await this.memberClient.UpdateMemberAsync(organizationId, userId, new UpdateMembersModel { PermissionGroupIds = permissionGroupIds }, token);
         return ExitCodes.Ok;
     }
 
-    public async Task<int> RemovePermissionsAsync(string organizationId, string userId, UpdateMembersModel model, CancellationToken token)
+    public async Task<int> RemovePermissionsAsync(string organizationId, string userId, long[] permissionGroupIds, CancellationToken token)
     {
         if (organizationId.IsEmpty())
             organizationId = (await this.workspaceLoader.LoadOrganizationAsync(token)).OrganizationId;
@@ -200,7 +200,7 @@ internal class Member
             permissionGroups.AddRange(await this.permissionGroupClient.GetPermissionGroupsAsync(product.ProductId, token));
         var existingPermissions = permissionGroups.Where(pg => userPermissions.Contains(pg.PermissionGroupId)).ToList();
 
-        if (model.PermissionGroupIds == null || !model.PermissionGroupIds.Any())
+        if (permissionGroupIds == null || !permissionGroupIds.Any())
         {
             var selected = await this.prompt.ChooseMultipleFromListAsync("Choose permission groups to remove",
                 existingPermissions.ToList(), pg => $"{pg.Name} ({pg.Product.Name})", token);
@@ -214,10 +214,10 @@ internal class Member
                 return ExitCodes.Ok;
             }
 
-            model.PermissionGroupIds = selected.Select(pg => pg.PermissionGroupId).ToArray();
+            permissionGroupIds = selected.Select(pg => pg.PermissionGroupId).ToArray();
         }
 
-        var permissionGroupsToDelete = permissionGroups.Where(pg => model.PermissionGroupIds.Contains(pg.PermissionGroupId));
+        var permissionGroupsToDelete = permissionGroups.Where(pg => permissionGroupIds.Contains(pg.PermissionGroupId));
         foreach (var pg in permissionGroupsToDelete)
             await this.memberClient.RemoveFromProductAsync(pg.Product, userId, token);
 

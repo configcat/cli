@@ -57,8 +57,8 @@ internal class SdkKey
 
         var itemsToRender = items.Select(p => new
         {
-            Primary = p.SdkKey.Primary,
-            Secondary = p.SdkKey.Secondary,
+            p.SdkKey.Primary,
+            p.SdkKey.Secondary,
             Environment = p.Environment.Name,
             Config = p.Config.Name,
             Product = p.Config.Product.Name

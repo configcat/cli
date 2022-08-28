@@ -89,33 +89,46 @@ class Flag
         return ExitCodes.Ok;
     }
 
-    public async Task<int> CreateFlagAsync(string configId, CreateFlagModel createConfigModel, CancellationToken token)
+    public async Task<int> CreateFlagAsync(string configId, 
+        string key,
+        string name,
+        string hint,
+        string type,
+        IEnumerable<int> tagIds,
+        CancellationToken token)
     {
         var shouldPromptTags = configId.IsEmpty();
 
         if (configId.IsEmpty())
             configId = (await this.workspaceLoader.LoadConfigAsync(token)).ConfigId;
 
-        if (createConfigModel.Name.IsEmpty())
-            createConfigModel.Name = await this.prompt.GetStringAsync("Name", token);
+        if (name.IsEmpty())
+            name = await this.prompt.GetStringAsync("Name", token);
 
-        if (createConfigModel.Hint.IsEmpty())
-            createConfigModel.Hint = await this.prompt.GetStringAsync("Hint", token);
+        if (hint.IsEmpty())
+            hint = await this.prompt.GetStringAsync("Hint", token);
 
-        if (createConfigModel.Key.IsEmpty())
-            createConfigModel.Key = await this.prompt.GetStringAsync("Key", token);
+        if (key.IsEmpty())
+            key = await this.prompt.GetStringAsync("Key", token);
 
-        if (createConfigModel.Type.IsEmpty())
-            createConfigModel.Type = await this.prompt.ChooseFromListAsync("Choose type", SettingTypes.Collection.ToList(), t => t, token);
+        if (type.IsEmpty())
+            type = await this.prompt.ChooseFromListAsync("Choose type", SettingTypes.Collection.ToList(), t => t, token);
 
-        if (shouldPromptTags && (createConfigModel.TagIds is null || !createConfigModel.TagIds.Any()))
-            createConfigModel.TagIds = (await this.workspaceLoader.LoadTagsAsync(token, configId, optional: true)).Select(t => t.TagId);
+        if (shouldPromptTags && (tagIds is null || !tagIds.Any()))
+            tagIds = (await this.workspaceLoader.LoadTagsAsync(token, configId, optional: true)).Select(t => t.TagId);
 
         if (!SettingTypes.Collection.ToList()
-                .Contains(createConfigModel.Type, StringComparer.OrdinalIgnoreCase))
+                .Contains(type, StringComparer.OrdinalIgnoreCase))
             throw new ShowHelpException($"Type must be one of the following: {string.Join('|', SettingTypes.Collection)}");
 
-        var result = await this.flagClient.CreateFlagAsync(configId, createConfigModel, token);
+        var result = await this.flagClient.CreateFlagAsync(configId, new CreateFlagModel
+        {
+            Hint = hint,
+            Key = key,
+            Name = name,
+            TagIds = tagIds,
+            Type = type
+        }, token);
         this.output.Write(result.SettingId.ToString());
 
         return ExitCodes.Ok;

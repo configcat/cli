@@ -53,7 +53,7 @@ internal class Segment
         var itemsToRender = segments.Select(s => new
         {
             Id = s.SegmentId,
-            Name = s.Name,
+            s.Name,
             Description = s.Description.TrimToFitColumn(),
             Creator = s.CreatorFullName,
             Product = $"{s.Product.Name} [{s.Product.ProductId}]"
@@ -63,17 +63,32 @@ internal class Segment
         return ExitCodes.Ok;
     }
 
-    public async Task<int> CreateSegmentAsync(string productId, CreateOrUpdateSegmentModel model, CancellationToken token)
+    public async Task<int> CreateSegmentAsync(string productId, 
+        string name,
+        string description,
+        string attribute,
+        string comparator,
+        string compareTo,
+        CancellationToken token)
     {
         if (productId.IsEmpty())
             productId = (await this.workspaceLoader.LoadProductAsync(token)).ProductId;
 
-        if (model.Name.IsEmpty())
-            model.Name = await this.prompt.GetStringAsync("Name", token);
+        if (name.IsEmpty())
+            name = await this.prompt.GetStringAsync("Name", token);
 
-        if (model.Description.IsEmpty())
-            model.Description = await this.prompt.GetStringAsync("Description", token);
+        if (description.IsEmpty())
+            description = await this.prompt.GetStringAsync("Description", token);
 
+        var model = new CreateOrUpdateSegmentModel
+        {
+            Name = name,
+            Attribute = attribute,
+            Comparator = comparator,
+            CompareTo = compareTo,
+            Description = description
+        };
+        
         await this.ValidateRuleModel(model, token);
 
         var result = await this.segmentClient.CreateSegmentAsync(productId, model, token);
@@ -90,18 +105,33 @@ internal class Segment
         return ExitCodes.Ok;
     }
 
-    public async Task<int> UpdateSegmentAsync(string segmentId, CreateOrUpdateSegmentModel model, CancellationToken token)
+    public async Task<int> UpdateSegmentAsync(string segmentId, 
+        string name,
+        string description,
+        string attribute,
+        string comparator,
+        string compareTo,
+        CancellationToken token)
     {
         var segment = segmentId.IsEmpty()
             ? await this.workspaceLoader.LoadSegmentAsync(token)
             : await this.segmentClient.GetSegmentAsync(segmentId, token);
 
-        if (model.Name.IsEmpty())
-            model.Name = await this.prompt.GetStringAsync("Name", token, segment.Name);
+        if (name.IsEmpty())
+            name = await this.prompt.GetStringAsync("Name", token, segment.Name);
 
-        if (model.Description.IsEmpty())
-            model.Description = await this.prompt.GetStringAsync("Description", token, segment.Description);
+        if (description.IsEmpty())
+            description = await this.prompt.GetStringAsync("Description", token, segment.Description);
 
+        var model = new CreateOrUpdateSegmentModel
+        {
+            Name = name,
+            Attribute = attribute,
+            Comparator = comparator,
+            CompareTo = compareTo,
+            Description = description
+        };
+        
         await this.ValidateRuleModel(model, token, segment);
 
         if (model.Name.IsEmptyOrEquals(segment.Name) &&

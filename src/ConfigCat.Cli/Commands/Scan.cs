@@ -49,29 +49,40 @@ internal class Scan
         this.output = output;
     }
 
-    public async Task<int> InvokeAsync(ScanArguments scanArguments, CancellationToken token)
+    public async Task<int> InvokeAsync(DirectoryInfo directory,
+        string configId,
+        int lineCount,
+        bool print,
+        bool upload,
+        string repo,
+        string branch,
+        string commitHash,
+        string fileUrlTemplate,
+        string commitUrlTemplate,
+        string runner,
+        CancellationToken token)
     {
-        if (scanArguments.Upload && scanArguments.Repo.IsEmpty())
+        if (upload && repo.IsEmpty())
             throw new ShowHelpException("The --repo argument is required for code reference upload.");
 
-        if (scanArguments.ConfigId.IsEmpty())
+        if (configId.IsEmpty())
         {
             this.output.WriteLine("Comparing the feature flags in the code to the feature flags in the ConfigCat Dashboard.");
-            scanArguments.ConfigId = (await this.workspaceLoader.LoadConfigAsync(token)).ConfigId;
+            configId = (await this.workspaceLoader.LoadConfigAsync(token)).ConfigId;
         }
 
-        scanArguments.LineCount = scanArguments.LineCount is < 0 or > 10
+        lineCount = lineCount is < 0 or > 10
             ? 4
-            : scanArguments.LineCount;
+            : lineCount;
 
-        var flags = await this.flagClient.GetFlagsAsync(scanArguments.ConfigId, token);
-        var deletedFlags = await this.flagClient.GetDeletedFlagsAsync(scanArguments.ConfigId, token);
+        var flags = await this.flagClient.GetFlagsAsync(configId, token);
+        var deletedFlags = await this.flagClient.GetDeletedFlagsAsync(configId, token);
         deletedFlags = deletedFlags
             .Where(d => flags.All(f => f.Key != d.Key))
             .Distinct(new FlagModelEqualityComparer());
 
-        var files = await this.fileCollector.CollectAsync(scanArguments.Directory, token);
-        var flagReferences = await this.fileScanner.ScanAsync(flags.Concat(deletedFlags).ToArray(), files.ToArray(), scanArguments.LineCount, token);
+        var files = await this.fileCollector.CollectAsync(directory, token);
+        var flagReferences = await this.fileScanner.ScanAsync(flags.Concat(deletedFlags).ToArray(), files.ToArray(), lineCount, token);
 
         var flagReferenceResults = flagReferences as FlagReferenceResult[] ?? flagReferences.ToArray();
         var aliveFlagReferences = Filter(flagReferenceResults, r => r.FoundFlag is not DeletedFlagModel).ToArray();
@@ -85,7 +96,7 @@ internal class Scan
                    $"Keys: [{string.Join(", ", aliveFlagReferences.SelectMany(r => r.References).Select(r => r.FoundFlag.Key).Distinct())}]")
             .WriteLine();
 
-        if (scanArguments.Print)
+        if (print)
             this.PrintReferences(aliveFlagReferences, token);
 
         if (deletedFlagReferences.Length > 0)
@@ -98,28 +109,28 @@ internal class Scan
 
         this.output.WriteLine();
 
-        if (scanArguments.Print)
+        if (print)
             this.PrintReferences(deletedFlagReferences, token);
 
-        if (!scanArguments.Upload) return ExitCodes.Ok;
+        if (!upload) return ExitCodes.Ok;
 
         this.output.WriteLine("Initiating code reference upload...");
 
-        var gitInfo = this.gitClient.GatherGitInfo(scanArguments.Directory.FullName);
+        var gitInfo = this.gitClient.GatherGitInfo(directory.FullName);
 
-        var branch = scanArguments.Branch ?? gitInfo?.Branch;
-        var commitHash = scanArguments.CommitHash ?? gitInfo?.CurrentCommitHash;
+        branch ??= gitInfo?.Branch;
+        commitHash ??= gitInfo?.CurrentCommitHash;
 
         if (branch.IsEmpty())
             throw new ShowHelpException(
                 "Could not determine the current branch name, make sure the scanned folder is inside a Git repository, or use the --branch argument.");
 
-        this.output.Write("Repository").Write(":").WriteCyan($" {scanArguments.Repo}").WriteLine()
+        this.output.Write("Repository").Write(":").WriteCyan($" {repo}").WriteLine()
             .Write("Branch").Write(":").WriteCyan($" {branch}").WriteLine()
             .Write("Commit").Write(":").WriteCyan($" {commitHash}").WriteLine();
 
         var repositoryDirectory = gitInfo == null || gitInfo.WorkingDirectory.IsEmpty()
-            ? scanArguments.Directory.FullName.AsSlash()
+            ? directory.FullName.AsSlash()
             : gitInfo.WorkingDirectory;
         await this.codeReferenceClient.UploadAsync(new CodeReferenceRequest
         {
@@ -132,8 +143,8 @@ internal class Scan
                     References = r.Select(item => new ReferenceLines
                     {
                         File = item.File.FullName.AsSlash().Replace(repositoryDirectory, string.Empty, StringComparison.OrdinalIgnoreCase).Trim('/'),
-                        FileUrl = !commitHash.IsEmpty() && !scanArguments.FileUrlTemplate.IsEmpty()
-                            ? scanArguments.FileUrlTemplate
+                        FileUrl = !commitHash.IsEmpty() && !fileUrlTemplate.IsEmpty()
+                            ? fileUrlTemplate
                                 .Replace("{commitHash}", commitHash)
                                 .Replace("{filePath}", item.File.FullName.AsSlash().Replace(repositoryDirectory, string.Empty, StringComparison.OrdinalIgnoreCase).Trim('/'))
                                 .Replace("{lineNumber}", item.reference.ReferenceLine.LineNumber.ToString())
@@ -143,15 +154,15 @@ internal class Scan
                         ReferenceLine = item.reference.ReferenceLine
                     }).ToList()
                 }).ToList(),
-            Repository = scanArguments.Repo,
+            Repository = repo,
             Branch = branch,
             CommitHash = commitHash,
-            CommitUrl = !commitHash.IsEmpty() && !scanArguments.CommitUrlTemplate.IsEmpty()
-                ? scanArguments.CommitUrlTemplate.Replace("{commitHash}", commitHash)
+            CommitUrl = !commitHash.IsEmpty() && !commitUrlTemplate.IsEmpty()
+                ? commitUrlTemplate.Replace("{commitHash}", commitHash)
                 : null,
             ActiveBranches = gitInfo?.ActiveBranches,
-            ConfigId = scanArguments.ConfigId,
-            Uploader = scanArguments.Runner ?? $"ConfigCat CLI {Version.Value}",
+            ConfigId = configId,
+            Uploader = runner ?? $"ConfigCat CLI {Version.Value}",
         }, token);
 
 
@@ -213,7 +224,7 @@ internal class Scan
 
     private void SearchKeyInText(string text, Reference reference)
     {
-        var keyIndex = text.IndexOf(reference.FoundFlag.Key);
+        var keyIndex = text.IndexOf(reference.FoundFlag.Key, StringComparison.Ordinal);
         var key = reference.FoundFlag.Key;
         if (keyIndex == -1)
         {
@@ -221,7 +232,7 @@ internal class Scan
             {
                 foreach (var alias in reference.FoundFlag.Aliases)
                 {
-                    keyIndex = text.IndexOf(alias);
+                    keyIndex = text.IndexOf(alias, StringComparison.Ordinal);
                     key = alias;
                     if (keyIndex != -1)
                         break;
@@ -232,7 +243,7 @@ internal class Scan
             {
                 if (reference.MatchedSample != null)
                 {
-                    keyIndex = text.IndexOf(reference.MatchedSample);
+                    keyIndex = text.IndexOf(reference.MatchedSample, StringComparison.Ordinal);
                     key = reference.MatchedSample;
                 }
 
@@ -290,19 +301,4 @@ class FlagModelEqualityComparer : IEqualityComparer<DeletedFlagModel>
     {
         return obj.Key.GetHashCode();
     }
-}
-
-internal class ScanArguments
-{
-    public DirectoryInfo Directory { get; set; }
-    public string ConfigId { get; set; }
-    public int LineCount { get; set; }
-    public bool Print { get; set; }
-    public bool Upload { get; set; }
-    public string Repo { get; set; }
-    public string Branch { get; set; }
-    public string CommitHash { get; set; }
-    public string FileUrlTemplate { get; set; }
-    public string CommitUrlTemplate { get; set; }
-    public string Runner { get; set; }
 }

@@ -36,7 +36,15 @@ internal class FlagTargeting
         this.prompt = prompt;
     }
 
-    public async Task<int> AddTargetingRuleAsync(int? flagId, string environmentId, AddTargetinRuleModel addTargetingRuleModel, CancellationToken token)
+    public async Task<int> AddTargetingRuleAsync(int? flagId, 
+        string environmentId, 
+        string attribute, 
+        string comparator, 
+        string compareTo , 
+        string flagValue, 
+        string segmentId, 
+        string segmentComparator, 
+        CancellationToken token)
     {
         var flag = flagId switch
         {
@@ -47,6 +55,16 @@ internal class FlagTargeting
         if (environmentId.IsEmpty())
             environmentId = (await this.workspaceLoader.LoadEnvironmentAsync(token, flag.ConfigId)).EnvironmentId;
 
+        var addTargetingRuleModel = new AddTargetinRuleModel
+        {
+            Attribute = attribute,
+            Comparator = comparator,
+            CompareTo = compareTo,
+            FlagValue = flagValue,
+            SegmentComparator = segmentComparator,
+            SegmentId = segmentId
+        };
+        
         await this.ValidateAddModel(addTargetingRuleModel, environmentId, token);
 
         if (!addTargetingRuleModel.FlagValue.TryParseFlagValue(flag.SettingType, out var parsed))
@@ -67,7 +85,16 @@ internal class FlagTargeting
         return ExitCodes.Ok;
     }
 
-    public async Task<int> UpdateTargetingRuleAsync(int? flagId, string environmentId, int? position, AddTargetinRuleModel addTargetingRuleModel, CancellationToken token)
+    public async Task<int> UpdateTargetingRuleAsync(int? flagId, 
+        string environmentId, 
+        int? position, 
+        string attribute, 
+        string comparator, 
+        string compareTo , 
+        string flagValue, 
+        string segmentId, 
+        string segmentComparator, 
+        CancellationToken token)
     {
         var flag = flagId switch
         {
@@ -79,6 +106,17 @@ internal class FlagTargeting
             environmentId = (await this.workspaceLoader.LoadEnvironmentAsync(token, flag.ConfigId)).EnvironmentId;
 
         var (existing, realPosition) = await this.GetRuleAsync("Choose rule to update", flag.SettingId, environmentId, position, token);
+
+        var addTargetingRuleModel = new AddTargetinRuleModel
+        {
+            Attribute = attribute,
+            Comparator = comparator,
+            CompareTo = compareTo,
+            FlagValue = flagValue,
+            SegmentComparator = segmentComparator,
+            SegmentId = segmentId
+        };
+        
         await this.ValidateAddModel(addTargetingRuleModel, environmentId, token, existing);
 
         if (!addTargetingRuleModel.FlagValue.TryParseFlagValue(flag.SettingType, out var parsed))

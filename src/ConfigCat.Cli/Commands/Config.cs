@@ -52,7 +52,7 @@ internal class Config
         var itemsToRender = configs.Select(c => new
         {
             Id = c.ConfigId,
-            Name = c.Name,
+            c.Name,
             Description = c.Description.TrimToFitColumn(),
             Product = $"{c.Product.Name} [{c.Product.ProductId}]"
         });

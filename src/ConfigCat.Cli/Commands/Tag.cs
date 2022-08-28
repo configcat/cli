@@ -52,8 +52,8 @@ internal class Tag
         var itemsToRender = tags.Select(t => new
         {
             Id = t.TagId,
-            Name = t.Name,
-            Color = t.Color,
+            t.Name,
+            t.Color,
             Product = $"{t.Product.Name} [{t.Product.ProductId}]"
         });
         this.output.RenderTable(itemsToRender);

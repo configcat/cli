@@ -39,7 +39,7 @@ internal class Product
         var itemsToRender = products.Select(p => new
         {
             Id = p.ProductId,
-            Name = p.Name,
+            p.Name,
             Description = p.Description.TrimToFitColumn(),
             Organization = $"{p.Organization.Name} [{p.Organization.OrganizationId}]"
         });

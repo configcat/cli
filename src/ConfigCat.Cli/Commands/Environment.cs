@@ -52,9 +52,9 @@ internal class Environment
         var itemsToRender = environments.Select(e => new
         {
             Id = e.EnvironmentId,
-            Name = e.Name,
+            e.Name,
             Description = e.Description.TrimToFitColumn(),
-            Color = e.Color,
+            e.Color,
             Product = $"{e.Product.Name} [{e.Product.ProductId}]"
         });
         this.output.RenderTable(itemsToRender);

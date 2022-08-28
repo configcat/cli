@@ -37,13 +37,15 @@ internal class PermissionGroup
         if (!productId.IsEmpty())
         {
             var product = await this.productClient.GetProductAsync(productId, token);
-            permissionGroups.AddRange(await this.permissionGroupClient.GetPermissionGroupsAsync(product.ProductId, token));
+            permissionGroups.AddRange(
+                await this.permissionGroupClient.GetPermissionGroupsAsync(product.ProductId, token));
         }
         else
         {
             var products = await this.productClient.GetProductsAsync(token);
             foreach (var product in products)
-                permissionGroups.AddRange(await this.permissionGroupClient.GetPermissionGroupsAsync(product.ProductId, token));
+                permissionGroups.AddRange(
+                    await this.permissionGroupClient.GetPermissionGroupsAsync(product.ProductId, token));
         }
 
         if (json)
@@ -63,20 +65,68 @@ internal class PermissionGroup
         return ExitCodes.Ok;
     }
 
-    public async Task<int> CreatePermissionGroupAsync(string productId, UpdatePermissionGroupModel model, CancellationToken token)
+    public async Task<int> CreatePermissionGroupAsync(string productId,
+        string name,
+        bool? canManageMembers,
+        bool? canCreateOrUpdateConfig,
+        bool? canDeleteConfig,
+        bool? canCreateOrUpdateEnvironment,
+        bool? canDeleteEnvironment,
+        bool? canCreateOrUpdateSetting,
+        bool? canTagSetting,
+        bool? canDeleteSetting,
+        bool? canCreateOrUpdateTag,
+        bool? canDeleteTag,
+        bool? canManageWebhook,
+        bool? canUseExportImport,
+        bool? canManageProductPreferences,
+        bool? canManageIntegrations,
+        bool? canViewSdkKey,
+        bool? canRotateSdkKey,
+        bool? canViewProductStatistics,
+        bool? canViewProductAuditLog,
+        bool? canCreateOrUpdateSegments,
+        bool? canDeleteSegments,
+        CancellationToken token)
     {
         if (productId.IsEmpty())
             productId = (await this.workspaceLoader.LoadProductAsync(token)).ProductId;
 
-        if (model.Name.IsEmpty())
-            model.Name = await this.prompt.GetStringAsync("Name", token);
+        if (name.IsEmpty())
+            name = await this.prompt.GetStringAsync("Name", token);
+
+        var model = new UpdatePermissionGroupModel
+        {
+            Name = name,
+            CanManageMembers = canManageMembers,
+            CanCreateOrUpdateConfig = canCreateOrUpdateConfig,
+            CanDeleteConfig = canDeleteConfig,
+            CanCreateOrUpdateEnvironment = canCreateOrUpdateEnvironment,
+            CanDeleteEnvironment = canDeleteEnvironment,
+            CanCreateOrUpdateSetting = canCreateOrUpdateSetting,
+            CanTagSetting = canTagSetting,
+            CanDeleteSetting = canDeleteSetting,
+            CanCreateOrUpdateTag = canCreateOrUpdateTag,
+            CanDeleteTag = canDeleteTag,
+            CanManageWebhook = canManageWebhook,
+            CanUseExportImport = canUseExportImport,
+            CanManageProductPreferences = canManageProductPreferences,
+            CanManageIntegrations = canManageIntegrations,
+            CanViewSdkKey = canViewSdkKey,
+            CanRotateSdkKey = canRotateSdkKey,
+            CanViewProductStatistics = canViewProductStatistics,
+            CanViewProductAuditLog = canViewProductAuditLog,
+            CanCreateOrUpdateSegments = canCreateOrUpdateSegments,
+            CanDeleteSegments = canDeleteSegments,
+        };
 
         var initial = new PermissionGroupModel();
         initial.UpdateFromUpdateModel(model);
 
         if (!model.IsAnyPermissionSet())
         {
-            var permissions = await this.prompt.ChooseMultipleFromListAsync("Select permissions", Constants.Permissions, s => s, token,
+            var permissions = await this.prompt.ChooseMultipleFromListAsync("Select permissions", Constants.Permissions,
+                s => s, token,
                 initial.ToSelectedPermissions().ToList());
 
             if (permissions != null)
@@ -96,27 +146,75 @@ internal class PermissionGroup
         return ExitCodes.Ok;
     }
 
-    public async Task<int> UpdatePermissionGroupAsync(long? permissionGroupId, UpdatePermissionGroupModel model, CancellationToken token)
+    public async Task<int> UpdatePermissionGroupAsync(long? permissionGroupId, 
+        string name,
+        bool? canManageMembers,
+        bool? canCreateOrUpdateConfig,
+        bool? canDeleteConfig,
+        bool? canCreateOrUpdateEnvironment,
+        bool? canDeleteEnvironment,
+        bool? canCreateOrUpdateSetting,
+        bool? canTagSetting,
+        bool? canDeleteSetting,
+        bool? canCreateOrUpdateTag,
+        bool? canDeleteTag,
+        bool? canManageWebhook,
+        bool? canUseExportImport,
+        bool? canManageProductPreferences,
+        bool? canManageIntegrations,
+        bool? canViewSdkKey,
+        bool? canRotateSdkKey,
+        bool? canViewProductStatistics,
+        bool? canViewProductAuditLog,
+        bool? canCreateOrUpdateSegments,
+        bool? canDeleteSegments,
+        CancellationToken token)
     {
         var permissionGroup = permissionGroupId == null
             ? await this.workspaceLoader.LoadPermissionGroupAsync(token)
             : await this.permissionGroupClient.GetPermissionGroupAsync(permissionGroupId.Value, token);
 
-        if (model.Name.IsEmpty())
-            model.Name = await this.prompt.GetStringAsync("Name", token, permissionGroup.Name);
+        if (name.IsEmpty())
+            name = await this.prompt.GetStringAsync("Name", token, permissionGroup.Name);
 
+        var model = new UpdatePermissionGroupModel
+        {
+            Name = name,
+            CanManageMembers = canManageMembers,
+            CanCreateOrUpdateConfig = canCreateOrUpdateConfig,
+            CanDeleteConfig = canDeleteConfig,
+            CanCreateOrUpdateEnvironment = canCreateOrUpdateEnvironment,
+            CanDeleteEnvironment = canDeleteEnvironment,
+            CanCreateOrUpdateSetting = canCreateOrUpdateSetting,
+            CanTagSetting = canTagSetting,
+            CanDeleteSetting = canDeleteSetting,
+            CanCreateOrUpdateTag = canCreateOrUpdateTag,
+            CanDeleteTag = canDeleteTag,
+            CanManageWebhook = canManageWebhook,
+            CanUseExportImport = canUseExportImport,
+            CanManageProductPreferences = canManageProductPreferences,
+            CanManageIntegrations = canManageIntegrations,
+            CanViewSdkKey = canViewSdkKey,
+            CanRotateSdkKey = canRotateSdkKey,
+            CanViewProductStatistics = canViewProductStatistics,
+            CanViewProductAuditLog = canViewProductAuditLog,
+            CanCreateOrUpdateSegments = canCreateOrUpdateSegments,
+            CanDeleteSegments = canDeleteSegments,
+        };
         permissionGroup.UpdateFromUpdateModel(model);
 
         if (!model.IsAnyPermissionSet())
         {
-            var permissions = await this.prompt.ChooseMultipleFromListAsync("Select permissions", Constants.Permissions, s => s, token,
+            var permissions = await this.prompt.ChooseMultipleFromListAsync("Select permissions", Constants.Permissions,
+                s => s, token,
                 permissionGroup.ToSelectedPermissions().ToList());
 
             if (permissions != null)
                 permissionGroup.UpdateFromSelectedPermissions(permissions);
         }
 
-        await this.permissionGroupClient.UpdatePermissionGroupAsync(permissionGroup.PermissionGroupId, permissionGroup, token);
+        await this.permissionGroupClient.UpdatePermissionGroupAsync(permissionGroup.PermissionGroupId, permissionGroup,
+            token);
         return ExitCodes.Ok;
     }
 
@@ -152,13 +250,16 @@ internal class PermissionGroup
         this.output.WriteLine()
             .WriteDarkGray($"| ");
 
-        var accessTypeName = Constants.AccessTypes.GetValueOrDefault(permissionGroup.AccessType) ?? permissionGroup.AccessType.ToUpperInvariant();
+        var accessTypeName = Constants.AccessTypes.GetValueOrDefault(permissionGroup.AccessType) ??
+                             permissionGroup.AccessType.ToUpperInvariant();
         this.output.WriteLine()
             .WriteDarkGray($"| ")
             .WriteCyan(accessTypeName)
             .Write(" access in all environments");
 
-        var newEnvAccessTypeName = Constants.EnvironmentAccessTypes.GetValueOrDefault(permissionGroup.NewEnvironmentAccessType) ?? permissionGroup.NewEnvironmentAccessType.ToUpperInvariant();
+        var newEnvAccessTypeName =
+            Constants.EnvironmentAccessTypes.GetValueOrDefault(permissionGroup.NewEnvironmentAccessType) ??
+            permissionGroup.NewEnvironmentAccessType.ToUpperInvariant();
         this.output.WriteLine()
             .WriteDarkGray($"| ")
             .WriteCyan(newEnvAccessTypeName)
@@ -172,7 +273,9 @@ internal class PermissionGroup
 
             foreach (var environmentAccess in permissionGroup.EnvironmentAccesses)
             {
-                var envAccessTypeName = Constants.EnvironmentAccessTypes.GetValueOrDefault(environmentAccess.EnvironmentAccessType) ?? environmentAccess.EnvironmentAccessType.ToUpperInvariant();
+                var envAccessTypeName =
+                    Constants.EnvironmentAccessTypes.GetValueOrDefault(environmentAccess.EnvironmentAccessType) ??
+                    environmentAccess.EnvironmentAccessType.ToUpperInvariant();
                 this.output.WriteLine()
                     .WriteDarkGray($"|  ")
                     .WriteCyan(envAccessTypeName)
