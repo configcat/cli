@@ -14,11 +14,11 @@ jobs:
   unit-tests:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Setup dotnet
-      uses: actions/setup-dotnet@v1
+      uses: actions/setup-dotnet@v2
       with:
-        dotnet-version: '5.0.x'
+        dotnet-version: '6.0.x'
     - name: Unit tests
       run: dotnet test test/ConfigCat.Cli.Tests/ConfigCat.Cli.Tests.csproj -c Release
 
@@ -30,11 +30,11 @@ jobs:
         arch: [win-x64, linux-x64, linux-musl-x64, osx-x64]
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Setup dotnet
-      uses: actions/setup-dotnet@v1
+      uses: actions/setup-dotnet@v2
       with:
-        dotnet-version: '5.0.x'
+        dotnet-version: '6.0.x'
         
     - name: Publish ${{ matrix.arch }}
       run: | 
@@ -43,7 +43,7 @@ jobs:
         cp README.md publish/${{ matrix.arch }}/README.md
 
     - name: Archive executables
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: executables
         path: publish
@@ -53,10 +53,10 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Download executables
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: executables
 
@@ -83,10 +83,10 @@ jobs:
     runs-on: windows-latest
     
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Download executables
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: executables
 
@@ -118,10 +118,10 @@ jobs:
     runs-on: macos-latest
     
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     
     - name: Download executables
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: executables
 
@@ -140,10 +140,10 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Download executables
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: executables
 
