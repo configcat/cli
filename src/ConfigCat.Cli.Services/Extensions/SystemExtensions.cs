@@ -18,6 +18,9 @@ public static class SystemExtensions
 
     public static bool IsEmpty(this string value) =>
         string.IsNullOrWhiteSpace(value);
+    
+    public static string NullIfEmpty(this string value) =>
+        string.IsNullOrWhiteSpace(value) ? null : value;
 
     public static bool IsEmptyOrEquals(this string value, string other) =>
         string.IsNullOrWhiteSpace(value) || value.Equals(other);

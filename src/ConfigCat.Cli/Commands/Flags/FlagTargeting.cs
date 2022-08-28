@@ -55,7 +55,7 @@ internal class FlagTargeting
         if (environmentId.IsEmpty())
             environmentId = (await this.workspaceLoader.LoadEnvironmentAsync(token, flag.ConfigId)).EnvironmentId;
 
-        var addTargetingRuleModel = new AddTargetinRuleModel
+        var addTargetingRuleModel = new AddTargetingRuleModel
         {
             Attribute = attribute,
             Comparator = comparator,
@@ -73,11 +73,11 @@ internal class FlagTargeting
         var jsonPatchDocument = new JsonPatchDocument();
         jsonPatchDocument.Add($"/{FlagValueModel.TargetingRuleJsonName}/-", new TargetingModel
         {
-            Comparator = addTargetingRuleModel.Comparator,
-            ComparisonAttribute = addTargetingRuleModel.Attribute,
-            ComparisonValue = addTargetingRuleModel.CompareTo,
-            SegmentComparator = addTargetingRuleModel.SegmentComparator,
-            SegmentId = addTargetingRuleModel.SegmentId,
+            Comparator = addTargetingRuleModel.Comparator.NullIfEmpty(),
+            ComparisonAttribute = addTargetingRuleModel.Attribute.NullIfEmpty(),
+            ComparisonValue = addTargetingRuleModel.CompareTo.NullIfEmpty(),
+            SegmentComparator = addTargetingRuleModel.SegmentComparator.NullIfEmpty(),
+            SegmentId = addTargetingRuleModel.SegmentId.NullIfEmpty(),
             Value = parsed,
         });
 
@@ -107,7 +107,7 @@ internal class FlagTargeting
 
         var (existing, realPosition) = await this.GetRuleAsync("Choose rule to update", flag.SettingId, environmentId, position, token);
 
-        var addTargetingRuleModel = new AddTargetinRuleModel
+        var addTargetingRuleModel = new AddTargetingRuleModel
         {
             Attribute = attribute,
             Comparator = comparator,
@@ -125,11 +125,11 @@ internal class FlagTargeting
         var jsonPatchDocument = new JsonPatchDocument();
         jsonPatchDocument.Replace($"/{FlagValueModel.TargetingRuleJsonName}/{realPosition}", new TargetingModel
         {
-            Comparator = addTargetingRuleModel.Comparator,
-            ComparisonAttribute = addTargetingRuleModel.Attribute,
-            ComparisonValue = addTargetingRuleModel.CompareTo,
-            SegmentComparator = addTargetingRuleModel.SegmentComparator,
-            SegmentId = addTargetingRuleModel.SegmentId,
+            Comparator = addTargetingRuleModel.Comparator.NullIfEmpty(),
+            ComparisonAttribute = addTargetingRuleModel.Attribute.NullIfEmpty(),
+            ComparisonValue = addTargetingRuleModel.CompareTo.NullIfEmpty(),
+            SegmentComparator = addTargetingRuleModel.SegmentComparator.NullIfEmpty(),
+            SegmentId = addTargetingRuleModel.SegmentId.NullIfEmpty(),
             Value = parsed,
         });
 
@@ -178,7 +178,7 @@ internal class FlagTargeting
         return ExitCodes.Ok;
     }
 
-    private async Task ValidateAddModel(AddTargetinRuleModel addTargetingRuleModel, string environmentId, CancellationToken token, TargetingModel defaultModel = null)
+    private async Task ValidateAddModel(AddTargetingRuleModel addTargetingRuleModel, string environmentId, CancellationToken token, TargetingModel defaultModel = null)
     {
         var isSegment = !addTargetingRuleModel.SegmentId.IsEmpty() || defaultModel?.Segment is not null;
         if (addTargetingRuleModel.SegmentId.IsEmpty() && addTargetingRuleModel.Attribute.IsEmpty() && defaultModel?.Segment is null && defaultModel?.ComparisonAttribute is null)
@@ -263,7 +263,7 @@ internal class FlagTargeting
     }
 }
 
-internal class AddTargetinRuleModel
+internal class AddTargetingRuleModel
 {
     public string Attribute { get; set; }
 
