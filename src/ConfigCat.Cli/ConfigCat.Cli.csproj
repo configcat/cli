@@ -26,7 +26,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <TrimmerRootAssembly Include="System.ComponentModel.TypeConverter" />
     <TrimmerRootAssembly Include="ConfigCat.Cli.Services" />
     <TrimmerRootAssembly Include="ConfigCat.Cli.Models" />
   </ItemGroup>

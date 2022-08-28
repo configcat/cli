@@ -2,37 +2,36 @@
 using System;
 using System.Collections.Generic;
 
-namespace ConfigCat.Cli.Services.FileSystem.Ignore
+namespace ConfigCat.Cli.Services.FileSystem.Ignore;
+
+internal class IgnoreRuleSet
 {
-    internal class IgnoreRuleSet
+    private readonly List<Glob> rules = new List<Glob>();
+
+    public void Add(string pattern)
     {
-        private readonly List<Glob> rules = new List<Glob>();
+        if (!pattern.StartsWith('/'))
+            pattern = $"**/{pattern}";
 
-        public void Add(string pattern)
+        if (pattern.EndsWith('/'))
+            pattern = $"{pattern}**";
+
+        pattern = pattern.Replace(@"\ ", " ");
+
+        if (pattern.StartsWith('/') && !pattern.EndsWith("/**"))
+            this.rules.Add(Glob.Parse($"{pattern}{(pattern.EndsWith('/') ? "**" : "/**")}".Trim()));
+
+        this.rules.Add(Glob.Parse(pattern.Trim()));
+    }
+
+    public bool HasMatch(ReadOnlySpan<char> path)
+    {
+        foreach (var glob in this.rules)
         {
-            if (!pattern.StartsWith('/'))
-                pattern = $"**/{pattern}";
-
-            if (pattern.EndsWith('/'))
-                pattern = $"{pattern}**";
-
-            pattern = pattern.Replace(@"\ ", " ");
-
-            if (pattern.StartsWith('/') && !pattern.EndsWith("/**"))
-                this.rules.Add(Glob.Parse($"{pattern}{(pattern.EndsWith('/') ? "**" : "/**")}".Trim()));
-
-            this.rules.Add(Glob.Parse(pattern.Trim()));
+            if (glob.IsMatch(path))
+                return true;
         }
 
-        public bool HasMatch(ReadOnlySpan<char> path)
-        {
-            foreach (var glob in this.rules)
-            {
-                if (glob.IsMatch(path))
-                    return true;
-            }
-
-            return false;
-        }
+        return false;
     }
 }

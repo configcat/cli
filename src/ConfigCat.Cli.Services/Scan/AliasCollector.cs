@@ -13,142 +13,141 @@ using ConfigCat.Cli.Models.Scan;
 using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
 
-namespace ConfigCat.Cli.Services.Scan
+namespace ConfigCat.Cli.Services.Scan;
+
+public interface IAliasCollector
 {
-    public interface IAliasCollector
+    Task<AliasScanResult> CollectAsync(IEnumerable<FlagModel> flags,
+        FileInfo fileToScan,
+        CancellationToken token);
+}
+
+public class AliasCollector : IAliasCollector
+{
+    private readonly IBotPolicy<AliasScanResult> botPolicy;
+    private readonly IOutput output;
+
+    public AliasCollector(IBotPolicy<AliasScanResult> botPolicy,
+        IOutput output)
     {
-        Task<AliasScanResult> CollectAsync(IEnumerable<FlagModel> flags,
-            FileInfo fileToScan,
-            CancellationToken token);
+        this.botPolicy = botPolicy;
+        this.output = output;
+
+        this.botPolicy.Configure(p => p.Timeout(t => t.After(TimeSpan.FromSeconds(10))));
     }
 
-    public class AliasCollector : IAliasCollector
+    public async Task<AliasScanResult> CollectAsync(IEnumerable<FlagModel> flags, FileInfo fileToScan, CancellationToken token)
     {
-        private readonly IBotPolicy<AliasScanResult> botPolicy;
-        private readonly IOutput output;
-
-        public AliasCollector(IBotPolicy<AliasScanResult> botPolicy,
-            IOutput output)
+        try
         {
-            this.botPolicy = botPolicy;
-            this.output = output;
-
-            this.botPolicy.Configure(p => p.Timeout(t => t.After(TimeSpan.FromSeconds(10))));
-        }
-
-        public async Task<AliasScanResult> CollectAsync(IEnumerable<FlagModel> flags, FileInfo fileToScan, CancellationToken token)
-        {
-            try
+            return await this.botPolicy.ExecuteAsync(async (ctx, cancellation) =>
             {
-                return await this.botPolicy.ExecuteAsync(async (ctx, cancellation) =>
+                await using var stream = fileToScan.OpenRead();
+                if (await stream.IsBinaryAsync(cancellation))
                 {
-                    await using var stream = fileToScan.OpenRead();
-                    if (await stream.IsBinaryAsync(cancellation))
+                    this.output.Verbose($"{fileToScan.FullName} is binary, skipping.", ConsoleColor.Yellow);
+                    return null;
+                }
+
+                this.output.Verbose($"{fileToScan.FullName} searching aliases...");
+
+                var flagKeys = flags.Select(f => f.Key).ToArray();
+                var keys = string.Join('|', flagKeys);
+
+                var result = new AliasScanResult { ScannedFile = fileToScan };
+
+                Parallel.ForEach(File.ReadLines(fileToScan.FullName), line =>
+                {
+                    if (line.Length > Constants.MaxCharCountPerLine || !flagKeys.Any(line.Contains))
+                        return;
+
+                    var match = Regex.Match(line, @"[`{'""]?([a-zA-Z_$0-9]*)[[`}'\""]?\s*(?>\:?\s*(?>[sS]tring)?\s*=?>?\s*(?>new|await)?)\s*\S*[@$]?[`'""](" + keys + ")[`'\"]",
+                        RegexOptions.Compiled);
+
+                    while (match.Success && !cancellation.IsCancellationRequested)
                     {
-                        this.output.Verbose($"{fileToScan.FullName} is binary, skipping.", ConsoleColor.Yellow);
-                        return null;
+                        var key = match.Groups[2].Value;
+                        var found = match.Groups[1].Value;
+                        var flag = flags.FirstOrDefault(f => f.Key == key);
+
+                        if (flag != null)
+                            result.FoundFlags.Add(flag);
+
+                        if (flag != null && !found.IsEmpty() && Similarity(flag.Key, found) > 0.3)
+                            result.FlagAliases.AddOrUpdate(flag, new ConcurrentBag<string> { found }, (k, v) => { v.Add(found); return v; });
+
+                        match = match.NextMatch();
                     }
+                });
 
-                    this.output.Verbose($"{fileToScan.FullName} searching aliases...");
+                this.output.Verbose($"{fileToScan.FullName} search completed.", ConsoleColor.Green);
+                return result;
+            }, token);
+        }
+        catch (OperationTimeoutException)
+        {
+            this.output.Verbose($"{fileToScan.FullName} search timed out.", ConsoleColor.Red);
+            return null;
+        }
+    }
 
-                    var flagKeys = flags.Select(f => f.Key).ToArray();
-                    var keys = string.Join('|', flagKeys);
+    private static double Similarity(string a, string b)
+    {
+        a = a.ToLowerInvariant().RemoveDashes();
+        b = b.ToLowerInvariant().RemoveDashes();
+        return QGramSimilarity(a, b);
+    }
 
-                    var result = new AliasScanResult { ScannedFile = fileToScan };
+    private static readonly Regex MultipleSpaces = new("\\s+");
 
-                    Parallel.ForEach(File.ReadLines(fileToScan.FullName), line =>
-                    {
-                        if (line.Length > Constants.MaxCharCountPerLine || !flagKeys.Any(line.Contains))
-                            return;
+    private static double QGramSimilarity(string s1, string s2)
+    {
+        if (s1 == s2) return 1;
 
-                        var match = Regex.Match(line, @"[`{'""]?([a-zA-Z_$0-9]*)[[`}'\""]?\s*(?>\:?\s*(?>[sS]tring)?\s*=?>?\s*(?>new|await)?)\s*\S*[@$]?[`'""](" + keys + ")[`'\"]",
-                            RegexOptions.Compiled);
+        var qGrams1 = GetQGrams(s1);
+        var qGrams2 = GetQGrams(s2);
 
-                        while (match.Success && !cancellation.IsCancellationRequested)
-                        {
-                            var key = match.Groups[2].Value;
-                            var found = match.Groups[1].Value;
-                            var flag = flags.FirstOrDefault(f => f.Key == key);
+        var sum = qGrams1.Values.Sum() + qGrams2.Values.Sum();
+        return (sum - Distance()) / sum;
 
-                            if (flag != null)
-                                result.FoundFlags.Add(flag);
+        IDictionary<string, int> GetQGrams(string s)
+        {
+            const int tokenLength = 3;
 
-                            if (flag != null && !found.IsEmpty() && Similarity(flag.Key, found) > 0.3)
-                                result.FlagAliases.AddOrUpdate(flag, new ConcurrentBag<string> { found }, (k, v) => { v.Add(found); return v; });
-
-                            match = match.NextMatch();
-                        }
-                    });
-
-                    this.output.Verbose($"{fileToScan.FullName} search completed.", ConsoleColor.Green);
-                    return result;
-                }, token);
-            }
-            catch (OperationTimeoutException)
+            var shingles = new Dictionary<string, int>();
+            var trimmed = MultipleSpaces.Replace(s, " ");
+            for (var i = 0; i < (trimmed.Length - tokenLength + 1); i++)
             {
-                this.output.Verbose($"{fileToScan.FullName} search timed out.", ConsoleColor.Red);
-                return null;
+                var shingle = trimmed.Substring(i, tokenLength);
+                if (shingles.TryGetValue(shingle, out var old))
+                    shingles[shingle] = old + 1;
+                else
+                    shingles[shingle] = 1;
             }
+            return new ReadOnlyDictionary<string, int>(shingles);
         }
 
-        private static double Similarity(string a, string b)
+        double Distance()
         {
-            a = a.ToLowerInvariant().RemoveDashes();
-            b = b.ToLowerInvariant().RemoveDashes();
-            return QGramSimilarity(a, b);
-        }
+            var union = new HashSet<string>();
+            union.UnionWith(qGrams1.Keys);
+            union.UnionWith(qGrams2.Keys);
 
-        private static readonly Regex MultipleSpaces = new("\\s+");
-
-        private static double QGramSimilarity(string s1, string s2)
-        {
-            if (s1 == s2) return 1;
-
-            var qGrams1 = GetQGrams(s1);
-            var qGrams2 = GetQGrams(s2);
-
-            var sum = qGrams1.Values.Sum() + qGrams2.Values.Sum();
-            return (sum - Distance()) / sum;
-
-            IDictionary<string, int> GetQGrams(string s)
+            var distance = 0;
+            foreach (var key in union)
             {
-                const int tokenLength = 3;
+                var v1 = 0;
+                var v2 = 0;
 
-                var shingles = new Dictionary<string, int>();
-                var trimmed = MultipleSpaces.Replace(s, " ");
-                for (var i = 0; i < (trimmed.Length - tokenLength + 1); i++)
-                {
-                    var shingle = trimmed.Substring(i, tokenLength);
-                    if (shingles.TryGetValue(shingle, out var old))
-                        shingles[shingle] = old + 1;
-                    else
-                        shingles[shingle] = 1;
-                }
-                return new ReadOnlyDictionary<string, int>(shingles);
+                if (qGrams1.TryGetValue(key, out var iv1))
+                    v1 = iv1;
+
+                if (qGrams2.TryGetValue(key, out var iv2))
+                    v2 = iv2;
+
+                distance += Math.Abs(v1 - v2);
             }
-
-            double Distance()
-            {
-                var union = new HashSet<string>();
-                union.UnionWith(qGrams1.Keys);
-                union.UnionWith(qGrams2.Keys);
-
-                var distance = 0;
-                foreach (var key in union)
-                {
-                    var v1 = 0;
-                    var v2 = 0;
-
-                    if (qGrams1.TryGetValue(key, out var iv1))
-                        v1 = iv1;
-
-                    if (qGrams2.TryGetValue(key, out var iv2))
-                        v2 = iv2;
-
-                    distance += Math.Abs(v1 - v2);
-                }
-                return distance;
-            }
+            return distance;
         }
     }
 }
