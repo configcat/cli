@@ -118,8 +118,8 @@ internal class Scan
 
         var gitInfo = this.gitClient.GatherGitInfo(directory.FullName);
 
-        branch ??= gitInfo?.Branch;
-        commitHash ??= gitInfo?.CurrentCommitHash;
+        branch = branch.NullIfEmpty() ?? gitInfo?.Branch;
+        commitHash = commitHash.NullIfEmpty() ?? gitInfo?.CurrentCommitHash;
 
         if (branch.IsEmpty())
             throw new ShowHelpException(
@@ -162,7 +162,7 @@ internal class Scan
                 : null,
             ActiveBranches = gitInfo?.ActiveBranches,
             ConfigId = configId,
-            Uploader = runner ?? $"ConfigCat CLI {Version.Value}",
+            Uploader = runner.NullIfEmpty() ?? $"ConfigCat CLI {Version.Value}",
         }, token);
 
 
@@ -287,7 +287,7 @@ internal class Scan
     }
 }
 
-class FlagModelEqualityComparer : IEqualityComparer<DeletedFlagModel>
+internal class FlagModelEqualityComparer : IEqualityComparer<DeletedFlagModel>
 {
     public bool Equals([AllowNull] DeletedFlagModel x, [AllowNull] DeletedFlagModel y)
     {
