@@ -34,82 +34,82 @@ jobs:
         name: executables
         path: publish
 
-  snap:
-    runs-on: ubuntu-latest
-    needs: produce-executables
+  # snap:
+  #   runs-on: ubuntu-latest
+  #   needs: produce-executables
 
-    steps:
-    - uses: actions/checkout@v3
+  #   steps:
+  #   - uses: actions/checkout@v3
 
-    - name: Download executables
-      uses: actions/download-artifact@v3
-      with:
-        name: executables
+  #   - name: Download executables
+  #     uses: actions/download-artifact@v3
+  #     with:
+  #       name: executables
 
-    - name: Get version from tag
-      run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
+  #   - name: Get version from tag
+  #     run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
 
-    - name: Update version in snapcraft
-      run: sed -i 's/#VERSION_PLACEHOLDER#/${{ env.VERSION }}/g' snap/snapcraft.yaml
+  #   - name: Update version in snapcraft
+  #     run: sed -i 's/#VERSION_PLACEHOLDER#/${{ env.VERSION }}/g' snap/snapcraft.yaml
 
-    - name: Build snap
-      uses: snapcore/action-build@v1
-      id: build
+  #   - name: Build snap
+  #     uses: snapcore/action-build@v1
+  #     id: build
 
-    - name: Archive snap
-      uses: actions/upload-artifact@v3
-      with:
-        name: snap-pack
-        path: configcat_*.snap
+  #   - name: Archive snap
+  #     uses: actions/upload-artifact@v3
+  #     with:
+  #       name: snap-pack
+  #       path: configcat_*.snap
 
-    - name: 🚀Publish
-      uses: snapcore/action-publish@v1
-      with:
-        store_login: ${{ secrets.SNAP_LOGIN }}
-        snap: ${{ steps.build.outputs.snap }}
-        release: stable
+  #   - name: 🚀Publish
+  #     uses: snapcore/action-publish@v1
+  #     with:
+  #       store_login: ${{ secrets.SNAP_LOGIN }}
+  #       snap: ${{ steps.build.outputs.snap }}
+  #       release: stable
 
-  chocolatey:
-    runs-on: windows-latest
-    needs: produce-executables
+  # chocolatey:
+  #   runs-on: windows-latest
+  #   needs: produce-executables
 
-    steps:
-    - uses: actions/checkout@v3
+  #   steps:
+  #   - uses: actions/checkout@v3
 
-    - name: Download executables
-      uses: actions/download-artifact@v3
-      with:
-        name: executables
+  #   - name: Download executables
+  #     uses: actions/download-artifact@v3
+  #     with:
+  #       name: executables
 
-    - name: Get version from tag
-      run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
-      shell: bash
+  #   - name: Get version from tag
+  #     run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
+  #     shell: bash
 
-    - name: Update version in nuspec
-      run: ((Get-Content -path choco\configcat.nuspec -Raw) -replace '#VERSION_PLACEHOLDER#','${{ env.VERSION }}') | Set-Content -Path choco\configcat.nuspec
-      shell: powershell
+  #   - name: Update version in nuspec
+  #     run: ((Get-Content -path choco\configcat.nuspec -Raw) -replace '#VERSION_PLACEHOLDER#','${{ env.VERSION }}') | Set-Content -Path choco\configcat.nuspec
+  #     shell: powershell
 
-    - name: Update version in VERIFICATION.txt
-      run: ((Get-Content -path choco\VERIFICATION.txt -Raw) -replace '#VERSION_PLACEHOLDER#','${{ env.VERSION }}') | Set-Content -Path choco\VERIFICATION.txt
-      shell: powershell
+  #   - name: Update version in VERIFICATION.txt
+  #     run: ((Get-Content -path choco\VERIFICATION.txt -Raw) -replace '#VERSION_PLACEHOLDER#','${{ env.VERSION }}') | Set-Content -Path choco\VERIFICATION.txt
+  #     shell: powershell
 
-    - name: Copy LICENSE to choco folder
-      run: Copy-Item LICENSE -destination choco\LICENSE.txt
-      shell: powershell
+  #   - name: Copy LICENSE to choco folder
+  #     run: Copy-Item LICENSE -destination choco\LICENSE.txt
+  #     shell: powershell
 
-    - name: Pack
-      run: choco pack choco\configcat.nuspec
+  #   - name: Pack
+  #     run: choco pack choco\configcat.nuspec
 
-    - name: Archive choco package
-      uses: actions/upload-artifact@v3
-      with:
-        name: choco-pack
-        path: configcat.*.nupkg
+  #   - name: Archive choco package
+  #     uses: actions/upload-artifact@v3
+  #     with:
+  #       name: choco-pack
+  #       path: configcat.*.nupkg
 
-    - name: 🚀Publish
-      run: |
-        choco apikey --key ${{ secrets.CHOCO_API_KEY }} --source https://push.chocolatey.org/
-        choco push configcat.${{ env.VERSION }}.nupkg --source https://push.chocolatey.org/
+  #   - name: 🚀Publish
+  #     run: |
+  #       choco apikey --key ${{ secrets.CHOCO_API_KEY }} --source https://push.chocolatey.org/
+  #       choco push configcat.${{ env.VERSION }}.nupkg --source https://push.chocolatey.org/
 
   docker:
     runs-on: ubuntu-latest
