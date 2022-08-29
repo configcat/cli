@@ -171,7 +171,7 @@ public class Output : IOutput
         var width = Console.BufferWidth;
         var isEndReached = left >= width - 1;
         var newTop = isEndReached ? top + 1 : top;
-        if (newTop >= Console.BufferHeight)
+        if (newTop >= Console.BufferHeight && OperatingSystem.IsWindows())
             Console.BufferHeight++;
 
         this.SetCursorPosition(isEndReached ? 0 : left + 1, newTop);
