@@ -13,15 +13,19 @@ mkdir -p "$CLONE_DIR/Formula"
 cp brew/fromula-template.rb "$CLONE_DIR/Formula/configcat.rb"
 
 OSX_TAR="configcat-cli_${VERSION}_osx-x64.tar.gz"
+OSX_ARM_TAR="configcat-cli_${VERSION}_osx-arm64.tar.gz"
 LINUX_TAR="configcat-cli_${VERSION}_linux-x64.tar.gz"
 
 OSX_CHECKSUM=$(sha256sum $OSX_TAR | awk '{print $1}')
+OSX_ARM_CHECKSUM=$(sha256sum $OSX_ARM_TAR | awk '{print $1}')
 LINUX_CHECKSUM=$(sha256sum $LINUX_TAR | awk '{print $1}')
 
 sed -i "s/#VERSION_PLACEHOLDER#/$VERSION/g" "$CLONE_DIR/Formula/configcat.rb"
 sed -i "s+#OSX-TAR-PATH#+https://github.com/configcat/cli/releases/download/v$VERSION/$OSX_TAR+g" "$CLONE_DIR/Formula/configcat.rb"
+sed -i "s+#OSX-ARM-TAR-PATH#+https://github.com/configcat/cli/releases/download/v$VERSION/$OSX_ARM_TAR+g" "$CLONE_DIR/Formula/configcat.rb"
 sed -i "s+#LINUX-TAR-PATH#+https://github.com/configcat/cli/releases/download/v$VERSION/$LINUX_TAR+g" "$CLONE_DIR/Formula/configcat.rb"
 sed -i "s/#OSX-TAR-SUM#/$OSX_CHECKSUM/g" "$CLONE_DIR/Formula/configcat.rb"
+sed -i "s/#OSX-ARM-TAR-SUM#/$OSX_ARM_CHECKSUM/g" "$CLONE_DIR/Formula/configcat.rb"
 sed -i "s/#LINUX-TAR-SUM#/$LINUX_CHECKSUM/g" "$CLONE_DIR/Formula/configcat.rb"
 
 cd "$CLONE_DIR"

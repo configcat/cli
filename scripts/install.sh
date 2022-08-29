@@ -49,7 +49,7 @@ case "$(uname -s)" in
     ;;
     Darwin)
         OS='osx'
-        ARCH='x64'
+        ARCH="${ARCH:-x64}"
     ;;
     *)
         echo '==> ERROR: Not supported operating system.'
@@ -74,6 +74,6 @@ cp "$UCPATH/configcat" "${DIR}"
 echo "==> Deleting '${UCPATH}'."
 rm -rf "$UCPATH"
 
-configcat cat
+configcat whoisthebestcat
 
 echo "==> ConfigCat CLI v${VERSION} successfully installed. Happy Feature Flagging!"

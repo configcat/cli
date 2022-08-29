@@ -11,13 +11,13 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        arch: [win-x64, win-x86, win-arm, win-arm64, linux-x64, linux-musl-x64, linux-arm, linux-arm64, osx-x64]
+        arch: [win-x64, win-x86, win-arm, win-arm64, linux-x64, linux-musl-x64, linux-arm, linux-arm64, osx-x64, osx-arm64]
     steps:
     - uses: actions/checkout@v3
     - name: Setup dotnet
       uses: actions/setup-dotnet@v2
       with:
-        dotnet-version: '5.0.x'
+        dotnet-version: '6.0.x'
     
     - name: Get version from tag
       run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
@@ -191,12 +191,13 @@ jobs:
 
     - name: Create archives & checksum
       run: |
-        chmod +x linux-x64/configcat linux-musl-x64/configcat linux-arm/configcat linux-arm64/configcat osx-x64/configcat
+        chmod +x linux-x64/configcat linux-musl-x64/configcat linux-arm/configcat linux-arm64/configcat osx-x64/configcat osx-arm64/configcat
         cd linux-x64/ && tar --exclude='*.pdb' -czf ../configcat-cli_${{ env.VERSION }}_linux-x64.tar.gz * && cd ..
         cd linux-musl-x64/ && tar --exclude='*.pdb' -czf ../configcat-cli_${{ env.VERSION }}_linux-musl-x64.tar.gz * && cd ..
         cd linux-arm/ && tar --exclude='*.pdb' -czf ../configcat-cli_${{ env.VERSION }}_linux-arm.tar.gz * && cd ..
         cd linux-arm64/ && tar --exclude='*.pdb' -czf ../configcat-cli_${{ env.VERSION }}_linux-arm64.tar.gz * && cd ..
         cd osx-x64/ && tar --exclude='*.pdb' -czf ../configcat-cli_${{ env.VERSION }}_osx-x64.tar.gz * && cd ..
+        cd osx-arm64/ && tar --exclude='*.pdb' -czf ../configcat-cli_${{ env.VERSION }}_osx-arm64.tar.gz * && cd ..
         zip -r -D configcat-cli_${{ env.VERSION }}_win-x64.zip win-x64/* -x '*.pdb'
         zip -r -D configcat-cli_${{ env.VERSION }}_win-x86.zip win-x86/* -x '*.pdb'
         zip -r -D configcat-cli_${{ env.VERSION }}_win-arm.zip win-arm/* -x '*.pdb'
@@ -207,6 +208,7 @@ jobs:
         configcat-cli_${{ env.VERSION }}_linux-arm.tar.gz \
         configcat-cli_${{ env.VERSION }}_linux-arm64.tar.gz \
         configcat-cli_${{ env.VERSION }}_osx-x64.tar.gz \
+        configcat-cli_${{ env.VERSION }}_osx-arm64.tar.gz \
         configcat-cli_${{ env.VERSION }}_win-x64.zip \
         configcat-cli_${{ env.VERSION }}_win-x86.zip \
         configcat-cli_${{ env.VERSION }}_win-arm.zip \
@@ -219,6 +221,7 @@ jobs:
         path: |
           configcat-cli_${{ env.VERSION }}_linux-x64.tar.gz
           configcat-cli_${{ env.VERSION }}_osx-x64.tar.gz
+          configcat-cli_${{ env.VERSION }}_osx-arm64.tar.gz
 
     - name: Archive zips for scoop
       uses: actions/upload-artifact@v3

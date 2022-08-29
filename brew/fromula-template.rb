@@ -8,6 +8,10 @@ class Configcat < Formula
     url "#OSX-TAR-PATH#"
     sha256 "#OSX-TAR-SUM#"
   end
+  if OS.mac? && Hardware::CPU.arm?
+    url "#OSX-ARM-TAR-PATH#"
+    sha256 "#OSX-ARM-TAR-SUM#"
+  end
   if OS.linux? && Hardware::CPU.intel?
     url "#LINUX-TAR-PATH#"
     sha256 "#LINUX-TAR-SUM#"
