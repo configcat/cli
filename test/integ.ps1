@@ -26,31 +26,31 @@ BeforeAll {
 
     $configName = "CLI-IntegTest-Config"
     $configId = Invoke-ConfigCat "config", "create", "-p", $productId, "-n", $configName
-    Invoke-ConfigCat "config", "ls" | Should -Match ([regex]::Escape($configName))
+    Invoke-ConfigCat "config", "ls", "-p", $productId | Should -Match ([regex]::Escape($configName))
 
     $environmentName = "CLI-IntegTest-Env"
     $environmentId = Invoke-ConfigCat "environment", "create", "-p", $productId, "-n", $environmentName
-    Invoke-ConfigCat "environment", "ls" | Should -Match ([regex]::Escape($environmentName))
+    Invoke-ConfigCat "environment", "ls", "-p", $productId | Should -Match ([regex]::Escape($environmentName))
 
     $segmentName = "CLI-IntegTest-Segment"
     $segmentId = Invoke-ConfigCat "segment", "create", "-p", $productId, "-n", $segmentName, "-a", "Identifier", "-c", "doesnotcontain", "-t", "sample.com"
-    Invoke-ConfigCat "segment", "ls" | Should -Match ([regex]::Escape($segmentName))
+    Invoke-ConfigCat "segment", "ls", "-p", $productId | Should -Match ([regex]::Escape($segmentName))
     $details = Invoke-ConfigCat "segment", "sh", "-i", $segmentId
     $details | Should -Match ([regex]::Escape("when Identifier DOES NOT CONTAIN sample.com"))
 }
 
 AfterAll {
     Invoke-ConfigCat "environment", "rm", "-i", $environmentId
-    Invoke-ConfigCat "environment", "ls" | Should -Not -Match ([regex]::Escape($environmentId))
+    Invoke-ConfigCat "environment", "ls", "-p", $productId | Should -Not -Match ([regex]::Escape($environmentId))
 
     Invoke-ConfigCat "config", "rm", "-i", $configId
-    Invoke-ConfigCat "config", "ls" | Should -Not -Match ([regex]::Escape($configId))
+    Invoke-ConfigCat "config", "ls", "-p", $productId | Should -Not -Match ([regex]::Escape($configId))
+
+    Invoke-ConfigCat "segment", "rm", "-i", $segmentId
+    Invoke-ConfigCat "segment", "ls", "-p", $productId | Should -Not -Match ([regex]::Escape($segmentId))
 
     Invoke-ConfigCat "product", "rm", "-i", $productId
     Invoke-ConfigCat "product", "ls" | Should -Not -Match ([regex]::Escape($productId))
-
-    Invoke-ConfigCat "segment", "rm", "-i", $segmentId
-    Invoke-ConfigCat "segment", "ls" | Should -Not -Match ([regex]::Escape($segmentId))
 }
 
 Describe "Setup Tests" {
@@ -69,13 +69,13 @@ Describe "Product / Config / Environment Tests" {
     It "Rename Config" {
         $newConfigName = "CLI-IntegTest-Config-Updated"
         Invoke-ConfigCat "config", "update", "-i", $configId, "-n", $newConfigName
-        Invoke-ConfigCat "config", "ls" | Should -Match ([regex]::Escape($newConfigName))
+        Invoke-ConfigCat "config", "ls", "-p", $productId | Should -Match ([regex]::Escape($newConfigName))
     }
 
     It "Rename Environment" {
         $newEnvironmentName = "CLI-IntegTest-Env-Updated"
         Invoke-ConfigCat "environment", "update", "-i", $environmentId, "-n", $newEnvironmentName
-        Invoke-ConfigCat "environment", "ls" | Should -Match ([regex]::Escape($newEnvironmentName))
+        Invoke-ConfigCat "environment", "ls", "-p", $productId | Should -Match ([regex]::Escape($newEnvironmentName))
     }
 
     It "Ensure SDK Keys generated" {
@@ -117,7 +117,7 @@ Describe "Permission Group Tests" {
 
         $newGroupName = "permgroup_$([guid]::NewGuid().ToString())"
         Invoke-ConfigCat "permission-group", "update", "-i", $permissionGroupId, "-n", $newGroupName
-        Invoke-ConfigCat "permission-group", "ls" | Should -Match ([regex]::Escape($newGroupName))
+        Invoke-ConfigCat "permission-group", "ls", "-p", $productId | Should -Match ([regex]::Escape($newGroupName))
 
         Invoke-ConfigCat "permission-group", "update", "-i", $permissionGroupId, "--can-manage-members", "false", "--can-delete-tag", "false", "--can-delete-segments", "false", "--can-view-sdk-key", "false"
         $printed2 = Invoke-ConfigCat "permission-group", "show", "-i", $permissionGroupId
@@ -171,7 +171,7 @@ Describe "Permission Group Tests" {
         $printed3 | Should -Match "No access in ${environmentName}"
 
         Invoke-ConfigCat "permission-group", "rm", "-i", $permissionGroupId
-        Invoke-ConfigCat "permission-group", "ls" | Should -Not -Match ([regex]::Escape($newGroupName))
+        Invoke-ConfigCat "permission-group", "ls", "-p", $productId | Should -Not -Match ([regex]::Escape($newGroupName))
     }
 }
 
