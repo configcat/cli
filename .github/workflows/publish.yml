@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        arch: [win-x64, win-x86, win-arm, win-arm64, linux-x64, linux-musl-x64, linux-arm, linux-arm64, osx-x64]
+        arch: [win-x64, win-x86, win-arm, win-arm64, linux-x64, linux-musl-x64, linux-arm, linux-arm64]
     steps:
     - uses: actions/checkout@v3
     - name: Setup dotnet
@@ -34,11 +34,11 @@ jobs:
         name: executables
         path: publish
 
-  produce-osx-arm-executable:
+  produce-osx-executable:
     runs-on: macos-latest
     strategy:
       matrix:
-        arch: [osx-arm64]
+        arch: [osx-x64, osx-arm64]
     steps:
     - uses: actions/checkout@v3
     - name: Setup dotnet
@@ -54,9 +54,6 @@ jobs:
         dotnet publish src/ConfigCat.Cli/ConfigCat.Cli.csproj -c Release -r ${{ matrix.arch }} --self-contained true -p:PublishSingleFile=true -p:Version=${{ env.VERSION }} -o publish/${{ matrix.arch }}
         cp LICENSE publish/${{ matrix.arch }}/LICENSE
         cp README.md publish/${{ matrix.arch }}/README.md
-
-    - name: Sign executable
-      run: codesign -s - publish/${{ matrix.arch }}/configcat
 
     - name: Archive executables
       uses: actions/upload-artifact@v3
@@ -208,7 +205,7 @@ jobs:
 
   # github-release:
   #   runs-on: ubuntu-latest
-  #   needs: [ produce-executables, produce-osx-arm-executable ]
+  #   needs: [ produce-executables, produce-osx-executable ]
 
   #   steps:
   #   - name: Download executables
