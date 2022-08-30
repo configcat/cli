@@ -27,7 +27,33 @@ jobs:
     needs: unit-tests
     strategy:
       matrix:
-        arch: [win-x64, linux-x64, linux-musl-x64, osx-x64]
+        arch: [win-x64, linux-x64, linux-musl-x64]
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup dotnet
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: '6.0.x'
+        
+    - name: Publish ${{ matrix.arch }}
+      run: | 
+        dotnet publish src/ConfigCat.Cli/ConfigCat.Cli.csproj -c Release -r ${{ matrix.arch }} --self-contained true -p:PublishSingleFile=true -o publish/${{ matrix.arch }}
+        cp LICENSE publish/${{ matrix.arch }}/LICENSE
+        cp README.md publish/${{ matrix.arch }}/README.md
+
+    - name: Archive executables
+      uses: actions/upload-artifact@v3
+      with:
+        name: executables
+        path: publish
+
+  produce-osx-executable:
+    runs-on: macos-latest
+    needs: unit-tests
+    strategy:
+      matrix:
+        arch: [osx-x64]
 
     steps:
     - uses: actions/checkout@v3
@@ -114,7 +140,7 @@ jobs:
         CONFIGCAT_API_PASS: ${{ secrets.CONFIGCAT_API_PASS }}
 
   mac-tests:
-    needs: produce-executables
+    needs: produce-osx-executable
     runs-on: macos-latest
     
     steps:
