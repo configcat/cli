@@ -90,7 +90,7 @@ Describe "Permission Group Tests" {
     It "Create / Update / Delete" {
         $groupName = "permgroup_$([guid]::NewGuid().ToString())"
         $permissionGroupId = Invoke-ConfigCat "permission-group", "create", "-p", $productId, "-n", $groupName, "--can-delete-config", "false", "--can-use-export-import", "false"
-        Invoke-ConfigCat "permission-group", "ls" | Should -Match ([regex]::Escape($groupName))
+        Invoke-ConfigCat "permission-group", "ls", "-p", $productId | Should -Match ([regex]::Escape($groupName))
         $printed1 = Invoke-ConfigCat "permission-group", "show", "-i", $permissionGroupId
         $printed1 | Should -Match ([regex]::Escape("[*] Manage Members and Permission Groups"))
         $printed1 | Should -Match ([regex]::Escape("[*] Create, edit, and reorder Configs"))
