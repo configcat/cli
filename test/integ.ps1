@@ -390,8 +390,6 @@ Describe "Scan Tests" {
     
     It "Scan exclude" {
         $result = Invoke-ConfigCat "scan", $scanPath, "-c", $configId, "-r", "cli", "-ex", "flag_to_scan", "flag_to_scan_2"
-        $result | Should -Match ([regex]::Escape("Repository: cli"))
-        $result | Should -Match ([regex]::Escape("Uploading code references... Ok."))
         $result | Should -Not -Match ([regex]::Escape("'flag_to_scan'"))
         $result | Should -Not -Match ([regex]::Escape("'flag_to_scan_2'"))
         $result | Should -Match ([regex]::Escape("deleted feature flag/setting"))
