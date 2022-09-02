@@ -278,11 +278,11 @@ internal class Scan
     {
         foreach (var item in source)
         {
-            var references = FilterReference(item.References, filter);
-            if (!references.Any())
+            var references = FilterReference(item.References, filter).ToList();
+            if (references.Count == 0)
                 continue;
 
-            yield return item;
+            yield return new FlagReferenceResult { File = item.File, References = references };
         }
 
         IEnumerable<Reference> FilterReference(IEnumerable<Reference> references, Predicate<Reference> predicate)
