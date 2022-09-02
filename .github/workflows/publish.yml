@@ -96,222 +96,222 @@ jobs:
         snap: ${{ steps.build.outputs.snap }}
         release: stable
 
-  chocolatey:
-    runs-on: windows-latest
-    needs: [produce-executables, produce-osx-executables]
+  # chocolatey:
+  #   runs-on: windows-latest
+  #   needs: [produce-executables, produce-osx-executables]
 
-    steps:
-    - uses: actions/checkout@v3
+  #   steps:
+  #   - uses: actions/checkout@v3
 
-    - name: Download executables
-      uses: actions/download-artifact@v3
-      with:
-        name: executables
+  #   - name: Download executables
+  #     uses: actions/download-artifact@v3
+  #     with:
+  #       name: executables
 
-    - name: Get version from tag
-      run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
-      shell: bash
+  #   - name: Get version from tag
+  #     run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
+  #     shell: bash
 
-    - name: Update version in nuspec
-      run: ((Get-Content -path choco\configcat.nuspec -Raw) -replace '#VERSION_PLACEHOLDER#','${{ env.VERSION }}') | Set-Content -Path choco\configcat.nuspec
-      shell: powershell
+  #   - name: Update version in nuspec
+  #     run: ((Get-Content -path choco\configcat.nuspec -Raw) -replace '#VERSION_PLACEHOLDER#','${{ env.VERSION }}') | Set-Content -Path choco\configcat.nuspec
+  #     shell: powershell
 
-    - name: Update version in VERIFICATION.txt
-      run: ((Get-Content -path choco\VERIFICATION.txt -Raw) -replace '#VERSION_PLACEHOLDER#','${{ env.VERSION }}') | Set-Content -Path choco\VERIFICATION.txt
-      shell: powershell
+  #   - name: Update version in VERIFICATION.txt
+  #     run: ((Get-Content -path choco\VERIFICATION.txt -Raw) -replace '#VERSION_PLACEHOLDER#','${{ env.VERSION }}') | Set-Content -Path choco\VERIFICATION.txt
+  #     shell: powershell
 
-    - name: Copy LICENSE to choco folder
-      run: Copy-Item LICENSE -destination choco\LICENSE.txt
-      shell: powershell
+  #   - name: Copy LICENSE to choco folder
+  #     run: Copy-Item LICENSE -destination choco\LICENSE.txt
+  #     shell: powershell
 
-    - name: Pack
-      run: choco pack choco\configcat.nuspec
+  #   - name: Pack
+  #     run: choco pack choco\configcat.nuspec
 
-    - name: Archive choco package
-      uses: actions/upload-artifact@v3
-      with:
-        name: choco-pack
-        path: configcat.*.nupkg
+  #   - name: Archive choco package
+  #     uses: actions/upload-artifact@v3
+  #     with:
+  #       name: choco-pack
+  #       path: configcat.*.nupkg
 
-    - name: 🚀Publish
-      run: |
-        choco apikey --key ${{ secrets.CHOCO_API_KEY }} --source https://push.chocolatey.org/
-        choco push configcat.${{ env.VERSION }}.nupkg --source https://push.chocolatey.org/
+  #   - name: 🚀Publish
+  #     run: |
+  #       choco apikey --key ${{ secrets.CHOCO_API_KEY }} --source https://push.chocolatey.org/
+  #       choco push configcat.${{ env.VERSION }}.nupkg --source https://push.chocolatey.org/
 
-  docker:
-    runs-on: ubuntu-latest
-    needs: [produce-executables, produce-osx-executables]
+  # docker:
+  #   runs-on: ubuntu-latest
+  #   needs: [produce-executables, produce-osx-executables]
 
-    steps:
-    - uses: actions/checkout@v3
+  #   steps:
+  #   - uses: actions/checkout@v3
 
-    - name: Download executables
-      uses: actions/download-artifact@v3
-      with:
-        name: executables
+  #   - name: Download executables
+  #     uses: actions/download-artifact@v3
+  #     with:
+  #       name: executables
 
-    - name: Get version from tag
-      run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
+  #   - name: Get version from tag
+  #     run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
 
-    - name: Set permissions
-      run: chmod +x ./linux-musl-x64/configcat
+  #   - name: Set permissions
+  #     run: chmod +x ./linux-musl-x64/configcat
 
-    - name: Login to DockerHub
-      uses: docker/login-action@v1 
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
+  #   - name: Login to DockerHub
+  #     uses: docker/login-action@v1 
+  #     with:
+  #       username: ${{ secrets.DOCKERHUB_USERNAME }}
+  #       password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    - name: Build and push
-      uses: docker/build-push-action@v2
-      with:
-        context: .
-        push: true
-        tags: |
-          configcat/cli:latest
-          configcat/cli:${{ env.VERSION }}
+  #   - name: Build and push
+  #     uses: docker/build-push-action@v2
+  #     with:
+  #       context: .
+  #       push: true
+  #       tags: |
+  #         configcat/cli:latest
+  #         configcat/cli:${{ env.VERSION }}
 
-  docker-azure:
-    runs-on: ubuntu-latest
-    needs: [produce-executables, produce-osx-executables]
+  # docker-azure:
+  #   runs-on: ubuntu-latest
+  #   needs: [produce-executables, produce-osx-executables]
 
-    steps:
-    - uses: actions/checkout@v3
+  #   steps:
+  #   - uses: actions/checkout@v3
 
-    - name: Download executables
-      uses: actions/download-artifact@v3
-      with:
-        name: executables
+  #   - name: Download executables
+  #     uses: actions/download-artifact@v3
+  #     with:
+  #       name: executables
 
-    - name: Get version from tag
-      run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
+  #   - name: Get version from tag
+  #     run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
 
-    - name: Set permissions
-      run: chmod +x ./linux-musl-x64/configcat
+  #   - name: Set permissions
+  #     run: chmod +x ./linux-musl-x64/configcat
 
-    - name: Login to DockerHub
-      uses: docker/login-action@v1 
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
+  #   - name: Login to DockerHub
+  #     uses: docker/login-action@v1 
+  #     with:
+  #       username: ${{ secrets.DOCKERHUB_USERNAME }}
+  #       password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    - name: Build and push
-      uses: docker/build-push-action@v2
-      with:
-        context: .
-        file: azure-devops/Dockerfile
-        push: true
-        tags: configcat/cli:azure-devops-${{ env.VERSION }}
+  #   - name: Build and push
+  #     uses: docker/build-push-action@v2
+  #     with:
+  #       context: .
+  #       file: azure-devops/Dockerfile
+  #       push: true
+  #       tags: configcat/cli:azure-devops-${{ env.VERSION }}
 
-  github-release:
-    runs-on: ubuntu-latest
-    needs: [produce-executables, produce-osx-executables]
+  # github-release:
+  #   runs-on: ubuntu-latest
+  #   needs: [produce-executables, produce-osx-executables]
 
-    steps:
-    - name: Download executables
-      uses: actions/download-artifact@v3
-      with:
-        name: executables
+  #   steps:
+  #   - name: Download executables
+  #     uses: actions/download-artifact@v3
+  #     with:
+  #       name: executables
 
-    - name: Get version from tag
-      run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
+  #   - name: Get version from tag
+  #     run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
 
-    - name: Create archives & checksum
-      run: |
-        chmod +x linux-x64/configcat linux-musl-x64/configcat linux-arm/configcat linux-arm64/configcat osx-x64/configcat osx-arm64/configcat
-        cd linux-x64/ && tar --exclude='*.pdb' -czf ../configcat-cli_${{ env.VERSION }}_linux-x64.tar.gz * && cd ..
-        cd linux-musl-x64/ && tar --exclude='*.pdb' -czf ../configcat-cli_${{ env.VERSION }}_linux-musl-x64.tar.gz * && cd ..
-        cd linux-arm/ && tar --exclude='*.pdb' -czf ../configcat-cli_${{ env.VERSION }}_linux-arm.tar.gz * && cd ..
-        cd linux-arm64/ && tar --exclude='*.pdb' -czf ../configcat-cli_${{ env.VERSION }}_linux-arm64.tar.gz * && cd ..
-        cd osx-x64/ && tar --exclude='*.pdb' -czf ../configcat-cli_${{ env.VERSION }}_osx-x64.tar.gz * && cd ..
-        cd osx-arm64/ && tar --exclude='*.pdb' -czf ../configcat-cli_${{ env.VERSION }}_osx-arm64.tar.gz * && cd ..
-        zip -r -D configcat-cli_${{ env.VERSION }}_win-x64.zip win-x64/* -x '*.pdb'
-        zip -r -D configcat-cli_${{ env.VERSION }}_win-x86.zip win-x86/* -x '*.pdb'
-        zip -r -D configcat-cli_${{ env.VERSION }}_win-arm.zip win-arm/* -x '*.pdb'
-        zip -r -D configcat-cli_${{ env.VERSION }}_win-arm64.zip win-arm64/* -x '*.pdb'
+  #   - name: Create archives & checksum
+  #     run: |
+  #       chmod +x linux-x64/configcat linux-musl-x64/configcat linux-arm/configcat linux-arm64/configcat osx-x64/configcat osx-arm64/configcat
+  #       cd linux-x64/ && tar --exclude='*.pdb' -czf ../configcat-cli_${{ env.VERSION }}_linux-x64.tar.gz * && cd ..
+  #       cd linux-musl-x64/ && tar --exclude='*.pdb' -czf ../configcat-cli_${{ env.VERSION }}_linux-musl-x64.tar.gz * && cd ..
+  #       cd linux-arm/ && tar --exclude='*.pdb' -czf ../configcat-cli_${{ env.VERSION }}_linux-arm.tar.gz * && cd ..
+  #       cd linux-arm64/ && tar --exclude='*.pdb' -czf ../configcat-cli_${{ env.VERSION }}_linux-arm64.tar.gz * && cd ..
+  #       cd osx-x64/ && tar --exclude='*.pdb' -czf ../configcat-cli_${{ env.VERSION }}_osx-x64.tar.gz * && cd ..
+  #       cd osx-arm64/ && tar --exclude='*.pdb' -czf ../configcat-cli_${{ env.VERSION }}_osx-arm64.tar.gz * && cd ..
+  #       zip -r -D configcat-cli_${{ env.VERSION }}_win-x64.zip win-x64/* -x '*.pdb'
+  #       zip -r -D configcat-cli_${{ env.VERSION }}_win-x86.zip win-x86/* -x '*.pdb'
+  #       zip -r -D configcat-cli_${{ env.VERSION }}_win-arm.zip win-arm/* -x '*.pdb'
+  #       zip -r -D configcat-cli_${{ env.VERSION }}_win-arm64.zip win-arm64/* -x '*.pdb'
         
-        sha256sum configcat-cli_${{ env.VERSION }}_linux-x64.tar.gz \
-        configcat-cli_${{ env.VERSION }}_linux-musl-x64.tar.gz \
-        configcat-cli_${{ env.VERSION }}_linux-arm.tar.gz \
-        configcat-cli_${{ env.VERSION }}_linux-arm64.tar.gz \
-        configcat-cli_${{ env.VERSION }}_osx-x64.tar.gz \
-        configcat-cli_${{ env.VERSION }}_osx-arm64.tar.gz \
-        configcat-cli_${{ env.VERSION }}_win-x64.zip \
-        configcat-cli_${{ env.VERSION }}_win-x86.zip \
-        configcat-cli_${{ env.VERSION }}_win-arm.zip \
-        configcat-cli_${{ env.VERSION }}_win-arm64.zip > configcat-cli_${{ env.VERSION }}_checksums.sha256
+  #       sha256sum configcat-cli_${{ env.VERSION }}_linux-x64.tar.gz \
+  #       configcat-cli_${{ env.VERSION }}_linux-musl-x64.tar.gz \
+  #       configcat-cli_${{ env.VERSION }}_linux-arm.tar.gz \
+  #       configcat-cli_${{ env.VERSION }}_linux-arm64.tar.gz \
+  #       configcat-cli_${{ env.VERSION }}_osx-x64.tar.gz \
+  #       configcat-cli_${{ env.VERSION }}_osx-arm64.tar.gz \
+  #       configcat-cli_${{ env.VERSION }}_win-x64.zip \
+  #       configcat-cli_${{ env.VERSION }}_win-x86.zip \
+  #       configcat-cli_${{ env.VERSION }}_win-arm.zip \
+  #       configcat-cli_${{ env.VERSION }}_win-arm64.zip > configcat-cli_${{ env.VERSION }}_checksums.sha256
 
-    - name: Archive tars for brew
-      uses: actions/upload-artifact@v3
-      with:
-        name: brew-pack
-        path: |
-          configcat-cli_${{ env.VERSION }}_linux-x64.tar.gz
-          configcat-cli_${{ env.VERSION }}_osx-x64.tar.gz
-          configcat-cli_${{ env.VERSION }}_osx-arm64.tar.gz
+  #   - name: Archive tars for brew
+  #     uses: actions/upload-artifact@v3
+  #     with:
+  #       name: brew-pack
+  #       path: |
+  #         configcat-cli_${{ env.VERSION }}_linux-x64.tar.gz
+  #         configcat-cli_${{ env.VERSION }}_osx-x64.tar.gz
+  #         configcat-cli_${{ env.VERSION }}_osx-arm64.tar.gz
 
-    - name: Archive zips for scoop
-      uses: actions/upload-artifact@v3
-      with:
-        name: scoop-pack
-        path: |
-          configcat-cli_${{ env.VERSION }}_win-x64.zip
-          configcat-cli_${{ env.VERSION }}_win-x86.zip
+  #   - name: Archive zips for scoop
+  #     uses: actions/upload-artifact@v3
+  #     with:
+  #       name: scoop-pack
+  #       path: |
+  #         configcat-cli_${{ env.VERSION }}_win-x64.zip
+  #         configcat-cli_${{ env.VERSION }}_win-x86.zip
 
-    - name: 🚀Update release
-      uses: ncipollo/release-action@v1
-      with:
-        artifacts: "configcat-cli_*.tar.gz,configcat-cli_*.zip,configcat-cli_*_checksums.sha256"
-        allowUpdates: true
-        omitBodyDuringUpdate: true
-        omitNameDuringUpdate: true
-        token: ${{ secrets.GITHUB_TOKEN }}
+  #   - name: 🚀Update release
+  #     uses: ncipollo/release-action@v1
+  #     with:
+  #       artifacts: "configcat-cli_*.tar.gz,configcat-cli_*.zip,configcat-cli_*_checksums.sha256"
+  #       allowUpdates: true
+  #       omitBodyDuringUpdate: true
+  #       omitNameDuringUpdate: true
+  #       token: ${{ secrets.GITHUB_TOKEN }}
 
 
-  brew:
-    runs-on: ubuntu-latest
-    needs: github-release
+  # brew:
+  #   runs-on: ubuntu-latest
+  #   needs: github-release
 
-    steps:
-    - uses: actions/checkout@v3
+  #   steps:
+  #   - uses: actions/checkout@v3
 
-    - name: Download archives
-      uses: actions/download-artifact@v3
-      with:
-        name: brew-pack
+  #   - name: Download archives
+  #     uses: actions/download-artifact@v3
+  #     with:
+  #       name: brew-pack
 
-    - name: Get version from tag
-      run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
+  #   - name: Get version from tag
+  #     run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
 
-    - name: Execute brew publish script
-      run: |
-        chmod +x scripts/brew-publish.sh
-        ./scripts/brew-publish.sh
-      env:
-        GH_USER_EMAIL: ${{ secrets.GH_USER_EMAIL }}
-        GH_USER_NAME: ${{ secrets.GH_USER_NAME }}
-        GH_API_TOKEN: ${{ secrets.GH_API_TOKEN }}
+  #   - name: Execute brew publish script
+  #     run: |
+  #       chmod +x scripts/brew-publish.sh
+  #       ./scripts/brew-publish.sh
+  #     env:
+  #       GH_USER_EMAIL: ${{ secrets.GH_USER_EMAIL }}
+  #       GH_USER_NAME: ${{ secrets.GH_USER_NAME }}
+  #       GH_API_TOKEN: ${{ secrets.GH_API_TOKEN }}
 
-  scoop:
-    runs-on: ubuntu-latest
-    needs: github-release
+  # scoop:
+  #   runs-on: ubuntu-latest
+  #   needs: github-release
 
-    steps:
-    - uses: actions/checkout@v3
+  #   steps:
+  #   - uses: actions/checkout@v3
 
-    - name: Download archives
-      uses: actions/download-artifact@v3
-      with:
-        name: scoop-pack
+  #   - name: Download archives
+  #     uses: actions/download-artifact@v3
+  #     with:
+  #       name: scoop-pack
 
-    - name: Get version from tag
-      run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
+  #   - name: Get version from tag
+  #     run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
 
-    - name: Execute scoop publish script
-      run: |
-        chmod +x scripts/scoop-publish.sh
-        ./scripts/scoop-publish.sh
-      env:
-        GH_USER_EMAIL: ${{ secrets.GH_USER_EMAIL }}
-        GH_USER_NAME: ${{ secrets.GH_USER_NAME }}
-        GH_API_TOKEN: ${{ secrets.GH_API_TOKEN }}
+  #   - name: Execute scoop publish script
+  #     run: |
+  #       chmod +x scripts/scoop-publish.sh
+  #       ./scripts/scoop-publish.sh
+  #     env:
+  #       GH_USER_EMAIL: ${{ secrets.GH_USER_EMAIL }}
+  #       GH_USER_NAME: ${{ secrets.GH_USER_NAME }}
+  #       GH_API_TOKEN: ${{ secrets.GH_API_TOKEN }}
