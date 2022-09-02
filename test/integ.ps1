@@ -370,11 +370,13 @@ Describe "Flag value / Rule Tests" {
 
 Describe "Scan Tests" {
     BeforeAll {
-        $flagIdToScan = Invoke-ConfigCat "flag", "create", "-c", $configId, "-n", "Flag-To-Scan", "-k", "flag_to_scan", "-H", "hint", "-t", "boolean"
+        $flagIdToScan1 = Invoke-ConfigCat "flag", "create", "-c", $configId, "-n", "Flag-To-Scan", "-k", "flag_to_scan", "-H", "hint", "-t", "boolean"
+        $flagIdToScan2 = Invoke-ConfigCat "flag", "create", "-c", $configId, "-n", "Flag-To-Scan-2", "-k", "flag_to_scan_2", "-H", "hint", "-t", "boolean"
     }
 
     AfterAll {
-        Invoke-ConfigCat "flag", "rm", "-i", $flagIdToScan
+        Invoke-ConfigCat "flag", "rm", "-i", $flagIdToScan1
+        Invoke-ConfigCat "flag", "rm", "-i", $flagIdToScan2
     }
 
     It "Scan" {
@@ -382,6 +384,16 @@ Describe "Scan Tests" {
         $result | Should -Match ([regex]::Escape("Repository: cli"))
         $result | Should -Match ([regex]::Escape("Uploading code references... Ok."))
         $result | Should -Match ([regex]::Escape("'flag_to_scan'"))
+        $result | Should -Match ([regex]::Escape("'flag_to_scan_2'"))
+        $result | Should -Match ([regex]::Escape("'bool_flag'"))
+    }
+    
+    It "Scan exclude" {
+        $result = Invoke-ConfigCat "scan", $scanPath, "-c", $configId, "-r", "cli", "-ex", "flag_to_scan", "flag_to_scan_2", "--upload", "--print"
+        $result | Should -Match ([regex]::Escape("Repository: cli"))
+        $result | Should -Match ([regex]::Escape("Uploading code references... Ok."))
+        $result | Should -Not -Match ([regex]::Escape("'flag_to_scan'"))
+        $result | Should -Not -Match ([regex]::Escape("'flag_to_scan_2'"))
         $result | Should -Match ([regex]::Escape("'bool_flag'"))
     }
 }

@@ -1,4 +1,5 @@
-﻿using ConfigCat.Cli.Commands;
+﻿using System.Collections.Generic;
+using ConfigCat.Cli.Commands;
 using ConfigCat.Cli.Commands.Flags;
 using ConfigCat.Cli.Options;
 using ConfigCat.Cli.Services;
@@ -792,6 +793,7 @@ public static class CommandBuilder
                 new Option<string>(new[] { "--file-url-template", "-f" }, "Template url used to generate VCS file links. Available template parameters: `commitHash`, `filePath`, `lineNumber`. Example: https://github.com/my/repo/blob/{commitHash}/{filePath}#L{lineNumber}"),
                 new Option<string>(new[] { "--commit-url-template", "-ct" }, "Template url used to generate VCS commit links. Available template parameters: `commitHash`. Example: https://github.com/my/repo/commit/{commitHash}"),
                 new Option<string>(new[] { "--runner", "-ru" }, "Overrides the default `ConfigCat CLI {version}` executor label on the ConfigCat dashboard"),
+                new Option<string[]>(new[] { "--exclude-flag-keys", "-ex" }, "Exclude the given Feature Flag keys from scanning"),
 
             }
         };

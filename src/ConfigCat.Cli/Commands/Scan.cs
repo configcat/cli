@@ -60,6 +60,7 @@ internal class Scan
         string fileUrlTemplate,
         string commitUrlTemplate,
         string runner,
+        string[] excludeFlagKeys,
         CancellationToken token)
     {
         if (upload && repo.IsEmpty())
@@ -76,10 +77,14 @@ internal class Scan
             : lineCount;
 
         var flags = await this.flagClient.GetFlagsAsync(configId, token);
+        if (excludeFlagKeys is {Length: > 0})
+            flags = flags.Where(f => !excludeFlagKeys.Contains(f.Key));
         var deletedFlags = await this.flagClient.GetDeletedFlagsAsync(configId, token);
         deletedFlags = deletedFlags
             .Where(d => flags.All(f => f.Key != d.Key))
             .Distinct(new FlagModelEqualityComparer());
+        if (excludeFlagKeys is {Length: > 0})
+            deletedFlags = deletedFlags.Where(f => !excludeFlagKeys.Contains(f.Key));
 
         var files = await this.fileCollector.CollectAsync(directory, token);
         var flagReferences = await this.fileScanner.ScanAsync(flags.Concat(deletedFlags).ToArray(), files.ToArray(), lineCount, token);
