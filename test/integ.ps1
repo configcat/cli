@@ -385,15 +385,15 @@ Describe "Scan Tests" {
         $result | Should -Match ([regex]::Escape("Uploading code references... Ok."))
         $result | Should -Match ([regex]::Escape("'flag_to_scan'"))
         $result | Should -Match ([regex]::Escape("'flag_to_scan_2'"))
-        $result | Should -Match ([regex]::Escape("'bool_flag'"))
+        $result | Should -Match ([regex]::Escape("deleted feature flag/setting"))
     }
     
     It "Scan exclude" {
-        $result = Invoke-ConfigCat "scan", $scanPath, "-c", $configId, "-r", "cli", "-ex", "flag_to_scan", "flag_to_scan_2", "--upload", "--print"
+        $result = Invoke-ConfigCat "scan", $scanPath, "-c", $configId, "-r", "cli", "-ex", "flag_to_scan", "flag_to_scan_2", "--upload"
         $result | Should -Match ([regex]::Escape("Repository: cli"))
         $result | Should -Match ([regex]::Escape("Uploading code references... Ok."))
         $result | Should -Not -Match ([regex]::Escape("'flag_to_scan'"))
         $result | Should -Not -Match ([regex]::Escape("'flag_to_scan_2'"))
-        $result | Should -Match ([regex]::Escape("'bool_flag'"))
+        $result | Should -Match ([regex]::Escape("deleted feature flag/setting"))
     }
 }
