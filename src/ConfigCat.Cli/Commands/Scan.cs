@@ -72,6 +72,12 @@ internal class Scan
             configId = (await this.workspaceLoader.LoadConfigAsync(token)).ConfigId;
         }
 
+        if (excludeFlagKeys is {Length: 1} && excludeFlagKeys[0].Contains(','))
+            excludeFlagKeys = excludeFlagKeys[0].Split(',')
+                .Select(t => t.Trim())
+                .Where(t => !t.IsEmpty())
+                .ToArray();
+        
         lineCount = lineCount is < 0 or > 10
             ? 4
             : lineCount;

@@ -793,7 +793,7 @@ public static class CommandBuilder
                 new Option<string>(new[] { "--file-url-template", "-f" }, "Template url used to generate VCS file links. Available template parameters: `commitHash`, `filePath`, `lineNumber`. Example: https://github.com/my/repo/blob/{commitHash}/{filePath}#L{lineNumber}"),
                 new Option<string>(new[] { "--commit-url-template", "-ct" }, "Template url used to generate VCS commit links. Available template parameters: `commitHash`. Example: https://github.com/my/repo/commit/{commitHash}"),
                 new Option<string>(new[] { "--runner", "-ru" }, "Overrides the default `ConfigCat CLI {version}` executor label on the ConfigCat dashboard"),
-                new Option<string[]>(new[] { "--exclude-flag-keys", "-ex" }, "Exclude the given Feature Flag keys from scanning"),
+                new Option<string[]>(new[] { "--exclude-flag-keys", "-ex" }, "Exclude the given Feature Flag keys from scanning. E.g.: `-ex flag1 flag2` or `-ex 'flag1,flag2'`"),
 
             }
         };

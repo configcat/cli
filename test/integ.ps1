@@ -394,4 +394,11 @@ Describe "Scan Tests" {
         $result | Should -Not -Match ([regex]::Escape("'flag_to_scan_2'"))
         $result | Should -Match ([regex]::Escape("deleted feature flag/setting"))
     }
+    
+    It "Scan exclude comma" {
+        $result = Invoke-ConfigCat "scan", $scanPath, "-c", $configId, "-r", "cli", "-ex", "flag_to_scan, flag_to_scan_2"
+        $result | Should -Not -Match ([regex]::Escape("'flag_to_scan'"))
+        $result | Should -Not -Match ([regex]::Escape("'flag_to_scan_2'"))
+        $result | Should -Match ([regex]::Escape("deleted feature flag/setting"))
+    }
 }
