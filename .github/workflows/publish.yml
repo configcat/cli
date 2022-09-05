@@ -63,7 +63,7 @@ jobs:
 
   snap:
     runs-on: ubuntu-latest
-    needs: produce-executables
+    needs: [produce-executables, produce-osx-executables]
 
     steps:
     - uses: actions/checkout@v3
@@ -98,7 +98,7 @@ jobs:
 
   chocolatey:
     runs-on: windows-latest
-    needs: produce-executables
+    needs: [produce-executables, produce-osx-executables]
 
     steps:
     - uses: actions/checkout@v3
@@ -140,7 +140,7 @@ jobs:
 
   docker:
     runs-on: ubuntu-latest
-    needs: produce-executables
+    needs: [produce-executables, produce-osx-executables]
 
     steps:
     - uses: actions/checkout@v3
@@ -173,7 +173,7 @@ jobs:
 
   docker-azure:
     runs-on: ubuntu-latest
-    needs: produce-executables
+    needs: [produce-executables, produce-osx-executables]
 
     steps:
     - uses: actions/checkout@v3
