@@ -75,7 +75,7 @@ jobs:
         path: publish
       
   linux-snap-tests:
-    needs: produce-executables
+    needs: [produce-executables, produce-osx-executable]
     runs-on: ubuntu-latest
     
     steps:
@@ -105,7 +105,7 @@ jobs:
         CONFIGCAT_API_PASS: ${{ secrets.CONFIGCAT_API_PASS }}
 
   win-choco-tests:
-    needs: produce-executables
+    needs: [produce-executables, produce-osx-executable]
     runs-on: windows-latest
     
     steps:
@@ -140,7 +140,7 @@ jobs:
         CONFIGCAT_API_PASS: ${{ secrets.CONFIGCAT_API_PASS }}
 
   mac-tests:
-    needs: produce-osx-executable
+    needs: [produce-executables, produce-osx-executable]
     runs-on: macos-latest
     
     steps:
@@ -162,7 +162,7 @@ jobs:
         CONFIGCAT_API_PASS: ${{ secrets.CONFIGCAT_API_PASS }}
 
   docker-tests:
-    needs: produce-executables
+    needs: [produce-executables, produce-osx-executable]
     runs-on: ubuntu-latest
     
     steps:
