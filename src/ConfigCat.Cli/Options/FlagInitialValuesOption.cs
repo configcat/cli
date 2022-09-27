@@ -42,7 +42,7 @@ internal sealed class FlagInitialValuesOption : Option<InitialValueOption[]>
         }
 
         return result;
-    }, false, "Format: `<environment-id>:<initial-value>`")
+    }, false, "Initial value for specific Environments. Format: `<environment-id>:<initial-value>`")
     { }
 }
 

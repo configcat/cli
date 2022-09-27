@@ -13,6 +13,8 @@ configcat [options] flag create
 | `--name`, `-n` | Name of the new Flag or Setting |
 | `--key`, `-k` | Key of the new Flag or Setting (must be unique within the given Config) |
 | `--hint`, `-H` | Hint of the new Flag or Setting |
+| `--init-value`, `-iv` | Initial value for each Environment |
+| `--init-values-per-environment`, `-ive` | Initial value for specific Environments. Format: `<environment-id>:<initial-value>` |
 | `--type`, `-t` | Type of the new Flag or Setting |
 | `--tag-ids`, `-g` | Tags to attach |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |
