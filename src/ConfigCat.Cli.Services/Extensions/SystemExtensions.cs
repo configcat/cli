@@ -49,4 +49,14 @@ public static class SystemExtensions
                 return false;
         }
     }
+
+    public static string GetDefaultValueForType(this string type) =>
+        type switch
+        {
+            SettingTypes.Boolean => "false",
+            SettingTypes.Int => "42",
+            SettingTypes.Double => "3.14",
+            SettingTypes.String => "initial value",
+            _ => ""
+        };
 }

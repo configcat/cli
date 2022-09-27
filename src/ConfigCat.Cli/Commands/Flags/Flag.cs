@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using ConfigCat.Cli.Options;
 
 namespace ConfigCat.Cli.Commands.Flags;
 
@@ -17,6 +18,7 @@ class Flag
     private readonly IFlagClient flagClient;
     private readonly IConfigClient configClient;
     private readonly IProductClient productClient;
+    private readonly IEnvironmentClient environmentClient;
     private readonly IWorkspaceLoader workspaceLoader;
     private readonly IPrompt prompt;
     private readonly IOutput output;
@@ -24,6 +26,7 @@ class Flag
     public Flag(IFlagClient flagClient,
         IConfigClient configClient,
         IProductClient productClient,
+        IEnvironmentClient environmentClient,
         IWorkspaceLoader workspaceLoader,
         IPrompt prompt,
         IOutput output)
@@ -31,6 +34,7 @@ class Flag
         this.flagClient = flagClient;
         this.configClient = configClient;
         this.productClient = productClient;
+        this.environmentClient = environmentClient;
         this.workspaceLoader = workspaceLoader;
         this.prompt = prompt;
         this.output = output;
@@ -94,10 +98,12 @@ class Flag
         string name,
         string hint,
         string type,
-        IEnumerable<int> tagIds,
+        string initValue,
+        int[] tagIds,
+        InitialValueOption[] initValuesPerEnvironment,
         CancellationToken token)
     {
-        var shouldPromptTags = configId.IsEmpty();
+        var shouldPrompt = configId.IsEmpty();
 
         if (configId.IsEmpty())
             configId = (await this.workspaceLoader.LoadConfigAsync(token)).ConfigId;
@@ -114,21 +120,69 @@ class Flag
         if (type.IsEmpty())
             type = await this.prompt.ChooseFromListAsync("Choose type", SettingTypes.Collection.ToList(), t => t, token);
 
-        if (shouldPromptTags && (tagIds is null || !tagIds.Any()))
-            tagIds = (await this.workspaceLoader.LoadTagsAsync(token, configId, optional: true)).Select(t => t.TagId);
+        if (shouldPrompt && (tagIds is null || !tagIds.Any()))
+            tagIds = (await this.workspaceLoader.LoadTagsAsync(token, configId, optional: true)).Select(t => t.TagId).ToArray();
 
         if (!SettingTypes.Collection.ToList()
                 .Contains(type, StringComparer.OrdinalIgnoreCase))
             throw new ShowHelpException($"Type must be one of the following: {string.Join('|', SettingTypes.Collection)}");
 
-        var result = await this.flagClient.CreateFlagAsync(configId, new CreateFlagModel
+        object parsedInitialValue = null;
+        if (!initValue.IsEmpty() && !initValue.TryParseFlagValue(type, out parsedInitialValue))
+            throw new ShowHelpException($"Initial value '{initValue}' must respect the type '{type}'.");
+        
+        var createModel = new CreateFlagModel
         {
             Hint = hint,
             Key = key,
             Name = name,
             TagIds = tagIds,
             Type = type
-        }, token);
+        };
+
+        ConfigModel config = null;
+        List<EnvironmentModel> environments = null;
+        if (shouldPrompt && initValue.IsEmpty() && initValuesPerEnvironment.IsEmpty())
+        {
+            config = await this.configClient.GetConfigAsync(configId, token);
+            environments = (await this.environmentClient.GetEnvironmentsAsync(config.Product.ProductId, token)).ToList();
+            var defaultValue = type.GetDefaultValueForType();
+            initValuesPerEnvironment = new InitialValueOption[environments.Count];
+            this.output.WriteDarkGray("Please set an initial value for each of your environments.")
+                .WriteLine();
+
+            var index = 0;
+            foreach (var environment in environments)
+            {
+                var fromPrompt = await this.prompt.GetStringAsync(environment.Name, token, defaultValue);
+                initValuesPerEnvironment[index++] = new InitialValueOption
+                    { EnvironmentId = environment.EnvironmentId, Value = fromPrompt };
+            }
+        }
+        
+        if (parsedInitialValue is not null || !initValuesPerEnvironment.IsEmpty())
+        {
+            config ??= await this.configClient.GetConfigAsync(configId, token);
+            environments ??= (await this.environmentClient.GetEnvironmentsAsync(config.Product.ProductId, token)).ToList();
+            createModel.InitialValues = environments.Select(env =>
+            {
+                var initial = new InitialValue { EnvironmentId = env.EnvironmentId };
+                var perEnv = initValuesPerEnvironment?.FirstOrDefault(i => i.EnvironmentId == env.EnvironmentId);
+                if (perEnv is not null)
+                {
+                    if (!perEnv.Value.TryParseFlagValue(type, out var parsed))
+                        throw new ShowHelpException($"Initial value '{perEnv.Value}' must respect the type '{type}'.");
+
+                    initial.Value = parsed;
+                }
+                else
+                    initial.Value = parsedInitialValue;
+
+                return initial.Value is null ? null : initial;
+            }).Where(i => i is not null).ToList();
+        }
+        
+        var result = await this.flagClient.CreateFlagAsync(configId, createModel, token);
         this.output.Write(result.SettingId.ToString());
 
         return ExitCodes.Ok;
@@ -156,16 +210,15 @@ class Flag
             if (updateFlagModel.Hint.IsEmpty())
                 updateFlagModel.Hint = await this.prompt.GetStringAsync("Hint", token, flag.Hint);
 
-            if (updateFlagModel.TagIds is null || !updateFlagModel.TagIds.Any())
-                updateFlagModel.TagIds = (await this.workspaceLoader.LoadTagsAsync(token, flag.ConfigId, flag.Tags, optional: true)).Select(t => t.TagId);
+            if (updateFlagModel.TagIds.IsEmpty())
+                updateFlagModel.TagIds = (await this.workspaceLoader.LoadTagsAsync(token, flag.ConfigId, flag.Tags, optional: true)).Select(t => t.TagId).ToArray();
         }
 
-        var originalTagIds = flag.Tags?.Select(t => t.TagId)?.ToList() ?? new List<int>();
+        var originalTagIds = flag.Tags?.Select(t => t.TagId).ToList() ?? new List<int>();
 
         if (updateFlagModel.Hint.IsEmptyOrEquals(flag.Hint) &&
             updateFlagModel.Name.IsEmptyOrEquals(flag.Name) &&
-            (updateFlagModel.TagIds is null ||
-             !updateFlagModel.TagIds.Any() ||
+            (updateFlagModel.TagIds.IsEmpty() ||
              updateFlagModel.TagIds.SequenceEqual(originalTagIds)))
         {
             this.output.WriteNoChange();
@@ -200,7 +253,7 @@ class Flag
         return ExitCodes.Ok;
     }
 
-    public async Task<int> AttachTagsAsync(int? flagId, IEnumerable<int> tagIds, CancellationToken token)
+    public async Task<int> AttachTagsAsync(int? flagId, int[] tagIds, CancellationToken token)
     {
         var flag = flagId is null
             ? await this.workspaceLoader.LoadFlagAsync(token)
@@ -208,11 +261,10 @@ class Flag
 
         var flagTagIds = flag.Tags.Select(t => t.TagId).ToList();
 
-        if (flagId is null && tagIds is null || !tagIds.Any())
-            tagIds = (await this.workspaceLoader.LoadTagsAsync(token, flag.ConfigId, flag.Tags)).Select(t => t.TagId);
+        if (flagId is null && tagIds.IsEmpty())
+            tagIds = (await this.workspaceLoader.LoadTagsAsync(token, flag.ConfigId, flag.Tags)).Select(t => t.TagId).ToArray();
 
-        if (tagIds is null ||
-            !tagIds.Any() ||
+        if (tagIds.IsEmpty() ||
             tagIds.SequenceEqual(flagTagIds) ||
             !tagIds.Except(flagTagIds).Any())
         {
@@ -228,14 +280,14 @@ class Flag
         return ExitCodes.Ok;
     }
 
-    public async Task<int> DetachTagsAsync(int? flagId, IEnumerable<int> tagIds, CancellationToken token)
+    public async Task<int> DetachTagsAsync(int? flagId, int[] tagIds, CancellationToken token)
     {
         var flag = flagId is null
             ? await this.workspaceLoader.LoadFlagAsync(token)
             : await this.flagClient.GetFlagAsync(flagId.Value, token);
 
-        if (flagId is null && tagIds is null || !tagIds.Any())
-            tagIds = (await this.prompt.ChooseMultipleFromListAsync("Choose tags to detach", flag.Tags, t => t.Name, token)).Select(t => t.TagId);
+        if (flagId is null && tagIds.IsEmpty())
+            tagIds = (await this.prompt.ChooseMultipleFromListAsync("Choose tags to detach", flag.Tags, t => t.Name, token)).Select(t => t.TagId).ToArray();
 
         var relevantTags = flag.Tags.Where(t => tagIds.Contains(t.TagId)).ToList();
         if (relevantTags.Count == 0)

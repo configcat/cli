@@ -59,4 +59,6 @@ public static class ListExtensions
 
         return -1;
     }
+    
+    public static bool IsEmpty<T>(this IEnumerable<T> source) => source is null || !source.Any();
 }

@@ -10,5 +10,5 @@ public class UpdateFlagModel
     public string Hint { get; set; }
 
     [JsonPropertyName("tags")]
-    public IEnumerable<int> TagIds { get; set; }
+    public int[] TagIds { get; set; }
 }

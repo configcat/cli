@@ -216,6 +216,17 @@ Describe "Tag / Flag Tests" {
         Invoke-ConfigCat "flag", "ls", "-c", $configId | Should -Not -Match ([regex]::Escape($flagId))
     }
 
+    It "Create with initial values" {
+        $flagWithInitId = Invoke-ConfigCat "flag", "create", "-c", $configId, "-n", "Bool-With-Init-Flag", "-k", "bool_with_init_flag", "-H", "hint", "-t", "boolean", "-iv", "true"
+        $showWithInitResult = Invoke-ConfigCat "flag", "value", "show", "-i", $flagWithInitId
+        $showWithInitResult | Should -Match ([regex]::Escape("Default: True"))
+    }
+    
+    It "Create with initial values" {
+        $flagWithEnvInitId = Invoke-ConfigCat "flag", "create", "-c", $configId, "-n", "Bool-With-Env-Init-Flag", "-k", "bool_with_env_init_flag", "-H", "hint", "-t", "boolean", "-ive", "${environmentId}:true"
+        $showWithEnvInitResult = Invoke-ConfigCat "flag", "value", "show", "-i", $flagWithEnvInitId
+        $showWithEnvInitResult | Should -Match ([regex]::Escape("Default: True"))
+    }
 
     It "Update Tag" {
         $newTagName = "newTag1"

@@ -542,6 +542,8 @@ public static class CommandBuilder
                         new Option<string>(new[] { "--name", "-n" }, "Name of the new Flag or Setting"),
                         new Option<string>(new[] { "--key", "-k" }, "Key of the new Flag or Setting (must be unique within the given Config)"),
                         new Option<string>(new[] { "--hint", "-H" }, "Hint of the new Flag or Setting"),
+                        new Option<string>(new[] { "--init-value", "-iv" }, "The initial value of the Flag in each Environment"),
+                        new FlagInitialValuesOption(),
                         new Option<string>(new[] { "--type", "-t" }, "Type of the new Flag or Setting")
                             .AddSuggestions(SettingTypes.Collection),
                         new Option<int[]>(new[] { "--tag-ids", "-g" }, "Tags to attach"),

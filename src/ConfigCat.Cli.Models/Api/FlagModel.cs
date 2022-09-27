@@ -32,7 +32,7 @@ public class FlagModel
         {
             Name = this.Name,
             Hint = this.Hint,
-            TagIds = this.Tags?.Select(t => t.TagId)
+            TagIds = this.Tags?.Select(t => t.TagId).ToArray()
         };
 }
 
