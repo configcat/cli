@@ -120,7 +120,7 @@ class Flag
         if (type.IsEmpty())
             type = await this.prompt.ChooseFromListAsync("Choose type", SettingTypes.Collection.ToList(), t => t, token);
 
-        if (shouldPrompt && (tagIds is null || !tagIds.Any()))
+        if (shouldPrompt && tagIds.IsEmpty())
             tagIds = (await this.workspaceLoader.LoadTagsAsync(token, configId, optional: true)).Select(t => t.TagId).ToArray();
 
         if (!SettingTypes.Collection.ToList()
