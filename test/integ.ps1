@@ -179,11 +179,11 @@ Describe "Member tests" {
     It "Add / Remove permissions" {
         $userId = "d21346be-45c9-421f-b9ec-33093ef0464c"
         $tempGroupName = "permgroup_$([guid]::NewGuid().ToString())"
-        $permissionGroupId = Invoke-ConfigCat "permission-group", "create", "-p", $productId, "-n", $tempGroupName
-        Invoke-ConfigCat "member", "add-permission", "-o", $organizationId, "-i", $userId, "--permission-group-ids", $permissionGroupId
+        $memberTestPermGroupId = Invoke-ConfigCat "permission-group", "create", "-p", $productId, "-n", $tempGroupName
+        Invoke-ConfigCat "member", "add-permission", "-o", $organizationId, "-i", $userId, "--permission-group-ids", $memberTestPermGroupId
         Invoke-ConfigCat "member", "lsp", "-p", $productId | Should -Match ([regex]::Escape($tempGroupName))
 
-        Invoke-ConfigCat "member", "rm-permission", "-o", $organizationId, "-i", $userId, "--permission-group-ids", $permissionGroupId
+        Invoke-ConfigCat "member", "rm-permission", "-o", $organizationId, "-i", $userId, "--permission-group-ids", $memberTestPermGroupId
         Invoke-ConfigCat "member", "lsp", "-p", $productId | Should -Not -Match ([regex]::Escape($tempGroupName))
     }
 }
