@@ -119,7 +119,7 @@ Describe "Permission Group Tests" {
         Invoke-ConfigCat "permission-group", "update", "-i", $permissionGroupId, "-n", $newGroupName
         Invoke-ConfigCat "permission-group", "ls", "-p", $productId | Should -Match ([regex]::Escape($newGroupName))
 
-        Invoke-ConfigCat "permission-group", "update", "-i", $permissionGroupId, "--can-manage-members", "false", "--can-delete-tag", "false", "--can-delete-segments", "false", "--can-view-sdk-key", "false"
+        Invoke-ConfigCat "permission-group", "update", "-i", $permissionGroupId, "--can-manage-members", "false", "--can-delete-tag", "false", "--can-delete-segments", "false", "--can-view-sdk-key", "false", "--can-rotate-sdk-key", "false"
         $printed2 = Invoke-ConfigCat "permission-group", "show", "-i", $permissionGroupId
         $printed2 | Should -Match ([regex]::Escape("[ ] Manage Members and Permission Groups"))
         $printed2 | Should -Match ([regex]::Escape("[*] Create, edit, and reorder Configs"))
@@ -136,7 +136,7 @@ Describe "Permission Group Tests" {
         $printed2 | Should -Match ([regex]::Escape("[*] Access, and change Product preferences"))
         $printed2 | Should -Match ([regex]::Escape("[*] Connect, and disconnect 3rd party integrations"))
         $printed2 | Should -Match ([regex]::Escape("[ ] View the SDK key, and the code examples"))
-        $printed2 | Should -Match ([regex]::Escape("[*] Add, and remove SDK keys"))
+        $printed2 | Should -Match ([regex]::Escape("[ ] Add, and remove SDK keys"))
         $printed2 | Should -Match ([regex]::Escape("[*] View the config.json download statistics"))
         $printed2 | Should -Match ([regex]::Escape("[*] View the Product level Audit Log about who changed what in the Product"))
         $printed2 | Should -Match ([regex]::Escape("[*] Create, and edit Segments"))
@@ -161,7 +161,7 @@ Describe "Permission Group Tests" {
         $printed3 | Should -Match ([regex]::Escape("[*] Access, and change Product preferences"))
         $printed3 | Should -Match ([regex]::Escape("[*] Connect, and disconnect 3rd party integrations"))
         $printed3 | Should -Match ([regex]::Escape("[ ] View the SDK key, and the code examples"))
-        $printed3 | Should -Match ([regex]::Escape("[*] Add, and remove SDK keys"))
+        $printed3 | Should -Match ([regex]::Escape("[ ] Add, and remove SDK keys"))
         $printed3 | Should -Match ([regex]::Escape("[*] View the config.json download statistics"))
         $printed3 | Should -Match ([regex]::Escape("[*] View the Product level Audit Log about who changed what in the Product"))
         $printed3 | Should -Match ([regex]::Escape("[*] Create, and edit Segments"))
