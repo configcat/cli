@@ -91,7 +91,7 @@ class Program
             output.AppendLine("| Option | Description |");
             output.AppendLine("| ------ | ----------- |");
             foreach (var option in options)
-                output.AppendLine($"| {string.Join(", ", option.Aliases.Select(a => $"`{a}`"))} | {option.Description.Replace(Environment.NewLine, "<br/>")} |");
+                output.AppendLine($"| {string.Join(", ", option.Aliases.Select(a => $"`{a}`"))}{(option.GetSuggestions().Any() && !option.GetSuggestions().Contains("True") ? $" `<{string.Join("|", option.GetSuggestions())}>`" : "")} | {option.Description.Replace(Environment.NewLine, "<br/>")} |");
         }
 
         var arguments = helpBuilder.ExposeGetCommandArguments(command);
