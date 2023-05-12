@@ -15,7 +15,7 @@ configcat [options] flag create
 | `--hint`, `-H` | Hint of the new Flag or Setting |
 | `--init-value`, `-iv` | Initial value for each Environment |
 | `--init-values-per-environment`, `-ive` | Initial value for specific Environments. Format: `<environment-id>:<initial-value>` |
-| `--type`, `-t` (`boolean`,`double`,`int`,`string`) | Type of the new Flag or Setting |
+| `--type`, `-t` | Type of the new Flag or Setting<br/>**Available options**: `boolean`, `double`, `int`, `string` |
 | `--tag-ids`, `-g` | Tags to attach |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |
 | `--non-interactive`, `-ni` | Turn off progress rendering and interactive features |
