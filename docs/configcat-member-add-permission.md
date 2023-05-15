@@ -1,5 +1,7 @@
 # configcat member add-permission
 Add Member to Permission Groups
+## Aliases
+`a`
 ## Usage
 ```
 configcat member add-permission [options]
@@ -8,8 +10,6 @@ configcat member add-permission [options]
 ```
 configcat member add-permission -o <organization-id> -i <user-id> -pgi <permission-group-id1> <permission-group-id2>
 ```
-## Aliases
-`a`
 ## Options
 | Option | Description |
 | ------ | ----------- |

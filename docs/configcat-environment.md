@@ -1,11 +1,11 @@
 # configcat environment
 Manage Environments
+## Aliases
+`e`
 ## Usage
 ```
 configcat environment [command]
 ```
-## Aliases
-`e`
 ## Options
 | Option | Description |
 | ------ | ----------- |

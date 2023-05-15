@@ -1,5 +1,7 @@
 # configcat flag targeting update
 Update targeting rule
+## Aliases
+`up`
 ## Usage
 ```
 configcat flag targeting update [options]
@@ -8,8 +10,6 @@ configcat flag targeting update [options]
 ```
 configcat flag targeting update -i <flag-id> -e <environment-id> -p 1 -a Email -c contains -t @example.com -f true
 ```
-## Aliases
-`up`
 ## Options
 | Option | Description |
 | ------ | ----------- |

@@ -1,5 +1,7 @@
 # configcat flag value show
 Show Feature Flag or Setting values, targeting, and percentage rules for each environment
+## Aliases
+`sh`, `pr`, `print`
 ## Usage
 ```
 configcat flag value show [options]
@@ -8,8 +10,6 @@ configcat flag value show [options]
 ```
 configcat flag value show -i <flag-id>
 ```
-## Aliases
-`sh`, `pr`, `print`
 ## Options
 | Option | Description |
 | ------ | ----------- |

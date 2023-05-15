@@ -1,5 +1,7 @@
 # configcat segment create
 Create a new Segment in a specified Product identified by the `--product-id` option
+## Aliases
+`cr`
 ## Usage
 ```
 configcat segment create [options]
@@ -8,8 +10,6 @@ configcat segment create [options]
 ```
 configcat segment create -p <product-id> -n "Beta users" -d "Beta users" -a Email -c contains -t @example.com
 ```
-## Aliases
-`cr`
 ## Options
 | Option | Description |
 | ------ | ----------- |

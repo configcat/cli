@@ -1,11 +1,11 @@
 # configcat permission-group
 Manage Permission Groups
+## Aliases
+`pg`
 ## Usage
 ```
 configcat permission-group [command]
 ```
-## Aliases
-`pg`
 ## Options
 | Option | Description |
 | ------ | ----------- |

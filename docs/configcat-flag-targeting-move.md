@@ -1,5 +1,7 @@
 # configcat flag targeting move
 Move a targeting rule into a different position
+## Aliases
+`mv`
 ## Usage
 ```
 configcat flag targeting move [options]
@@ -8,8 +10,6 @@ configcat flag targeting move [options]
 ```
 configcat flag targeting move -i <flag-id> -e <environment-id> --from 0 --to 1
 ```
-## Aliases
-`mv`
 ## Options
 | Option | Description |
 | ------ | ----------- |

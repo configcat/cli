@@ -1,5 +1,7 @@
 # configcat environment update
 Update environment
+## Aliases
+`up`
 ## Usage
 ```
 configcat environment update [options]
@@ -8,8 +10,6 @@ configcat environment update [options]
 ```
 configcat environment update -i <environment-id> -n Test -d "Test Environment" -c #7D3C98
 ```
-## Aliases
-`up`
 ## Options
 | Option | Description |
 | ------ | ----------- |

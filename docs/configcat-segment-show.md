@@ -1,5 +1,7 @@
 # configcat segment show
 Show details of a Segment identified by the `--segment-id` option
+## Aliases
+`sh`, `pr`, `print`
 ## Usage
 ```
 configcat segment show [options]
@@ -8,8 +10,6 @@ configcat segment show [options]
 ```
 configcat segment show -i <segment-id>
 ```
-## Aliases
-`sh`, `pr`, `print`
 ## Options
 | Option | Description |
 | ------ | ----------- |

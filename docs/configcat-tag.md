@@ -1,11 +1,11 @@
 # configcat tag
 Manage Tags
+## Aliases
+`t`
 ## Usage
 ```
 configcat tag [command]
 ```
-## Aliases
-`t`
 ## Options
 | Option | Description |
 | ------ | ----------- |

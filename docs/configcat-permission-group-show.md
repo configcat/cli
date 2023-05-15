@@ -1,5 +1,7 @@
 # configcat permission-group show
 Show details of a Permission Group identified by the `--permission-group-id` option
+## Aliases
+`sh`, `pr`, `print`
 ## Usage
 ```
 configcat permission-group show [options]
@@ -8,8 +10,6 @@ configcat permission-group show [options]
 ```
 configcat permission-group show -i <permission-group-id>
 ```
-## Aliases
-`sh`, `pr`, `print`
 ## Options
 | Option | Description |
 | ------ | ----------- |

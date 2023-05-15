@@ -1,11 +1,11 @@
 # configcat segment
 Manage Segments
+## Aliases
+`seg`
 ## Usage
 ```
 configcat segment [command]
 ```
-## Aliases
-`seg`
 ## Options
 | Option | Description |
 | ------ | ----------- |

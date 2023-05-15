@@ -1,5 +1,7 @@
 # configcat tag update
 Update a Tag identified by the `--tag-id` option
+## Aliases
+`up`
 ## Usage
 ```
 configcat tag update [options]
@@ -8,8 +10,6 @@ configcat tag update [options]
 ```
 configcat tag update -i <tag-id> -n "temp_tag"
 ```
-## Aliases
-`up`
 ## Options
 | Option | Description |
 | ------ | ----------- |

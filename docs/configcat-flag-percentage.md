@@ -1,11 +1,11 @@
 # configcat flag percentage
 Manage percentage rules
+## Aliases
+`%`
 ## Usage
 ```
 configcat flag percentage [command]
 ```
-## Aliases
-`%`
 ## Options
 | Option | Description |
 | ------ | ----------- |

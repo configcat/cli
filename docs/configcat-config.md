@@ -1,11 +1,11 @@
 # configcat config
 Manage Configs
+## Aliases
+`c`
 ## Usage
 ```
 configcat config [command]
 ```
-## Aliases
-`c`
 ## Options
 | Option | Description |
 | ------ | ----------- |

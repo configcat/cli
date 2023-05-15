@@ -1,5 +1,7 @@
 # configcat sdk-key
 List SDK Keys
+## Aliases
+`k`
 ## Usage
 ```
 configcat sdk-key [options]
@@ -8,8 +10,6 @@ configcat sdk-key [options]
 ```
 configcat sdk-key
 ```
-## Aliases
-`k`
 ## Options
 | Option | Description |
 | ------ | ----------- |

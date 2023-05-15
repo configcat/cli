@@ -1,5 +1,7 @@
 # configcat flag detach
 Detach Tag(s) from a Feature Flag or Setting
+## Aliases
+`dt`
 ## Usage
 ```
 configcat flag detach [options]
@@ -8,8 +10,6 @@ configcat flag detach [options]
 ```
 configcat flag detach -i <flag-id> -g <tag1-id> <tag2-id>
 ```
-## Aliases
-`dt`
 ## Options
 | Option | Description |
 | ------ | ----------- |

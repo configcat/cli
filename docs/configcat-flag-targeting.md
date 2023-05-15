@@ -1,11 +1,11 @@
 # configcat flag targeting
 Manage targeting rules
+## Aliases
+`t`
 ## Usage
 ```
 configcat flag targeting [command]
 ```
-## Aliases
-`t`
 ## Options
 | Option | Description |
 | ------ | ----------- |

@@ -1,5 +1,7 @@
 # configcat flag create
 Create a new Feature Flag or Setting in a specified Config identified by the `--config-id` option
+## Aliases
+`cr`
 ## Usage
 ```
 configcat flag create [options]
@@ -8,8 +10,6 @@ configcat flag create [options]
 ```
 configcat flag create -c <config-id> -n "My awesome flag" -k myAwesomeFlag -t boolean -H "This is the most awesome flag." -ive <env1-id>:true <env2-id>:false -g <tag1-id> <tag2-id>
 ```
-## Aliases
-`cr`
 ## Options
 | Option | Description |
 | ------ | ----------- |

@@ -1,11 +1,11 @@
 # configcat flag value
 Manage Feature Flag & Setting values in different Environments
+## Aliases
+`v`
 ## Usage
 ```
 configcat flag value [command]
 ```
-## Aliases
-`v`
 ## Options
 | Option | Description |
 | ------ | ----------- |

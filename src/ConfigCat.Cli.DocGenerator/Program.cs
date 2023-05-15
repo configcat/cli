@@ -72,6 +72,14 @@ class Program
 
         output.AppendLine($"# {string.Join(' ', selfName)}");
         output.AppendLine(command.Description.Replace(Environment.NewLine, "<br/>"));
+        
+        var aliases = command.Aliases.Except(new[] { command.Name });
+        if (aliases.Any())
+        {
+            output.AppendLine("## Aliases");
+            output.AppendLine(string.Join(", ", aliases.Select(a => $"`{a}`")));
+        }
+        
         output.AppendLine("## Usage");
         output.AppendLine("```");
         output.AppendLine(helpBuilder.ExposeGetUsage(command));
@@ -84,13 +92,6 @@ class Program
             output.AppendLine("```");
             output.AppendLine(example);
             output.AppendLine("```");
-        }
-
-        var aliases = command.Aliases.Except(new[] { command.Name });
-        if (aliases.Any())
-        {
-            output.AppendLine("## Aliases");
-            output.AppendLine(string.Join(", ", aliases.Select(a => $"`{a}`")));
         }
 
         var options = command.Options.Where(o => !o.IsHidden).Concat(parents.SelectMany(p => p.GlobalOptions.Where(go => !go.IsHidden)));

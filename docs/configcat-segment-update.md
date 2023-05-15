@@ -1,5 +1,7 @@
 # configcat segment update
 Update a Segment identified by the `--segment-id` option
+## Aliases
+`up`
 ## Usage
 ```
 configcat segment update [options]
@@ -8,8 +10,6 @@ configcat segment update [options]
 ```
 configcat segment update -i <segment-id> -n "Beta users" -d "Beta users" -a Email -c contains -t @example.com
 ```
-## Aliases
-`up`
 ## Options
 | Option | Description |
 | ------ | ----------- |

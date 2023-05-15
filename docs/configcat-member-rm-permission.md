@@ -1,5 +1,7 @@
 # configcat member rm-permission
 Remove Member from Permission Groups
+## Aliases
+`rmp`
 ## Usage
 ```
 configcat member rm-permission [options]
@@ -8,8 +10,6 @@ configcat member rm-permission [options]
 ```
 configcat member rm-permission -o <organization-id> -i <user-id> -pgi <permission-group-id1> <permission-group-id2>
 ```
-## Aliases
-`rmp`
 ## Options
 | Option | Description |
 | ------ | ----------- |

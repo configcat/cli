@@ -1,5 +1,7 @@
 # configcat tag create
 Create a new Tag in a specified Product identified by the `--product-id` option
+## Aliases
+`cr`
 ## Usage
 ```
 configcat tag create [options]
@@ -8,8 +10,6 @@ configcat tag create [options]
 ```
 configcat tag create -n "temp_tag"
 ```
-## Aliases
-`cr`
 ## Options
 | Option | Description |
 | ------ | ----------- |

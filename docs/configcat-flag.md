@@ -1,11 +1,11 @@
 # configcat flag
 Manage Feature Flags & Settings
+## Aliases
+`setting`, `f`, `s`
 ## Usage
 ```
 configcat flag [command]
 ```
-## Aliases
-`setting`, `f`, `s`
 ## Options
 | Option | Description |
 | ------ | ----------- |

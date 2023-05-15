@@ -1,5 +1,7 @@
 # configcat environment create
 Create a new Environment in a specified Product identified by the `--product-id` option
+## Aliases
+`cr`
 ## Usage
 ```
 configcat environment create [options]
@@ -8,8 +10,6 @@ configcat environment create [options]
 ```
 configcat environment create -p <product-id> -n Test -d "Test Environment" -c #7D3C98
 ```
-## Aliases
-`cr`
 ## Options
 | Option | Description |
 | ------ | ----------- |

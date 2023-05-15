@@ -1,5 +1,7 @@
 # configcat member invite
 Invite Member(s) into a Product
+## Aliases
+`inv`
 ## Usage
 ```
 configcat member invite [<emails>...] [options]
@@ -8,8 +10,6 @@ configcat member invite [<emails>...] [options]
 ```
 configcat member invite user1@example.com user2@example.com -p <product-id> -pgi <permission-group-id>
 ```
-## Aliases
-`inv`
 ## Options
 | Option | Description |
 | ------ | ----------- |

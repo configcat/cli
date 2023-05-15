@@ -1,5 +1,7 @@
 # configcat flag percentage update
 Update percentage rules
+## Aliases
+`up`
 ## Usage
 ```
 configcat flag percentage update [<rules>...] [options]
@@ -8,8 +10,6 @@ configcat flag percentage update [<rules>...] [options]
 ```
 configcat flag % update -i <flag-id> -e <environment-id> 30:true 70:false
 ```
-## Aliases
-`up`
 ## Options
 | Option | Description |
 | ------ | ----------- |

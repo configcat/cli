@@ -1,5 +1,7 @@
 # configcat flag targeting create
 Create new targeting rule
+## Aliases
+`cr`
 ## Usage
 ```
 configcat flag targeting create [options]
@@ -8,8 +10,6 @@ configcat flag targeting create [options]
 ```
 configcat flag targeting create -i <flag-id> -e <environment-id> -a Email -c contains -t @example.com -f true
 ```
-## Aliases
-`cr`
 ## Options
 | Option | Description |
 | ------ | ----------- |

@@ -1,5 +1,7 @@
 # configcat product create
 Create a new Product in a specified Organization identified by the `--organization-id` option
+## Aliases
+`cr`
 ## Usage
 ```
 configcat product create [options]
@@ -8,8 +10,6 @@ configcat product create [options]
 ```
 configcat product create -o <organization-id> -n "My Product" -d "Product Description"
 ```
-## Aliases
-`cr`
 ## Options
 | Option | Description |
 | ------ | ----------- |

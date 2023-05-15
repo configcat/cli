@@ -1,11 +1,11 @@
 # configcat product
 Manage Products
+## Aliases
+`p`
 ## Usage
 ```
 configcat product [command]
 ```
-## Aliases
-`p`
 ## Options
 | Option | Description |
 | ------ | ----------- |

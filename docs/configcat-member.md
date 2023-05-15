@@ -1,11 +1,11 @@
 # configcat member
 Manage Members
+## Aliases
+`m`
 ## Usage
 ```
 configcat member [command]
 ```
-## Aliases
-`m`
 ## Options
 | Option | Description |
 | ------ | ----------- |

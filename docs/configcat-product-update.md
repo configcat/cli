@@ -1,5 +1,7 @@
 # configcat product update
 Update a Product identified by the `--product-id` option
+## Aliases
+`up`
 ## Usage
 ```
 configcat product update [options]
@@ -8,8 +10,6 @@ configcat product update [options]
 ```
 configcat product update -i <product-id> -n "My Product" -d "Product Description"
 ```
-## Aliases
-`up`
 ## Options
 | Option | Description |
 | ------ | ----------- |

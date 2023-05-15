@@ -1,5 +1,7 @@
 # configcat permission-group create
 Create a new Permission Group in a specified Product identified by the `--product-id` option
+## Aliases
+`cr`
 ## Usage
 ```
 configcat permission-group create [options]
@@ -8,8 +10,6 @@ configcat permission-group create [options]
 ```
 configcat permission-group create -p <product-id> -n Developers --can-view-sdk-key --can-view-product-statistics --default-when-not-set false
 ```
-## Aliases
-`cr`
 ## Options
 | Option | Description |
 | ------ | ----------- |
