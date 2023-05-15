@@ -30,7 +30,7 @@ internal class PermissionGroupEnvironmentAccess
     }
 
     public async Task<int> UpdatePermissionGroupEnvironmentAccessesAsync(long? permissionGroupId, string accessType, 
-        string newEnvironmentAccessType, EnvironmentSpecificAccess[] environmentSpecificAccessTypes, CancellationToken token)
+        string newEnvironmentAccessType, EnvironmentSpecificAccess[] environmentSpecificAccessTypes, string defaultAccessTypeWhenNotSet, CancellationToken token)
     {
         var permissionGroup = permissionGroupId == null
             ? await this.workspaceLoader.LoadPermissionGroupAsync(token)
@@ -45,6 +45,11 @@ internal class PermissionGroupEnvironmentAccess
 
         if (permissionGroup.AccessType.Equals("custom", StringComparison.OrdinalIgnoreCase))
         {
+            if (newEnvironmentAccessType.IsEmpty() && !defaultAccessTypeWhenNotSet.IsEmpty())
+            {
+                newEnvironmentAccessType = defaultAccessTypeWhenNotSet;
+            }
+            
             if (newEnvironmentAccessType.IsEmpty() || !Constants.EnvironmentAccessTypes.Keys.Contains(newEnvironmentAccessType, StringComparer.OrdinalIgnoreCase))
                 newEnvironmentAccessType = (await this.prompt.ChooseFromListAsync(
                     "Choose access type for newly created environments",
@@ -56,7 +61,7 @@ internal class PermissionGroupEnvironmentAccess
             if (!newEnvironmentAccessType.IsEmptyOrEquals(permissionGroup.NewEnvironmentAccessType))
                 permissionGroup.NewEnvironmentAccessType = newEnvironmentAccessType;
 
-            if (environmentSpecificAccessTypes == null || environmentSpecificAccessTypes.Length == 0)
+            if ((environmentSpecificAccessTypes == null || environmentSpecificAccessTypes.Length == 0) && defaultAccessTypeWhenNotSet.IsEmpty())
             {
                 var environments = await this.environmentClient.GetEnvironmentsAsync(permissionGroup.Product.ProductId, token);
                 foreach (var environment in environments)
@@ -77,17 +82,41 @@ internal class PermissionGroupEnvironmentAccess
             }
             else
             {
-                foreach (var envAccess in environmentSpecificAccessTypes)
+                if (!defaultAccessTypeWhenNotSet.IsEmpty())
                 {
-                    var existing = permissionGroup.EnvironmentAccesses.FirstOrDefault(e => e.EnvironmentId == envAccess.EnvironmentId);
-                    if (existing != null)
-                        existing.EnvironmentAccessType = envAccess.AccessType;
-                    else
-                        permissionGroup.EnvironmentAccesses.Add(new EnvironmentAccessModel
-                        {
-                            EnvironmentId = envAccess.EnvironmentId,
-                            EnvironmentAccessType = envAccess.AccessType
-                        });
+                    var environments = await this.environmentClient.GetEnvironmentsAsync(permissionGroup.Product.ProductId, token);
+                    foreach (var environment in environments)
+                    {
+                        var existing =
+                            permissionGroup.EnvironmentAccesses.FirstOrDefault(e =>
+                                e.EnvironmentId == environment.EnvironmentId);
+                        if (existing != null)
+                            existing.EnvironmentAccessType = defaultAccessTypeWhenNotSet;
+                        else
+                            permissionGroup.EnvironmentAccesses.Add(new EnvironmentAccessModel
+                            {
+                                EnvironmentId = environment.EnvironmentId,
+                                EnvironmentAccessType = defaultAccessTypeWhenNotSet
+                            });
+                    }
+                }
+                
+                if (environmentSpecificAccessTypes != null)
+                {
+                    foreach (var envAccess in environmentSpecificAccessTypes)
+                    {
+                        var existing =
+                            permissionGroup.EnvironmentAccesses.FirstOrDefault(e =>
+                                e.EnvironmentId == envAccess.EnvironmentId);
+                        if (existing != null)
+                            existing.EnvironmentAccessType = envAccess.AccessType;
+                        else
+                            permissionGroup.EnvironmentAccesses.Add(new EnvironmentAccessModel
+                            {
+                                EnvironmentId = envAccess.EnvironmentId,
+                                EnvironmentAccessType = envAccess.AccessType
+                            });
+                    }
                 }
             }
         }

@@ -2,7 +2,11 @@
 Remove a Product identified by the `--product-id` option
 ## Usage
 ```
-configcat [options] product rm
+configcat product rm [options]
+```
+## Example
+```
+configcat product rm -i <product-id>
 ```
 ## Options
 | Option | Description |

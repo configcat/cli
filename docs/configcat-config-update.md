@@ -2,7 +2,11 @@
 Update a Config identified by the `--config-id` option
 ## Usage
 ```
-configcat [options] config update
+configcat config update [options]
+```
+## Example
+```
+configcat config update -i <config-id> -n "NewConfig" -d "Config description"
 ```
 ## Aliases
 `up`

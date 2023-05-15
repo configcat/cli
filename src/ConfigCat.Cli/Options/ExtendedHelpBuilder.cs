@@ -33,4 +33,19 @@ public class ExtendedHelpBuilder : HelpBuilder
             }
         }
     }
+
+    protected override void AddUsage(ICommand command)
+    {
+        var description = GetUsage(command);
+        if (description.Contains("[options]"))
+        {
+            description = description.Replace("[options] ", string.Empty) + " [options]";
+        }
+        WriteHeading(Resources.Instance.HelpUsageTile(), description);
+        Console.Out.WriteLine();
+
+        if (command is not ExtendedCommand extendedCommand || string.IsNullOrWhiteSpace(extendedCommand.Example)) return;
+        WriteHeading("Example:", extendedCommand.Example);
+        Console.Out.WriteLine();
+    }
 }

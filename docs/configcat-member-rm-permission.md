@@ -2,7 +2,11 @@
 Remove Member from Permission Groups
 ## Usage
 ```
-configcat [options] member rm-permission
+configcat member rm-permission [options]
+```
+## Example
+```
+configcat member rm-permission -o <organization-id> -i <user-id> -pgi <permission-group-id1> <permission-group-id2>
 ```
 ## Aliases
 `rmp`

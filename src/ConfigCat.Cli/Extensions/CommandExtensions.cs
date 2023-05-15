@@ -13,7 +13,7 @@ public static class CommandExtensions
     {
         foreach (var commandDescriptor in commandDescriptors)
         {
-            var subCommand = new Command(commandDescriptor.Name, commandDescriptor.Description);
+            var subCommand = new ExtendedCommand(commandDescriptor.Name, commandDescriptor.Description, commandDescriptor.Example);
 
             foreach (var option in commandDescriptor.Options)
                 subCommand.AddOption(option);

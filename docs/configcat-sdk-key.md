@@ -2,7 +2,11 @@
 List SDK Keys
 ## Usage
 ```
-configcat [options] sdk-key
+configcat sdk-key [options]
+```
+## Example
+```
+configcat sdk-key
 ```
 ## Aliases
 `k`

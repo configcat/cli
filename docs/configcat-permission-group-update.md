@@ -2,7 +2,11 @@
 Update a Permission Group identified by the `--permission-group-id` option
 ## Usage
 ```
-configcat [options] permission-group update
+configcat permission-group update [options]
+```
+## Example
+```
+configcat permission-group update -i <permission-group-id> -n Developers --can-view-product-audit-log
 ```
 ## Aliases
 `up`

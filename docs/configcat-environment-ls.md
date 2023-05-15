@@ -2,7 +2,11 @@
 List all Environments that belongs to the configured user
 ## Usage
 ```
-configcat [options] environment ls
+configcat environment ls [options]
+```
+## Example
+```
+configcat environment ls
 ```
 ## Options
 | Option | Description |

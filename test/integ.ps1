@@ -173,6 +173,63 @@ Describe "Permission Group Tests" {
         Invoke-ConfigCat "permission-group", "rm", "-i", $permissionGroupId
         Invoke-ConfigCat "permission-group", "ls", "-p", $productId | Should -Not -Match ([regex]::Escape($newGroupName))
     }
+    
+    It "Create with defaults" {
+        $group2Name = "permgroup2_$([guid]::NewGuid().ToString())"
+        $permissionGroup2Id = Invoke-ConfigCat "permission-group", "create", "-p", $productId, "-n", $group2Name, "--can-view-sdk-key", "--can-view-product-statistics", "--can-view-product-audit-log", "--default-when-not-set", "false"
+        Invoke-ConfigCat "permission-group", "ls", "-p", $productId | Should -Match ([regex]::Escape($group2Name))
+        $printed1 = Invoke-ConfigCat "permission-group", "show", "-i", $permissionGroup2Id
+        $printed1 | Should -Match ([regex]::Escape("[ ] Manage Members and Permission Groups"))
+        $printed1 | Should -Match ([regex]::Escape("[ ] Create, edit, and reorder Configs"))
+        $printed1 | Should -Match ([regex]::Escape("[ ] Delete Configs"))
+        $printed1 | Should -Match ([regex]::Escape("[ ] Create, edit and reorder Environments"))
+        $printed1 | Should -Match ([regex]::Escape("[ ] Delete Environments"))
+        $printed1 | Should -Match ([regex]::Escape("[ ] Create, rename, reorder Feature Flags and change their description"))
+        $printed1 | Should -Match ([regex]::Escape("[ ] Add, and remove Tags from Feature Flags"))
+        $printed1 | Should -Match ([regex]::Escape("[ ] Delete Feature Flags"))
+        $printed1 | Should -Match ([regex]::Escape("[ ] Create, rename Tags and change their color"))
+        $printed1 | Should -Match ([regex]::Escape("[ ] Delete Tags"))
+        $printed1 | Should -Match ([regex]::Escape("[ ] Create, update, and delete Webhooks"))
+        $printed1 | Should -Match ([regex]::Escape("[ ] Export (download), and import (upload) Configs, Environments, and Feature Flags"))
+        $printed1 | Should -Match ([regex]::Escape("[ ] Access, and change Product preferences"))
+        $printed1 | Should -Match ([regex]::Escape("[ ] Connect, and disconnect 3rd party integrations"))
+        $printed1 | Should -Match ([regex]::Escape("[*] View the SDK key, and the code examples"))
+        $printed1 | Should -Match ([regex]::Escape("[ ] Add, and remove SDK keys"))
+        $printed1 | Should -Match ([regex]::Escape("[*] View the config.json download statistics"))
+        $printed1 | Should -Match ([regex]::Escape("[*] View the Product level Audit Log about who changed what in the Product"))
+        $printed1 | Should -Match ([regex]::Escape("[ ] Create, and edit Segments"))
+        $printed1 | Should -Match ([regex]::Escape("[ ] Delete Segments"))
+        $printed1 | Should -Match "Read/Write access in all environments"
+        $printed1 | Should -Match "Read/Write access in new environments"
+    
+        Invoke-ConfigCat "permission-group", "env", "-i", $permissionGroup2Id, "--access-type", "custom", "--new-environment-access-type", "readonly", "--default-access-type-when-not-set", "full"
+        $printed3 = Invoke-ConfigCat "permission-group", "show", "-i", $permissionGroup2Id
+        $printed3 | Should -Match ([regex]::Escape("[ ] Manage Members and Permission Groups"))
+        $printed3 | Should -Match ([regex]::Escape("[ ] Create, edit, and reorder Configs"))
+        $printed3 | Should -Match ([regex]::Escape("[ ] Delete Configs"))
+        $printed3 | Should -Match ([regex]::Escape("[ ] Create, edit and reorder Environments"))
+        $printed3 | Should -Match ([regex]::Escape("[ ] Delete Environments"))
+        $printed3 | Should -Match ([regex]::Escape("[ ] Create, rename, reorder Feature Flags and change their description"))
+        $printed3 | Should -Match ([regex]::Escape("[ ] Add, and remove Tags from Feature Flags"))
+        $printed3 | Should -Match ([regex]::Escape("[ ] Delete Feature Flags"))
+        $printed3 | Should -Match ([regex]::Escape("[ ] Create, rename Tags and change their color"))
+        $printed3 | Should -Match ([regex]::Escape("[ ] Delete Tags"))
+        $printed3 | Should -Match ([regex]::Escape("[ ] Create, update, and delete Webhooks"))
+        $printed3 | Should -Match ([regex]::Escape("[ ] Export (download), and import (upload) Configs, Environments, and Feature Flags"))
+        $printed3 | Should -Match ([regex]::Escape("[ ] Access, and change Product preferences"))
+        $printed3 | Should -Match ([regex]::Escape("[ ] Connect, and disconnect 3rd party integrations"))
+        $printed3 | Should -Match ([regex]::Escape("[*] View the SDK key, and the code examples"))
+        $printed3 | Should -Match ([regex]::Escape("[ ] Add, and remove SDK keys"))
+        $printed3 | Should -Match ([regex]::Escape("[*] View the config.json download statistics"))
+        $printed3 | Should -Match ([regex]::Escape("[*] View the Product level Audit Log about who changed what in the Product"))
+        $printed3 | Should -Match ([regex]::Escape("[ ] Create, and edit Segments"))
+        $printed3 | Should -Match ([regex]::Escape("[ ] Delete Segments"))
+        $printed3 | Should -Match "Environment specific access in all environments"
+        $printed3 | Should -Match "Read-only access in new environments"
+        $printed3 | Should -Match "Read/Write access in ${environmentName}"
+    
+        Invoke-ConfigCat "permission-group", "rm", "-i", $permissionGroup2Id
+    }
 }
 
 Describe "Member tests" {

@@ -30,7 +30,7 @@ public static class CommandBuilder
     private static CommandDescriptor BuildDescriptors() =>
         new(null, $"This is the Command Line Tool of ConfigCat.{System.Environment.NewLine}ConfigCat is a " +
                   $"hosted feature flag service: https://configcat.com{System.Environment.NewLine}For more information, " +
-                  $"see the documentation here: https://configcat.com/docs/advanced/cli")
+                  $"see the documentation here: https://configcat.com/docs/advanced/cli", string.Empty)
         {
             SubCommands = new[]
             {
@@ -51,7 +51,7 @@ public static class CommandBuilder
         };
 
     private static CommandDescriptor BuildSetupCommand() =>
-        new("setup", $"Setup the CLI with Public Management API host and credentials")
+        new("setup", $"Setup the CLI with Public Management API host and credentials", "configcat setup -H api.configcat.com -u <user-name> -p <password>")
         {
             Options = new[]
             {
@@ -63,7 +63,7 @@ public static class CommandBuilder
         };
 
     private static CommandDescriptor BuildListAllCommand() =>
-        new("ls", "List all Product, Config, and Environment IDs")
+        new("ls", "List all Product, Config, and Environment IDs", "configcat ls")
         {
             Handler = CreateHandler<ListAll>(nameof(ListAll.InvokeAsync)),
             Options = new[]
@@ -78,7 +78,7 @@ public static class CommandBuilder
             Aliases = new[] { "p" },
             SubCommands = new[]
             {
-                new CommandDescriptor("ls", "List all Products that belongs to the configured user")
+                new CommandDescriptor("ls", "List all Products that belongs to the configured user", "configcat product ls")
                 {
                     Handler = CreateHandler<Product>(nameof(Product.ListAllProductsAsync)),
                     Options = new[]
@@ -86,7 +86,7 @@ public static class CommandBuilder
                         new Option<bool>(new[] { "--json" }, "Format the output in JSON"),
                     }
                 },
-                new CommandDescriptor("create", "Create a new Product in a specified Organization identified by the `--organization-id` option")
+                new CommandDescriptor("create", "Create a new Product in a specified Organization identified by the `--organization-id` option", "configcat product create -o <organization-id> -n \"My Product\" -d \"Product Description\"")
                 {
                     Aliases = new[] { "cr" },
                     Handler = CreateHandler<Product>(nameof(Product.CreateProductAsync)),
@@ -97,7 +97,7 @@ public static class CommandBuilder
                         new Option<string>(new[] { "--description", "-d" }, "Description of the new Product"),
                     }
                 },
-                new CommandDescriptor("rm", "Remove a Product identified by the `--product-id` option")
+                new CommandDescriptor("rm", "Remove a Product identified by the `--product-id` option", "configcat product rm -i <product-id>")
                 {
                     Handler = CreateHandler<Product>(nameof(Product.DeleteProductAsync)),
                     Options = new[]
@@ -105,7 +105,7 @@ public static class CommandBuilder
                         new Option<string>(new[] { "--product-id", "-i" }, "ID of the Product to delete"),
                     }
                 },
-                new CommandDescriptor("update", "Update a Product identified by the `--product-id` option")
+                new CommandDescriptor("update", "Update a Product identified by the `--product-id` option", "configcat product update -i <product-id> -n \"My Product\" -d \"Product Description\"")
                 {
                     Aliases = new [] { "up" },
                     Handler = CreateHandler<Product>(nameof(Product.UpdateProductAsync)),
@@ -125,7 +125,7 @@ public static class CommandBuilder
             Aliases = new[] { "m" },
             SubCommands = new[]
             {
-                new CommandDescriptor("lso", "List all Members that belongs to an Organization")
+                new CommandDescriptor("lso", "List all Members that belongs to an Organization", "configcat member lso -o <organization-id>")
                 {
                     Handler = CreateHandler<Member>(nameof(Member.ListOrganizationMembersAsync)),
                     Options = new Option[]
@@ -134,7 +134,7 @@ public static class CommandBuilder
                         new Option<bool>(new[] { "--json" }, "Format the output in JSON"),
                     }
                 },
-                new CommandDescriptor("lsp", "List all Members that belongs to a Product")
+                new CommandDescriptor("lsp", "List all Members that belongs to a Product", "configcat member lsp -p <product-id>")
                 {
                     Handler = CreateHandler<Member>(nameof(Member.ListProductMembersAsync)),
                     Options = new Option[]
@@ -143,7 +143,7 @@ public static class CommandBuilder
                         new Option<bool>(new[] { "--json" }, "Format the output in JSON"),
                     }
                 },
-                new CommandDescriptor("rm", "Remove Member from an Organization")
+                new CommandDescriptor("rm", "Remove Member from an Organization", "configcat member rm -o <organization-id> -i <user-id>")
                 {
                     Handler = CreateHandler<Member>(nameof(Member.RemoveMemberFromOrganizationAsync)),
                     Options = new Option[]
@@ -153,7 +153,7 @@ public static class CommandBuilder
                     }
                 },
 
-                new CommandDescriptor("invite", "Invite Member(s) into a Product")
+                new CommandDescriptor("invite", "Invite Member(s) into a Product", "configcat member invite user1@example.com user2@example.com -p <product-id> -pgi <permission-group-id>")
                 {
                     Aliases = new [] { "inv" },
                     Handler = CreateHandler<Member>(nameof(Member.InviteMembersAsync)),
@@ -167,7 +167,7 @@ public static class CommandBuilder
                         new Option<long?>(new[] { "--permission-group-id", "-pgi" }, "The Permission Group's ID to where the invited Members will join"),
                     }
                 },
-                new CommandDescriptor("add-permission", "Add Member to Permission Groups")
+                new CommandDescriptor("add-permission", "Add Member to Permission Groups", "configcat member add-permission -o <organization-id> -i <user-id> -pgi <permission-group-id1> <permission-group-id2>")
                 {
                     Aliases = new [] { "a" },
                     Handler = CreateHandler<Member>(nameof(Member.AddPermissionsAsync)),
@@ -178,7 +178,7 @@ public static class CommandBuilder
                         new Option<long[]>(new[] { "--permission-group-ids", "-pgi" }, "Permission Group IDs the Member must be put into"),
                     }
                 },
-                new CommandDescriptor("rm-permission", "Remove Member from Permission Groups")
+                new CommandDescriptor("rm-permission", "Remove Member from Permission Groups", "configcat member rm-permission -o <organization-id> -i <user-id> -pgi <permission-group-id1> <permission-group-id2>")
                 {
                     Aliases = new [] { "rmp" },
                     Handler = CreateHandler<Member>(nameof(Member.RemovePermissionsAsync)),
@@ -199,7 +199,7 @@ public static class CommandBuilder
             Aliases = new[] { "c" },
             SubCommands = new[]
             {
-                new CommandDescriptor("ls", "List all Configs that belongs to the configured user")
+                new CommandDescriptor("ls", "List all Configs that belongs to the configured user", "configcat config ls")
                 {
                     Options = new Option[]
                     {
@@ -208,7 +208,7 @@ public static class CommandBuilder
                     },
                     Handler = CreateHandler<Config>(nameof(Config.ListAllConfigsAsync))
                 },
-                new CommandDescriptor("create", "Create a new Config in a specified Product identified by the `--product-id` option")
+                new CommandDescriptor("create", "Create a new Config in a specified Product identified by the `--product-id` option", "configcat config create -p <product-id> -n \"NewConfig\" -d \"Config description\"")
                 {
                     Aliases = new[] { "cr" },
                     Handler = CreateHandler<Config>(nameof(Config.CreateConfigAsync)),
@@ -219,7 +219,7 @@ public static class CommandBuilder
                         new Option<string>(new[] { "--description", "-d" }, "Description of the new Config"),
                     }
                 },
-                new CommandDescriptor("rm", "Remove a Config identified by the `--config-id` option")
+                new CommandDescriptor("rm", "Remove a Config identified by the `--config-id` option", "configcat config rm -i <config-id>")
                 {
                     Handler = CreateHandler<Config>(nameof(Config.DeleteConfigAsync)),
                     Options = new[]
@@ -227,7 +227,7 @@ public static class CommandBuilder
                         new Option<string>(new[] { "--config-id", "-i" }, "ID of the Config to delete"),
                     }
                 },
-                new CommandDescriptor("update", "Update a Config identified by the `--config-id` option")
+                new CommandDescriptor("update", "Update a Config identified by the `--config-id` option", "configcat config update -i <config-id> -n \"NewConfig\" -d \"Config description\"")
                 {
                     Aliases = new[] { "up" },
                     Handler = CreateHandler<Config>(nameof(Config.UpdateConfigAsync)),
@@ -247,7 +247,7 @@ public static class CommandBuilder
             Aliases = new[] { "pg" },
             SubCommands = new[]
             {
-                new CommandDescriptor("ls", "List all Permission Groups that manageable by the configured user")
+                new CommandDescriptor("ls", "List all Permission Groups that manageable by the configured user", "configcat permission-group ls")
                 {
                     Options = new Option[]
                     {
@@ -256,7 +256,7 @@ public static class CommandBuilder
                     },
                     Handler = CreateHandler<PermissionGroup>(nameof(PermissionGroup.ListAllPermissionGroupsAsync))
                 },
-                new CommandDescriptor("create", "Create a new Permission Group in a specified Product identified by the `--product-id` option")
+                new CommandDescriptor("create", "Create a new Permission Group in a specified Product identified by the `--product-id` option", "configcat permission-group create -p <product-id> -n Developers --can-view-sdk-key --can-view-product-statistics --default-when-not-set false")
                 {
                     Aliases = new[] { "cr" },
                     Handler = CreateHandler<PermissionGroup>(nameof(PermissionGroup.CreatePermissionGroupAsync)),
@@ -284,9 +284,10 @@ public static class CommandBuilder
                         new Option<bool>(new[] { "--can-view-product-audit-log" }, Constants.Permissions[17]),
                         new Option<bool>(new[] { "--can-create-or-update-segments" }, Constants.Permissions[18]),
                         new Option<bool>(new[] { "--can-delete-segments" }, Constants.Permissions[19]),
+                        new Option<bool>(new[] { "--default-when-not-set", "-def" }, "Indicates whether each permission must be enabled or disabled when not set"),
                     }
                 },
-                new CommandDescriptor("rm", "Remove a Permission Group identified by the `--permission-group-id` option")
+                new CommandDescriptor("rm", "Remove a Permission Group identified by the `--permission-group-id` option", "configcat permission-group rm -i <permission-group-id>")
                 {
                     Handler = CreateHandler<PermissionGroup>(nameof(PermissionGroup.DeletePermissionGroupAsync)),
                     Options = new[]
@@ -294,7 +295,7 @@ public static class CommandBuilder
                         new Option<long?>(new[] { "--permission-group-id", "-i" }, "ID of the Permission Group to delete"),
                     }
                 },
-                new CommandDescriptor("update", "Update a Permission Group identified by the `--permission-group-id` option")
+                new CommandDescriptor("update", "Update a Permission Group identified by the `--permission-group-id` option", "configcat permission-group update -i <permission-group-id> -n Developers --can-view-product-audit-log")
                 {
                     Aliases = new[] { "up" },
                     Handler = CreateHandler<PermissionGroup>(nameof(PermissionGroup.UpdatePermissionGroupAsync)),
@@ -324,7 +325,7 @@ public static class CommandBuilder
                         new Option<bool?>(new[] { "--can-delete-segments" }, Constants.Permissions[19]),
                     }
                 },
-                new CommandDescriptor("show", "Show details of a Permission Group identified by the `--permission-group-id` option")
+                new CommandDescriptor("show", "Show details of a Permission Group identified by the `--permission-group-id` option", "configcat permission-group show -i <permission-group-id>")
                 {
                     Aliases = new[] { "sh", "pr", "print" },
                     Handler = CreateHandler<PermissionGroup>(nameof(PermissionGroup.ShowPermissionGroupAsync)),
@@ -334,7 +335,7 @@ public static class CommandBuilder
                         new Option<bool>(new[] { "--json" }, "Format the output in JSON"),
                     }
                 },
-                new CommandDescriptor("env", "Update the environment specific permissions of a Permission Group")
+                new CommandDescriptor("env", "Update the environment specific permissions of a Permission Group", "configcat permission-group env -i <permission-group-id> -a custom -na readOnly -esat <environment-id>:full -def readOnly")
                 {
                     Handler = CreateHandler<PermissionGroupEnvironmentAccess>(nameof(PermissionGroupEnvironmentAccess.UpdatePermissionGroupEnvironmentAccessesAsync)),
                     Options = new Option[]
@@ -344,7 +345,9 @@ public static class CommandBuilder
                             .AddSuggestions(Constants.AccessTypes.Keys.ToArray()),
                         new Option<string>(new[] { "--new-environment-access-type", "-na" }, "Access configuration for newly created environments. Interpreted only when the --access-type option is `custom` which translates to `Environment specific`")
                             .AddSuggestions(Constants.EnvironmentAccessTypes.Keys.ToArray()),
-                        new PermissionGroupEnvironmentAccessOption()
+                        new PermissionGroupEnvironmentAccessOption(),
+                        new Option<string>(new[] { "--default-access-type-when-not-set", "-def" }, "Access configuration for each environment not specified with --environment-specific-access-types. Interpreted only when the --access-type option is `custom` which translates to `Environment specific`")
+                            .AddSuggestions(Constants.EnvironmentAccessTypes.Keys.ToArray()),
                     }
                 },
             },
@@ -356,7 +359,7 @@ public static class CommandBuilder
             Aliases = new[] { "seg" },
             SubCommands = new[]
             {
-                new CommandDescriptor("ls", "List all Segments that belongs to the configured user")
+                new CommandDescriptor("ls", "List all Segments that belongs to the configured user", "configcat segment ls")
                 {
                     Options = new Option[]
                     {
@@ -365,7 +368,7 @@ public static class CommandBuilder
                     },
                     Handler = CreateHandler<Segment>(nameof(Segment.ListAllSegmentsAsync))
                 },
-                new CommandDescriptor("create", "Create a new Segment in a specified Product identified by the `--product-id` option")
+                new CommandDescriptor("create", "Create a new Segment in a specified Product identified by the `--product-id` option", "configcat segment create -p <product-id> -n \"Beta users\" -d \"Beta users\" -a Email -c contains -t @example.com")
                 {
                     Aliases = new[] { "cr" },
                     Handler = CreateHandler<Segment>(nameof(Segment.CreateSegmentAsync)),
@@ -380,7 +383,7 @@ public static class CommandBuilder
                         new Option<string>(new[] { "--compare-to", "-t" }, "The value to compare against"),
                     }
                 },
-                new CommandDescriptor("rm", "Remove a Segment identified by the `--segment-id` option")
+                new CommandDescriptor("rm", "Remove a Segment identified by the `--segment-id` option", "configcat segment rm -i <segment-id>")
                 {
                     Handler = CreateHandler<Segment>(nameof(Segment.DeleteSegmentAsync)),
                     Options = new[]
@@ -388,7 +391,8 @@ public static class CommandBuilder
                         new Option<string>(new[] { "--segment-id", "-i" }, "ID of the Segment to delete"),
                     }
                 },
-                new CommandDescriptor("update", "Update a Segment identified by the `--segment-id` option")
+                new CommandDescriptor("update", "Update a Segment identified by the `--segment-id` option", "configcat segment update -i <segment-id> -n \"Beta users\" -d \"Beta users\" -a Email -c contains -t @example.com")
+                
                 {
                     Aliases = new[] { "up" },
                     Handler = CreateHandler<Segment>(nameof(Segment.UpdateSegmentAsync)),
@@ -403,7 +407,7 @@ public static class CommandBuilder
                         new Option<string>(new[] { "--compare-to", "-t" }, "The value to compare against"),
                     }
                 },
-                new CommandDescriptor("show", "Show details of a Segment identified by the `--segment-id` option")
+                new CommandDescriptor("show", "Show details of a Segment identified by the `--segment-id` option", "configcat segment show -i <segment-id>")
                 {
                     Aliases = new[] { "sh", "pr", "print" },
                     Handler = CreateHandler<Segment>(nameof(Segment.GetSegmentDetailsAsync)),
@@ -422,7 +426,7 @@ public static class CommandBuilder
             Aliases = new[] { "e" },
             SubCommands = new[]
             {
-                new CommandDescriptor("ls", "List all Environments that belongs to the configured user")
+                new CommandDescriptor("ls", "List all Environments that belongs to the configured user", "configcat environment ls")
                 {
                     Options = new Option[]
                     {
@@ -431,7 +435,7 @@ public static class CommandBuilder
                     },
                     Handler = CreateHandler<Environment>(nameof(Environment.ListAllEnvironmentsAsync))
                 },
-                new CommandDescriptor("create", "Create a new Environment in a specified Product identified by the `--product-id` option")
+                new CommandDescriptor("create", "Create a new Environment in a specified Product identified by the `--product-id` option", "configcat environment create -p <product-id> -n Test -d \"Test Environment\" -c #7D3C98")
                 {
                     Aliases = new[] { "cr" },
                     Handler = CreateHandler<Environment>(nameof(Environment.CreateEnvironmentAsync)),
@@ -443,7 +447,7 @@ public static class CommandBuilder
                         new Option<string>(new[] { "--color", "-c" }, "Color of the new Environment"),
                     }
                 },
-                new CommandDescriptor("rm", "Remove an Environment identified by the `--environment-id` option")
+                new CommandDescriptor("rm", "Remove an Environment identified by the `--environment-id` option", "configcat environment rm -i <environment-id>")
                 {
                     Handler = CreateHandler<Environment>(nameof(Environment.DeleteEnvironmentAsync)),
                     Options = new[]
@@ -451,7 +455,7 @@ public static class CommandBuilder
                         new Option<string>(new[] { "--environment-id", "-i" }, "ID of the Environment to delete"),
                     }
                 },
-                new CommandDescriptor("update", "Update environment")
+                new CommandDescriptor("update", "Update environment", "configcat environment update -i <environment-id> -n Test -d \"Test Environment\" -c #7D3C98")
                 {
                     Aliases = new [] { "up" },
                     Handler = CreateHandler<Environment>(nameof(Environment.UpdateEnvironmentAsync)),
@@ -472,7 +476,7 @@ public static class CommandBuilder
             Aliases = new[] { "t" },
             SubCommands = new[]
             {
-                new CommandDescriptor("ls", "List all Tags that belongs to the configured user")
+                new CommandDescriptor("ls", "List all Tags that belongs to the configured user", "configcat tag ls")
                 {
                     Options = new Option[]
                     {
@@ -481,7 +485,7 @@ public static class CommandBuilder
                     },
                     Handler = CreateHandler<Tag>(nameof(Tag.ListAllTagsAsync))
                 },
-                new CommandDescriptor("create", "Create a new Tag in a specified Product identified by the `--product-id` option")
+                new CommandDescriptor("create", "Create a new Tag in a specified Product identified by the `--product-id` option", "configcat tag create -n \"temp_tag\"")
                 {
                     Aliases = new[] { "cr" },
                     Handler = CreateHandler<Tag>(nameof(Tag.CreateTagAsync)),
@@ -492,7 +496,7 @@ public static class CommandBuilder
                         new Option<string>(new[] { "--color", "-c" }, "The color of the new Tag"),
                     }
                 },
-                new CommandDescriptor("rm", "Remove a Tag identified by the `--tag-id` option")
+                new CommandDescriptor("rm", "Remove a Tag identified by the `--tag-id` option", "configcat tag rm -i <tag-id>")
                 {
                     Handler = CreateHandler<Tag>(nameof(Tag.DeleteTagAsync)),
                     Options = new[]
@@ -500,7 +504,7 @@ public static class CommandBuilder
                         new Option<int>(new[] { "--tag-id", "-i" }, "ID of the Tag to delete"),
                     }
                 },
-                new CommandDescriptor("update", "Update a Tag identified by the `--tag-id` option")
+                new CommandDescriptor("update", "Update a Tag identified by the `--tag-id` option", "configcat tag update -i <tag-id> -n \"temp_tag\"")
                 {
                     Aliases = new[] { "up" },
                     Handler = CreateHandler<Tag>(nameof(Tag.UpdateTagAsync)),
@@ -521,7 +525,7 @@ public static class CommandBuilder
             Aliases = new[] { "setting", "f", "s" },
             SubCommands = new[]
             {
-                new CommandDescriptor("ls", "List all Feature Flags & Settings that belongs to the configured user")
+                new CommandDescriptor("ls", "List all Feature Flags & Settings that belongs to the configured user", "configcat flag ls -n my_tag")
                 {
                     Options = new Option[]
                     {
@@ -532,7 +536,7 @@ public static class CommandBuilder
                     },
                     Handler = CreateHandler<Flag>(nameof(Flag.ListAllFlagsAsync))
                 },
-                new CommandDescriptor("create", "Create a new Feature Flag or Setting in a specified Config identified by the `--config-id` option")
+                new CommandDescriptor("create", "Create a new Feature Flag or Setting in a specified Config identified by the `--config-id` option", "configcat flag create -c <config-id> -n \"My awesome flag\" -k myAwesomeFlag -t boolean -H \"This is the most awesome flag.\" -ive <env1-id>:true <env2-id>:false -g <tag1-id> <tag2-id>")
                 {
                     Aliases = new[] { "cr" },
                     Handler = CreateHandler<Flag>(nameof(Flag.CreateFlagAsync)),
@@ -549,7 +553,7 @@ public static class CommandBuilder
                         new Option<int[]>(new[] { "--tag-ids", "-g" }, "Tags to attach"),
                     }
                 },
-                new CommandDescriptor("rm", "Remove a Feature Flag or Setting identified by the `--flag-id` option")
+                new CommandDescriptor("rm", "Remove a Feature Flag or Setting identified by the `--flag-id` option", "configcat flag rm -i <flag-id>")
                 {
                     Handler = CreateHandler<Flag>(nameof(Flag.DeleteFlagAsync)),
                     Options = new[]
@@ -560,7 +564,7 @@ public static class CommandBuilder
                         },
                     }
                 },
-                new CommandDescriptor("update", "Update a Feature Flag or Setting identified by the `--flag-id` option")
+                new CommandDescriptor("update", "Update a Feature Flag or Setting identified by the `--flag-id` option", "configcat flag update -i <flag-id> -n \"My awesome flag\" -H \"This is the most awesome flag.\" -g <tag1-id> <tag2-id>")
                 {
                     Aliases = new[] { "up" },
                     Handler = CreateHandler<Flag>(nameof(Flag.UpdateFlagAsync)),
@@ -575,7 +579,7 @@ public static class CommandBuilder
                         new Option<int[]>(new[] { "--tag-ids", "-g" }, "The updated Tag list"),
                     }
                 },
-                new CommandDescriptor("attach", "Attach Tag(s) to a Feature Flag or Setting")
+                new CommandDescriptor("attach", "Attach Tag(s) to a Feature Flag or Setting", "configcat flag attach -i <flag-id> -g <tag1-id> <tag2-id>")
                 {
                     Aliases = new[] { "at" },
                     Handler = CreateHandler<Flag>(nameof(Flag.AttachTagsAsync)),
@@ -588,7 +592,7 @@ public static class CommandBuilder
                         new Option<int[]>(new[] { "--tag-ids", "-g" }, "Tag IDs to attach"),
                     }
                 },
-                new CommandDescriptor("detach", "Detach Tag(s) from a Feature Flag or Setting")
+                new CommandDescriptor("detach", "Detach Tag(s) from a Feature Flag or Setting", "configcat flag detach -i <flag-id> -g <tag1-id> <tag2-id>")
                 {
                     Aliases = new[] { "dt" },
                     Handler = CreateHandler<Flag>(nameof(Flag.DetachTagsAsync)),
@@ -615,7 +619,7 @@ public static class CommandBuilder
             Aliases = new[] { "v" },
             SubCommands = new[]
             {
-                new CommandDescriptor("show", "Show Feature Flag or Setting values, targeting, and percentage rules for each environment")
+                new CommandDescriptor("show", "Show Feature Flag or Setting values, targeting, and percentage rules for each environment", "configcat flag value show -i <flag-id>")
                 {
                     Aliases = new[] { "sh", "pr", "print" },
                     Handler = CreateHandler<FlagValue>(nameof(FlagValue.ShowValueAsync)),
@@ -628,7 +632,7 @@ public static class CommandBuilder
                         new Option<bool>(new[] { "--json" }, "Format the output in JSON"),
                     }
                 },
-                new CommandDescriptor("update", "Update the value of a Feature Flag or Setting")
+                new CommandDescriptor("update", "Update the value of a Feature Flag or Setting", "configcat flag value update -i <flag-id> -e <environment-id> -f true")
                 {
                     Aliases = new[] { "up" },
                     Handler = CreateHandler<FlagValue>(nameof(FlagValue.UpdateFlagValueAsync)),
@@ -651,7 +655,7 @@ public static class CommandBuilder
             Aliases = new[] { "t" },
             SubCommands = new[]
             {
-                new CommandDescriptor("create", "Create new targeting rule")
+                new CommandDescriptor("create", "Create new targeting rule", "configcat flag targeting create -i <flag-id> -e <environment-id> -a Email -c contains -t @example.com -f true")
                 {
                     Aliases = new[] { "cr" },
                     Handler = CreateHandler<FlagTargeting>(nameof(FlagTargeting.AddTargetingRuleAsync)),
@@ -672,7 +676,7 @@ public static class CommandBuilder
                             .AddSuggestions(Constants.SegmentComparatorTypes.Keys.ToArray()),
                     }
                 },
-                new CommandDescriptor("update", "Update targeting rule")
+                new CommandDescriptor("update", "Update targeting rule", "configcat flag targeting update -i <flag-id> -e <environment-id> -p 1 -a Email -c contains -t @example.com -f true")
                 {
                     Aliases = new[] { "up" },
                     Handler = CreateHandler<FlagTargeting>(nameof(FlagTargeting.UpdateTargetingRuleAsync)),
@@ -694,7 +698,7 @@ public static class CommandBuilder
                             .AddSuggestions(Constants.SegmentComparatorTypes.Keys.ToArray()),
                     }
                 },
-                new CommandDescriptor("rm", "Delete targeting rule")
+                new CommandDescriptor("rm", "Delete targeting rule", "configcat flag targeting rm -i <flag-id> -e <environment-id> -p 1")
                 {
                     Handler = CreateHandler<FlagTargeting>(nameof(FlagTargeting.DeleteTargetingRuleAsync)),
                     Options = new Option[]
@@ -707,7 +711,7 @@ public static class CommandBuilder
                         new Option<int?>(new[] { "--position", "-p" }, "The position of the targeting rule to delete"),
                     }
                 },
-                new CommandDescriptor("move", "Move a targeting rule into a different position")
+                new CommandDescriptor("move", "Move a targeting rule into a different position", "configcat flag targeting move -i <flag-id> -e <environment-id> --from 0 --to 1")
                 {
                     Aliases = new[] { "mv" },
                     Handler = CreateHandler<FlagTargeting>(nameof(FlagTargeting.MoveTargetingRuleAsync)),
@@ -731,7 +735,7 @@ public static class CommandBuilder
             Aliases = new[] { "%" },
             SubCommands = new[]
             {
-                new CommandDescriptor("update", "Update percentage rules")
+                new CommandDescriptor("update", "Update percentage rules", "configcat flag % update -i <flag-id> -e <environment-id> 30:true 70:false")
                 {
                     Aliases = new[] { "up" },
                     Handler = CreateHandler<FlagPercentage>(nameof(FlagPercentage.UpdatePercentageRulesAsync)),
@@ -748,7 +752,7 @@ public static class CommandBuilder
                         new Option<string>(new[] { "--environment-id", "-e" }, "ID of the Environment where the update must be applied"),
                     }
                 },
-                new CommandDescriptor("clear", "Delete all percentage rules")
+                new CommandDescriptor("clear", "Delete all percentage rules", "configcat flag % clear -i <flag-id> -e <environment-id>")
                 {
                     Aliases = new[] { "clr" },
                     Handler = CreateHandler<FlagPercentage>(nameof(FlagPercentage.DeletePercentageRulesAsync)),
@@ -765,7 +769,7 @@ public static class CommandBuilder
         };
 
     private static CommandDescriptor BuildSdkKeyCommand() =>
-        new("sdk-key", "List SDK Keys")
+        new("sdk-key", "List SDK Keys", "configcat sdk-key")
         {
             Aliases = new[] { "k" },
             Handler = CreateHandler<SdkKey>(nameof(SdkKey.InvokeAsync)),
@@ -776,7 +780,7 @@ public static class CommandBuilder
         };
 
     private static CommandDescriptor BuildScanCommand() =>
-        new("scan", "Scan files for Feature Flag & Setting usages")
+        new("scan", "Scan files for Feature Flag & Setting usages", "configcat scan ./dir -c <config-id> -l 5 --print")
         {
             Handler = CreateHandler<Scan>(nameof(Scan.InvokeAsync)),
             Arguments = new[]
@@ -801,7 +805,7 @@ public static class CommandBuilder
         };
 
     private static CommandDescriptor BuildCatCommand() =>
-        new("whoisthebestcat", "Well, who?")
+        new("whoisthebestcat", "Well, who?", "configcat cat")
         {
             Aliases = new[] { "cat" },
             Handler = CreateHandler<Cat>(nameof(Cat.InvokeAsync)),

@@ -2,7 +2,11 @@
 List all Product, Config, and Environment IDs
 ## Usage
 ```
-configcat [options] ls
+configcat ls [options]
+```
+## Example
+```
+configcat ls
 ```
 ## Options
 | Option | Description |

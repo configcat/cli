@@ -2,7 +2,11 @@
 List all Members that belongs to an Organization
 ## Usage
 ```
-configcat [options] member lso
+configcat member lso [options]
+```
+## Example
+```
+configcat member lso -o <organization-id>
 ```
 ## Options
 | Option | Description |

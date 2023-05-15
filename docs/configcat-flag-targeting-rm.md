@@ -2,7 +2,11 @@
 Delete targeting rule
 ## Usage
 ```
-configcat [options] flag targeting rm
+configcat flag targeting rm [options]
+```
+## Example
+```
+configcat flag targeting rm -i <flag-id> -e <environment-id> -p 1
 ```
 ## Options
 | Option | Description |

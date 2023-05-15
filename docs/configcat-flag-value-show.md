@@ -2,7 +2,11 @@
 Show Feature Flag or Setting values, targeting, and percentage rules for each environment
 ## Usage
 ```
-configcat [options] flag value show
+configcat flag value show [options]
+```
+## Example
+```
+configcat flag value show -i <flag-id>
 ```
 ## Aliases
 `sh`, `pr`, `print`

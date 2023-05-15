@@ -2,7 +2,11 @@
 Remove an Environment identified by the `--environment-id` option
 ## Usage
 ```
-configcat [options] environment rm
+configcat environment rm [options]
+```
+## Example
+```
+configcat environment rm -i <environment-id>
 ```
 ## Options
 | Option | Description |

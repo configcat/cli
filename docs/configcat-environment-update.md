@@ -2,7 +2,11 @@
 Update environment
 ## Usage
 ```
-configcat [options] environment update
+configcat environment update [options]
+```
+## Example
+```
+configcat environment update -i <environment-id> -n Test -d "Test Environment" -c #7D3C98
 ```
 ## Aliases
 `up`

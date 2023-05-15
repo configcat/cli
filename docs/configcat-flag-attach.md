@@ -2,7 +2,11 @@
 Attach Tag(s) to a Feature Flag or Setting
 ## Usage
 ```
-configcat [options] flag attach
+configcat flag attach [options]
+```
+## Example
+```
+configcat flag attach -i <flag-id> -g <tag1-id> <tag2-id>
 ```
 ## Aliases
 `at`

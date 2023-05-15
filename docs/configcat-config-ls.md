@@ -2,7 +2,11 @@
 List all Configs that belongs to the configured user
 ## Usage
 ```
-configcat [options] config ls
+configcat config ls [options]
+```
+## Example
+```
+configcat config ls
 ```
 ## Options
 | Option | Description |

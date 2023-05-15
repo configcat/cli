@@ -2,7 +2,11 @@
 Show details of a Permission Group identified by the `--permission-group-id` option
 ## Usage
 ```
-configcat [options] permission-group show
+configcat permission-group show [options]
+```
+## Example
+```
+configcat permission-group show -i <permission-group-id>
 ```
 ## Aliases
 `sh`, `pr`, `print`

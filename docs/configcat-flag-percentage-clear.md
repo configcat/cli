@@ -2,7 +2,11 @@
 Delete all percentage rules
 ## Usage
 ```
-configcat [options] flag percentage clear
+configcat flag percentage clear [options]
+```
+## Example
+```
+configcat flag % clear -i <flag-id> -e <environment-id>
 ```
 ## Aliases
 `clr`

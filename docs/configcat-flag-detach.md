@@ -2,7 +2,11 @@
 Detach Tag(s) from a Feature Flag or Setting
 ## Usage
 ```
-configcat [options] flag detach
+configcat flag detach [options]
+```
+## Example
+```
+configcat flag detach -i <flag-id> -g <tag1-id> <tag2-id>
 ```
 ## Aliases
 `dt`

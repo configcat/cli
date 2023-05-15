@@ -87,6 +87,7 @@ internal class PermissionGroup
         bool? canViewProductAuditLog,
         bool? canCreateOrUpdateSegments,
         bool? canDeleteSegments,
+        bool? defaultWhenNotSet,
         CancellationToken token)
     {
         if (productId.IsEmpty())
@@ -120,7 +121,7 @@ internal class PermissionGroup
             CanDeleteSegments = canDeleteSegments,
         };
 
-        var initial = new PermissionGroupModel();
+        var initial = new PermissionGroupModel(defaultWhenNotSet ?? true);
         initial.UpdateFromUpdateModel(model);
 
         if (!model.IsAnyPermissionSet())

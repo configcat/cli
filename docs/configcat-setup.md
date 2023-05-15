@@ -2,7 +2,11 @@
 Setup the CLI with Public Management API host and credentials
 ## Usage
 ```
-configcat [options] setup
+configcat setup [options]
+```
+## Example
+```
+configcat setup -H api.configcat.com -u <user-name> -p <password>
 ```
 ## Options
 | Option | Description |

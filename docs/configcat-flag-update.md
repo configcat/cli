@@ -2,7 +2,11 @@
 Update a Feature Flag or Setting identified by the `--flag-id` option
 ## Usage
 ```
-configcat [options] flag update
+configcat flag update [options]
+```
+## Example
+```
+configcat flag update -i <flag-id> -n "My awesome flag" -H "This is the most awesome flag." -g <tag1-id> <tag2-id>
 ```
 ## Aliases
 `up`

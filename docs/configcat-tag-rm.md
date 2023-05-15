@@ -2,7 +2,11 @@
 Remove a Tag identified by the `--tag-id` option
 ## Usage
 ```
-configcat [options] tag rm
+configcat tag rm [options]
+```
+## Example
+```
+configcat tag rm -i <tag-id>
 ```
 ## Options
 | Option | Description |

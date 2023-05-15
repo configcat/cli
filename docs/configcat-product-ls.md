@@ -2,7 +2,11 @@
 List all Products that belongs to the configured user
 ## Usage
 ```
-configcat [options] product ls
+configcat product ls [options]
+```
+## Example
+```
+configcat product ls
 ```
 ## Options
 | Option | Description |

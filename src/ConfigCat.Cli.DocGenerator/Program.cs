@@ -77,6 +77,15 @@ class Program
         output.AppendLine(helpBuilder.ExposeGetUsage(command));
         output.AppendLine("```");
 
+        var example = helpBuilder.ExposeExample(command);
+        if (!string.IsNullOrWhiteSpace(example))
+        {
+            output.AppendLine("## Example");
+            output.AppendLine("```");
+            output.AppendLine(example);
+            output.AppendLine("```");
+        }
+
         var aliases = command.Aliases.Except(new[] { command.Name });
         if (aliases.Any())
         {

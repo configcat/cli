@@ -5,12 +5,27 @@ using System.CommandLine.IO;
 
 namespace ConfigCat.Cli.DocGenerator;
 
-class ExposedHelpBuilder : HelpBuilder
+internal class ExposedHelpBuilder : HelpBuilder
 {
-    public ExposedHelpBuilder() : base(new MockConsole(), int.MaxValue)
+    public ExposedHelpBuilder() : base(new MockConsole())
     { }
 
-    public string ExposeGetUsage(ICommand command) => base.GetUsage(command);
+    public string ExposeGetUsage(ICommand command)
+    { 
+        var description = GetUsage(command);
+        if (description.Contains("[options]"))
+        {
+            description = description.Replace("[options] ", string.Empty) + " [options]";
+        }
+
+        return description;
+    }
+    
+    public string ExposeExample(ICommand command)
+    { 
+        if (command is not ExtendedCommand extendedCommand || string.IsNullOrWhiteSpace(extendedCommand.Example)) return null;
+        return extendedCommand.Example;
+    }
 
     public IEnumerable<HelpItem> ExposeGetCommandArguments(ICommand command) => base.GetCommandArguments(command);
 }

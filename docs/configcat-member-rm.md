@@ -2,7 +2,11 @@
 Remove Member from an Organization
 ## Usage
 ```
-configcat [options] member rm
+configcat member rm [options]
+```
+## Example
+```
+configcat member rm -o <organization-id> -i <user-id>
 ```
 ## Options
 | Option | Description |

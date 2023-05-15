@@ -2,7 +2,11 @@
 Update targeting rule
 ## Usage
 ```
-configcat [options] flag targeting update
+configcat flag targeting update [options]
+```
+## Example
+```
+configcat flag targeting update -i <flag-id> -e <environment-id> -p 1 -a Email -c contains -t @example.com -f true
 ```
 ## Aliases
 `up`

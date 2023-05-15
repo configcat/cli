@@ -2,7 +2,11 @@
 Update percentage rules
 ## Usage
 ```
-configcat [options] flag percentage update [<rules>...]
+configcat flag percentage update [<rules>...] [options]
+```
+## Example
+```
+configcat flag % update -i <flag-id> -e <environment-id> 30:true 70:false
 ```
 ## Aliases
 `up`

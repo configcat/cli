@@ -2,7 +2,11 @@
 Remove a Permission Group identified by the `--permission-group-id` option
 ## Usage
 ```
-configcat [options] permission-group rm
+configcat permission-group rm [options]
+```
+## Example
+```
+configcat permission-group rm -i <permission-group-id>
 ```
 ## Options
 | Option | Description |

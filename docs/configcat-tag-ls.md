@@ -2,7 +2,11 @@
 List all Tags that belongs to the configured user
 ## Usage
 ```
-configcat [options] tag ls
+configcat tag ls [options]
+```
+## Example
+```
+configcat tag ls
 ```
 ## Options
 | Option | Description |

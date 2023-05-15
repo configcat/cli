@@ -8,15 +8,18 @@ namespace ConfigCat.Cli;
 
 public class CommandDescriptor
 {
-    public CommandDescriptor(string name, string description)
+    public CommandDescriptor(string name, string description, string example = null)
     {
         this.Name = name;
         this.Description = description;
+        this.Example = example;
     }
 
     public string Name { get; }
 
     public string Description { get; }
+    
+    public string Example { get; }
 
     public bool IsHidden { get; init; }
 

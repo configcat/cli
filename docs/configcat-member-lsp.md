@@ -2,7 +2,11 @@
 List all Members that belongs to a Product
 ## Usage
 ```
-configcat [options] member lsp
+configcat member lsp [options]
+```
+## Example
+```
+configcat member lsp -p <product-id>
 ```
 ## Options
 | Option | Description |

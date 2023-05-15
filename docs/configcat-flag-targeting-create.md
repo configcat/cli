@@ -2,7 +2,11 @@
 Create new targeting rule
 ## Usage
 ```
-configcat [options] flag targeting create
+configcat flag targeting create [options]
+```
+## Example
+```
+configcat flag targeting create -i <flag-id> -e <environment-id> -a Email -c contains -t @example.com -f true
 ```
 ## Aliases
 `cr`

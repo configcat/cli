@@ -2,7 +2,11 @@
 Remove a Feature Flag or Setting identified by the `--flag-id` option
 ## Usage
 ```
-configcat [options] flag rm
+configcat flag rm [options]
+```
+## Example
+```
+configcat flag rm -i <flag-id>
 ```
 ## Options
 | Option | Description |

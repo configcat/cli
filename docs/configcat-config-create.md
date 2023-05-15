@@ -2,7 +2,11 @@
 Create a new Config in a specified Product identified by the `--product-id` option
 ## Usage
 ```
-configcat [options] config create
+configcat config create [options]
+```
+## Example
+```
+configcat config create -p <product-id> -n "NewConfig" -d "Config description"
 ```
 ## Aliases
 `cr`

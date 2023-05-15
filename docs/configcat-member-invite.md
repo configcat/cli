@@ -2,7 +2,11 @@
 Invite Member(s) into a Product
 ## Usage
 ```
-configcat [options] member invite [<emails>...]
+configcat member invite [<emails>...] [options]
+```
+## Example
+```
+configcat member invite user1@example.com user2@example.com -p <product-id> -pgi <permission-group-id>
 ```
 ## Aliases
 `inv`

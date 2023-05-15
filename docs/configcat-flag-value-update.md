@@ -2,7 +2,11 @@
 Update the value of a Feature Flag or Setting
 ## Usage
 ```
-configcat [options] flag value update
+configcat flag value update [options]
+```
+## Example
+```
+configcat flag value update -i <flag-id> -e <environment-id> -f true
 ```
 ## Aliases
 `up`

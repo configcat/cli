@@ -2,7 +2,11 @@
 Remove a Config identified by the `--config-id` option
 ## Usage
 ```
-configcat [options] config rm
+configcat config rm [options]
+```
+## Example
+```
+configcat config rm -i <config-id>
 ```
 ## Options
 | Option | Description |

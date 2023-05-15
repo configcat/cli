@@ -2,7 +2,11 @@
 Add Member to Permission Groups
 ## Usage
 ```
-configcat [options] member add-permission
+configcat member add-permission [options]
+```
+## Example
+```
+configcat member add-permission -o <organization-id> -i <user-id> -pgi <permission-group-id1> <permission-group-id2>
 ```
 ## Aliases
 `a`

@@ -2,7 +2,11 @@
 List all Segments that belongs to the configured user
 ## Usage
 ```
-configcat [options] segment ls
+configcat segment ls [options]
+```
+## Example
+```
+configcat segment ls
 ```
 ## Options
 | Option | Description |

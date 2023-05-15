@@ -2,7 +2,11 @@
 Remove a Segment identified by the `--segment-id` option
 ## Usage
 ```
-configcat [options] segment rm
+configcat segment rm [options]
+```
+## Example
+```
+configcat segment rm -i <segment-id>
 ```
 ## Options
 | Option | Description |

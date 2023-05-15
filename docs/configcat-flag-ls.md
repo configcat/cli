@@ -2,7 +2,11 @@
 List all Feature Flags & Settings that belongs to the configured user
 ## Usage
 ```
-configcat [options] flag ls
+configcat flag ls [options]
+```
+## Example
+```
+configcat flag ls -n my_tag
 ```
 ## Options
 | Option | Description |

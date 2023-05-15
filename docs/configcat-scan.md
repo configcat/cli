@@ -2,7 +2,11 @@
 Scan files for Feature Flag & Setting usages
 ## Usage
 ```
-configcat [options] scan <directory>
+configcat scan <directory> [options]
+```
+## Example
+```
+configcat scan ./dir -c <config-id> -l 5 --print
 ```
 ## Options
 | Option | Description |

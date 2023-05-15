@@ -2,7 +2,11 @@
 List all Permission Groups that manageable by the configured user
 ## Usage
 ```
-configcat [options] permission-group ls
+configcat permission-group ls [options]
+```
+## Example
+```
+configcat permission-group ls
 ```
 ## Options
 | Option | Description |
