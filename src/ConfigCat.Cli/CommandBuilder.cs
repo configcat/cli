@@ -284,7 +284,7 @@ public static class CommandBuilder
                         new Option<bool>(new[] { "--can-view-product-audit-log" }, Constants.Permissions[17]),
                         new Option<bool>(new[] { "--can-create-or-update-segments" }, Constants.Permissions[18]),
                         new Option<bool>(new[] { "--can-delete-segments" }, Constants.Permissions[19]),
-                        new Option<bool>(new[] { "--default-when-not-set", "-def" }, "Indicates whether each permission must be enabled or disabled when not set"),
+                        new Option<bool>(new[] { "--default-when-not-set", "-def" }, "Indicates whether each unspecified permission should be enabled or disabled by default"),
                     }
                 },
                 new CommandDescriptor("rm", "Remove a Permission Group identified by the `--permission-group-id` option", "configcat permission-group rm -i <permission-group-id>")
