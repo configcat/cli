@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using ConfigCat.Cli.Commands;
+﻿using ConfigCat.Cli.Commands;
 using ConfigCat.Cli.Commands.Flags;
 using ConfigCat.Cli.Options;
 using ConfigCat.Cli.Services;
@@ -47,6 +46,7 @@ public static class CommandBuilder
                 BuildSdkKeyCommand(),
                 BuildScanCommand(),
                 BuildCatCommand(),
+                BuildConfigJsonCommand(),
             }
         };
 
@@ -801,6 +801,31 @@ public static class CommandBuilder
                 new Option<string>(new[] { "--runner", "-ru" }, "Overrides the default `ConfigCat CLI {version}` executor label on the ConfigCat dashboard"),
                 new Option<string[]>(new[] { "--exclude-flag-keys", "-ex" }, "Exclude the given Feature Flag keys from scanning. E.g.: `-ex flag1 flag2` or `-ex 'flag1,flag2'`"),
 
+            }
+        };
+
+    private static CommandDescriptor BuildConfigJsonCommand() =>
+        new("config-json", "Config JSON-related utilities")
+        {
+            SubCommands = new CommandDescriptor[]
+            {
+                new("convert", "Convert between config JSON versions", "configcat config-json convert v5-to-v6 < config_v5.json")
+                {
+                    Handler = CreateHandler<ConfigJson>(nameof(ConfigJson.ConvertAsync)),
+                    Arguments = new[]
+                    {
+                        new Argument<string>("conversion", "The conversion to perform.")
+                            .AddSuggestions(ConfigJson.V5TestConversion, ConfigJson.V6TestConversion, ConfigJson.V5ToV6Conversion)
+                            .UseDefaultValue(ConfigJson.V5ToV6Conversion)
+                    },
+                    Options = new Option[]
+                    {
+                        new Option<FileInfo>(new[] { "--hash-map", "-h" }, "A JSON file containing the original values of hashed comparison values" +
+                            "in the following format: '{\"<hash>\":\"<original-value>\"}'.").ExistingOnly(),
+                        new Option<bool>(new[] { "--skip-salt", "-s" }, "Skip writing salt into the output JSON if it would be unused."),
+                        new Option<bool>(new[] { "--pretty", "-p" }, "Pretty print the output JSON."),
+                    },
+                }
             }
         };
 

@@ -38,4 +38,10 @@ public static class CommandExtensions
             command.AddCommand(subCommand);
         }
     }
+
+    public static Argument<T> UseDefaultValue<T>(this Argument<T> argument, T defaultValue)
+    {
+        argument.SetDefaultValue(defaultValue);
+        return argument;
+    }
 }
