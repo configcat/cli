@@ -48,12 +48,13 @@ namespace ConfigCat.Cli.Services.ConfigFile
                     s => s.Value is not null ? ConvertSetting(s.Value, s.Key) : null)
                 : null;
 
-            var preferences = configJsonSalt.IsValueCreated || !skipSaltIfUnused || baseUrl is not null || redirect is not null
+            var needsSalt = configJsonSalt.IsValueCreated || !skipSaltIfUnused;
+            var preferences = needsSalt || baseUrl is not null || redirect is not null
                 ? new PreferenceV6
                 {
                     BaseUrl = baseUrl,
                     Redirect = redirect,
-                    Salt = configJsonSalt.Value,
+                    Salt = needsSalt ? configJsonSalt.Value : null,
                 }
                 : null;
 
