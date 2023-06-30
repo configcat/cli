@@ -35,15 +35,15 @@ internal class ConfigJson
 
     public async Task<int> ConvertAsync(
         string conversion,
-        string hashMap,
+        FileInfo? hashMap,
         bool skipSalt,
         bool pretty,
         CancellationToken token)
     {
         Func<string, string?>? reverseComparisonValueHash = null;
-        if (!string.IsNullOrEmpty(hashMap))
+        if (hashMap is not null)
         {
-            using var fileStream = File.OpenRead(hashMap);
+            using var fileStream = hashMap.OpenRead();
             var comparisonValueHashMap = await JsonSerializer.DeserializeAsync<Dictionary<string, string>>(fileStream, cancellationToken: token)
                 ?? throw new InvalidOperationException("Invalid reverse hash map JSON content.");
             reverseComparisonValueHash = hash => comparisonValueHashMap.GetValueOrDefault(hash);
