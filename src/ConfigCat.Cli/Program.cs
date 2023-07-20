@@ -53,14 +53,16 @@ internal static class Program
                 var commandName = context.ParseResult.CommandResult.Command.Name;
                 switch (commandName)
                 {
-                    case "setup":
-                    case "whoisthebestcat":
+                    case "setup" or "whoisthebestcat":
                         container.RegisterInstance(new CliConfig());
                         break;
-                    case "convert" when context.ParseResult.CommandResult.Parent is CommandResult { Command.Name: "config-json" }:
-                        container.Register<RandomNumberGenerator>(cfg => cfg
-                            .WithFactory(() => RandomNumberGenerator.Create())
-                            .WithSingletonLifetime());
+                    case { } when context.ParseResult.CommandResult.Parent is CommandResult { Command.Name: "config-json" }:
+                        if (commandName == "convert")
+                        {
+                            container.Register<RandomNumberGenerator>(cfg => cfg
+                                .WithFactory(() => RandomNumberGenerator.Create())
+                                .WithSingletonLifetime());
+                        }
                         break;
                     default:
                         var configurationProvider = container.Resolve<IConfigurationProvider>();

@@ -44,4 +44,10 @@ public static class CommandExtensions
         argument.SetDefaultValue(defaultValue);
         return argument;
     }
+
+    public static Option<T> UseDefaultValue<T>(this Option<T> option, T defaultValue)
+    {
+        option.SetDefaultValue(defaultValue);
+        return option;
+    }
 }

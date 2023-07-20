@@ -8,6 +8,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using ConfigCat.Cli.Commands.PermissionGroups;
+using ConfigCat.Cli.Commands.ConfigJson;
 
 namespace ConfigCat.Cli;
 
@@ -811,19 +812,37 @@ public static class CommandBuilder
             {
                 new("convert", "Convert between config JSON versions", "configcat config-json convert v5-to-v6 < config_v5.json")
                 {
-                    Handler = CreateHandler<ConfigJson>(nameof(ConfigJson.ConvertAsync)),
+                    Handler = CreateHandler<ConfigJsonConvert>(nameof(ConfigJsonConvert.ExecuteAsync)),
                     Arguments = new[]
                     {
                         new Argument<string>("conversion", "The conversion to perform.")
-                            .AddSuggestions(ConfigJson.V5TestConversion, ConfigJson.V6TestConversion, ConfigJson.V5ToV6Conversion)
-                            .UseDefaultValue(ConfigJson.V5ToV6Conversion)
+                            .AddSuggestions(ConfigJsonConvert.V5TestConversion, ConfigJsonConvert.V6TestConversion, ConfigJsonConvert.V5ToV6Conversion)
+                            .UseDefaultValue(ConfigJsonConvert.V5ToV6Conversion)
                     },
                     Options = new Option[]
                     {
                         new Option<FileInfo>(new[] { "--hash-map", "-h" }, "A JSON file containing the original values of hashed comparison values" +
                             "in the following format: '{\"<hash>\":\"<original-value>\"}'.").ExistingOnly(),
-                        new Option<bool>(new[] { "--skip-salt", "-s" }, "Skip writing salt into the output JSON if it would be unused."),
-                        new Option<bool>(new[] { "--pretty", "-p" }, "Pretty print the output JSON."),
+                        new Option<bool>(new[] { "--skip-salt", "-s" }, "Skip writing salt into the converted JSON if it would be unused."),
+                        new Option<bool>(new[] { "--pretty", "-p" }, "Pretty print the converted JSON."),
+                    },
+                },
+                new("get", "Download a config JSON from the CDN servers.", "configcat config-json get -f v6 PKDVCLf-Hq-h-kCzMp-L7Q/HhOWfwVtZ0mb30i9wi17GQ > config.json")
+                {
+                    Handler = CreateHandler<ConfigJsonGet>(nameof(ConfigJsonGet.ExecuteAsync)),
+                    Arguments = new[]
+                    {
+                        new Argument<string>("sdk-key", "The SDK key identifying the config to download.")
+                    },
+                    Options = new Option[]
+                    {
+                        new Option<string>(new[] { "-f", "--format" }, "The config JSON format version.")
+                            .AddSuggestions(ConfigJsonGet.ConfigV5, ConfigJsonGet.ConfigV6)
+                            .UseDefaultValue(ConfigJsonGet.ConfigV6),
+                        new Option<bool>(new[] { "--eu" }, "Use the ConfigCat CDN servers located in the EU. Specify this option if you enabled EU Only data governance."),
+                        new Option<bool>(new[] { "--test", "-t" }, "Use the ConfigCat CDN servers of the test infrastructure.") { IsHidden = true },
+                        new Option<bool>(new[] { "--base-url", "-u" }, "Use the server accessible at the specified URL. Specify this option if you set up a proxy server."),
+                        new Option<bool>(new[] { "--pretty", "-p" }, "Pretty print the downloaded JSON."),
                     },
                 }
             }

@@ -7,6 +7,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using ConfigCat.Cli.Models.ConfigFile.V5;
@@ -16,9 +17,9 @@ using ConfigCat.Cli.Services.ConfigFile;
 using ConfigCat.Cli.Services.Exceptions;
 using ConfigCat.Cli.Services.Rendering;
 
-namespace ConfigCat.Cli.Commands;
+namespace ConfigCat.Cli.Commands.ConfigJson;
 
-internal class ConfigJson
+internal class ConfigJsonConvert
 {
     public const string V5TestConversion = "test-v5";
     public const string V6TestConversion = "test-v6";
@@ -27,13 +28,13 @@ internal class ConfigJson
     private readonly IOutput output;
     private readonly IConfigJsonConverter configJsonConverter;
 
-    public ConfigJson(IOutput output, IConfigJsonConverter configJsonConverter)
+    public ConfigJsonConvert(IOutput output, IConfigJsonConverter configJsonConverter)
     {
         this.output = output;
         this.configJsonConverter = configJsonConverter;
     }
 
-    public async Task<int> ConvertAsync(
+    public async Task<int> ExecuteAsync(
         string conversion,
         FileInfo? hashMap,
         bool skipSalt,
@@ -78,24 +79,32 @@ internal class ConfigJson
             switch (conversion)
             {
                 case V5TestConversion:
-                    var configV5 = await JsonSerializer.DeserializeAsync<ConfigV5>(inputStream, cancellationToken: token)
+                    var jsonNode = JsonNode.Parse(inputStream);
+
+                    var configV5 = JsonSerializer.Deserialize<ConfigV5>(jsonNode)
                         ?? throw new InvalidOperationException("Invalid config JSON content.");
+
+                    token.ThrowIfCancellationRequested();
 
                     writeOutput = outputStream =>
                     {
                         var serializerOptions = this.configJsonConverter.CreateSerializerOptionsV5(pretty);
-                        return JsonSerializer.SerializeAsync(outputStream, configV5, serializerOptions);
+                        return JsonSerializer.SerializeAsync(outputStream, jsonNode, serializerOptions);
                     };
                     break;
 
                 case V6TestConversion:
-                    var configV6 = await JsonSerializer.DeserializeAsync<ConfigV6>(inputStream, cancellationToken: token)
+                    jsonNode = JsonNode.Parse(inputStream);
+
+                    var configV6 = JsonSerializer.Deserialize<ConfigV6>(jsonNode)
                         ?? throw new InvalidOperationException("Invalid config JSON content.");
+
+                    token.ThrowIfCancellationRequested();
 
                     writeOutput = outputStream =>
                     {
                         var serializerOptions = this.configJsonConverter.CreateSerializerOptionsV6(pretty);
-                        return JsonSerializer.SerializeAsync(outputStream, configV6, serializerOptions);
+                        return JsonSerializer.SerializeAsync(outputStream, jsonNode, serializerOptions);
                     };
                     break;
 
