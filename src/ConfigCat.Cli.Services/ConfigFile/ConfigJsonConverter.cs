@@ -76,17 +76,12 @@ namespace ConfigCat.Cli.Services.ConfigFile
                         .ToList()
                     : null;
 
-                if (settingV5.RolloutPercentageItems is { Length: > 0 })
-                {
-                    targetingRules ??= new List<TargetingRuleV6>();
-                    targetingRules.Add(new TargetingRuleV6
-                    {
-                        PercentageOptions = settingV5.RolloutPercentageItems
-                            .OrderBy(p => p.Order)
-                            .Select(p => ConvertPercentageOption(p, settingType))
-                            .ToList()
-                    });
-                }
+                var percentageOptions = settingV5.RolloutPercentageItems is { Length: > 0 }
+                    ?  settingV5.RolloutPercentageItems
+                        .OrderBy(p => p.Order)
+                        .Select(p => ConvertPercentageOption(p, settingType))
+                        .ToList()
+                    : null;
 
                 return new EvaluationFormulaV6
                 {
@@ -94,7 +89,8 @@ namespace ConfigCat.Cli.Services.ConfigFile
                     Value = settingValue,
                     VariationId = settingV5.VariationId,
                     // PercentageRuleAttribute = Not implemented in the ancient world... 
-                    TargetingRules = targetingRules
+                    TargetingRules = targetingRules,
+                    PercentageOptions = percentageOptions
                 };
             }
 

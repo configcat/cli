@@ -14,7 +14,7 @@ namespace ConfigCat.Cli.Models.ConfigFile.V6
         /// <summary>
         /// The percentage rule evaluation will hash this attribute of the User object to calculate the buckets.
         /// </summary>
-        [JsonPropertyName("p")]
+        [JsonPropertyName("a")]
         public string PercentageRuleAttribute { get; set; }
 
         /// <summary>
@@ -22,5 +22,11 @@ namespace ConfigCat.Cli.Models.ConfigFile.V6
         /// </summary>
         [JsonPropertyName("r")]
         public List<TargetingRuleV6> TargetingRules { get; set; }
+
+        /// <summary>
+        /// Percentage options without conditions.
+        /// </summary>
+        [JsonPropertyName("p")]
+        public List<PercentageOptionV6> PercentageOptions { get; set; }
     }
 }
