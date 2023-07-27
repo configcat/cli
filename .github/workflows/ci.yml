@@ -128,8 +128,11 @@ jobs:
       run: Copy-Item LICENSE -destination choco\LICENSE.txt
       shell: powershell
 
+    - name: Pack
+      run: choco pack choco\configcat.nuspec --out .\choco
+
     - name: Install local choco package
-      run: choco install choco\configcat.nuspec
+      run: choco install configcat --source .\choco
 
     - name: Execute tests
       shell: pwsh
