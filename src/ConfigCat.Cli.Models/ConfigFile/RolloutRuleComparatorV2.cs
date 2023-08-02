@@ -1,5 +1,4 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace ConfigCat.Cli.Models.ConfigFile
 {
@@ -43,7 +42,7 @@ namespace ConfigCat.Cli.Models.ConfigFile
         [Display(Name = "NUMBER NOT EQUALS TO")]
         NumberDoesNotEqual = 11,
 
-        [Display(Name = "NUMBER LESS")]
+        [Display(Name = "NUMBER LESS THAN")]
         NumberLess = 12,
 
         [Display(Name = "NUMBER LESS THAN OR EQUALS TO")]
@@ -76,13 +75,19 @@ namespace ConfigCat.Cli.Models.ConfigFile
         [Display(Name = "SENSITIVE TEXT STARTS WITH ANY OF")]
         SensitiveTextStartsWith = 22,
 
+        [Display(Name = "SENSITIVE TEXT NOT STARTS WITH ANY OF")]
+        SensitiveTextNotStartsWith = 23,
+
         [Display(Name = "SENSITIVE TEXT ENDS WITH ANY OF")]
-        SensitiveTextEndsWith = 23,
+        SensitiveTextEndsWith = 24,
+
+        [Display(Name = "SENSITIVE TEXT NOT ENDS WITH ANY OF")]
+        SensitiveTextNotEndsWith = 25,
 
         [Display(Name = "ARRAY CONTAINS")]
-        ArrayContains = 24,
+        ArrayContains = 26,
 
         [Display(Name = "ARRAY NOT CONTAINS")]
-        ArrayDoesNotContain = 25,
+        ArrayDoesNotContain = 27,
     }
 }

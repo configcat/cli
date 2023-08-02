@@ -182,7 +182,7 @@ namespace ConfigCat.Cli.Services.ConfigFile
                     case RolloutRuleComparator.SemVerLessOrEquals:
                     case RolloutRuleComparator.SemVerGreater:
                     case RolloutRuleComparator.SemVerGreaterOrEquals:
-                        rule.StringValue = ruleV5.ComparisonValue;
+                        rule.StringValue = ruleV5.ComparisonValue.Trim();
                         break;
 
                     case RolloutRuleComparator.NumberEquals:
@@ -192,7 +192,7 @@ namespace ConfigCat.Cli.Services.ConfigFile
                     case RolloutRuleComparator.NumberGreater:
                     case RolloutRuleComparator.NumberGreaterOrEquals:
                         // This parse is copied from the .Net SDK (de are now basically doing here what the SDKs are doing in config_v5)
-                        if (double.TryParse(ruleV5.ComparisonValue.Replace(',', '.'), NumberStyles.Any, CultureInfo.InvariantCulture, out var doubleValue))
+                        if (double.TryParse(ruleV5.ComparisonValue.Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture, out var doubleValue))
                         {
                             rule.DoubleValue = doubleValue;
                         }
