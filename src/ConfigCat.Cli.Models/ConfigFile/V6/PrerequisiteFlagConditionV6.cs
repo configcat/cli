@@ -2,13 +2,13 @@
 
 namespace ConfigCat.Cli.Models.ConfigFile.V6
 {
-    public class DependentFlagConditionV6
+    public class PrerequisiteFlagConditionV6
     {
         [JsonPropertyName("f")]
-        public string DependencySettingKey { get; set; }
+        public string PrerequisiteSettingKey { get; set; }
 
         [JsonPropertyName("c")]
-        public DependencyComparator DependencyComparator { get; set; }
+        public PrerequisiteComparator PrerequisiteComparator { get; set; }
 
         [JsonPropertyName("v")]
         public ValueV6 Value { get; set; }

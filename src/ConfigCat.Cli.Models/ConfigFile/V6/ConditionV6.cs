@@ -20,6 +20,6 @@ namespace ConfigCat.Cli.Models.ConfigFile.V6
         /// Prerequisite targeting rule
         /// </summary>
         [JsonPropertyName("d")]
-        public DependentFlagConditionV6 DependentFlagCondition { get; set; }
+        public PrerequisiteFlagConditionV6 PrerequisiteFlagCondition { get; set; }
     }
 }

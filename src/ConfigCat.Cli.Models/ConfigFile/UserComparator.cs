@@ -2,7 +2,10 @@
 
 namespace ConfigCat.Cli.Models.ConfigFile
 {
-    public enum RolloutRuleComparatorV2
+    /// <summary>
+    /// The comparison operator the evaluation process must use when it compares the given user attribute's value with the comparison value. 
+    /// </summary>
+    public enum UserComparator
     {
         /* [Display(Name = "IS ONE OF")]
         IsOneOf = 0,
@@ -11,10 +14,10 @@ namespace ConfigCat.Cli.Models.ConfigFile
         IsNotOneOf = 1, */
 
         [Display(Name = "CONTAINS ANY OF")]
-        Contains = 2,
+        ContainsAnyOf = 2,
 
         [Display(Name = "NOT CONTAINS ANY OF")]
-        DoesNotContain = 3,
+        DoesNotContainAnyOf = 3,
 
 
         [Display(Name = "SEMVER IS ONE OF")]
@@ -73,21 +76,21 @@ namespace ConfigCat.Cli.Models.ConfigFile
         SensitiveTextDoesNotEqual = 21,
 
         [Display(Name = "SENSITIVE TEXT STARTS WITH ANY OF")]
-        SensitiveTextStartsWith = 22,
+        SensitiveTextStartsWithAnyOf = 22,
 
         [Display(Name = "SENSITIVE TEXT NOT STARTS WITH ANY OF")]
-        SensitiveTextNotStartsWith = 23,
+        SensitiveTextNotStartsWithAnyOf = 23,
 
         [Display(Name = "SENSITIVE TEXT ENDS WITH ANY OF")]
-        SensitiveTextEndsWith = 24,
+        SensitiveTextEndsWithAnyOf = 24,
 
         [Display(Name = "SENSITIVE TEXT NOT ENDS WITH ANY OF")]
-        SensitiveTextNotEndsWith = 25,
+        SensitiveTextNotEndsWithAnyOf = 25,
 
-        [Display(Name = "ARRAY CONTAINS")]
-        ArrayContains = 26,
+        [Display(Name = "ARRAY CONTAINS ANY OF")]
+        ArrayContainsAnyOf = 26,
 
-        [Display(Name = "ARRAY NOT CONTAINS")]
-        ArrayDoesNotContain = 27,
+        [Display(Name = "ARRAY NOT CONTAINS ANY OF")]
+        ArrayDoesNotContainAnyOf = 27,
     }
 }

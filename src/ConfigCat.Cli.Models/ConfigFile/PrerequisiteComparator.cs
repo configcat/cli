@@ -2,7 +2,10 @@
 
 namespace ConfigCat.Cli.Models.ConfigFile
 {
-    public enum DependencyComparator : byte
+    /// <summary>
+    /// The comparison operator used during the evaluation process.
+    /// </summary>
+    public enum PrerequisiteComparator : byte
     {
         [Display(Name = "EQUALS")]
         Equals = 0,

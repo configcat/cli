@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace ConfigCat.Cli.Models.ConfigFile.V6
 {
-    public class EvaluationFormulaV6: ValueAndVariationIdV6
+    public class EvaluationFormulaV6 : ValueAndVariationIdV6
     {
         /// <summary>
         /// Setting type (bool, string, int, double)

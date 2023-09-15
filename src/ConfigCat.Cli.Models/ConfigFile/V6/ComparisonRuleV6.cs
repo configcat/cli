@@ -12,7 +12,7 @@ namespace ConfigCat.Cli.Models.ConfigFile.V6
         public string ComparisonAttribute { get; set; }
 
         [JsonPropertyName("c")]
-        public RolloutRuleComparatorV2 Comparator { get; set; }
+        public UserComparator Comparator { get; set; }
 
         [JsonPropertyName("s")]
         public string StringValue { get; set; }

@@ -136,9 +136,9 @@ namespace ConfigCat.Cli.Services.ConfigFile
                 // The IsOneOf and IsNotOneOf comparators are obsolete, we just simply convert them to the sensitive parts.
                 var comparator = ruleV5.Comparator switch
                 {
-                    RolloutRuleComparator.IsOneOf => RolloutRuleComparatorV2.SensitiveIsOneOf,
-                    RolloutRuleComparator.IsNotOneOf => RolloutRuleComparatorV2.SensitiveIsNotOneOf,
-                    _ => (RolloutRuleComparatorV2)ruleV5.Comparator
+                    RolloutRuleComparator.IsOneOf => UserComparator.SensitiveIsOneOf,
+                    RolloutRuleComparator.IsNotOneOf => UserComparator.SensitiveIsNotOneOf,
+                    _ => (UserComparator)ruleV5.Comparator
                 };
 
                 var rule = new ComparisonRuleV6
@@ -156,7 +156,8 @@ namespace ConfigCat.Cli.Services.ConfigFile
                         rule.StringListValue =
                             (ruleV5.ComparisonValue ?? string.Empty)
                                 .Split(',', StringSplitOptions.RemoveEmptyEntries)
-                                .Select(t => GetHashedValue(t.Trim(), configJsonSalt.Value, contextSalt: settingKey))
+                                .Select(t => t.Trim())
+                                .Select(t => GetHashedValue(t, configJsonSalt.Value, contextSalt: settingKey))
                                 .Distinct()
                                 .ToList();
                         break;
@@ -223,9 +224,10 @@ namespace ConfigCat.Cli.Services.ConfigFile
                         }
 
                         rule.StringListValue = items
-                                .Select(t => GetHashedValue(t.Trim(), configJsonSalt.Value, contextSalt: settingKey))
-                                .Distinct()
-                                .ToList();
+                            .Select(t => t.Trim())
+                            .Select(t => GetHashedValue(t, configJsonSalt.Value, contextSalt: settingKey))
+                            .Distinct()
+                            .ToList();
                         break;
                     default:
                         throw new ArgumentException($"Comparator type '{ruleV5.Comparator}' is not supported.", nameof(ruleV5), null);

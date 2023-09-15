@@ -2,6 +2,9 @@
 
 namespace ConfigCat.Cli.Models.ConfigFile
 {
+    /// <summary>
+    /// The segment comparison operator used during the evaluation process.
+    /// </summary>
     public enum SegmentComparator
     {
         [Display(Name = "IS IN SEGMENT")]
