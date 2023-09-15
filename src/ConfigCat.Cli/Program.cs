@@ -16,6 +16,8 @@ using System.CommandLine.IO;
 using System.CommandLine.Parsing;
 using System.Diagnostics.CodeAnalysis;
 using System.Net.Http;
+using System.Reflection;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Trybot;
 using Trybot.Retry.Exceptions;
@@ -49,16 +51,25 @@ internal static class Program
             .UseMiddleware(async (context, next) =>
             {
                 var commandName = context.ParseResult.CommandResult.Command.Name;
-                if (commandName is "setup" or "whoisthebestcat")
+                switch (commandName)
                 {
-                    container.RegisterInstance(new CliConfig());
-                    await next(context);
-                    return;
+                    case "setup" or "whoisthebestcat":
+                        container.RegisterInstance(new CliConfig());
+                        break;
+                    case { } when context.ParseResult.CommandResult.Parent is CommandResult { Command.Name: "config-json" }:
+                        if (commandName == "convert")
+                        {
+                            container.Register<RandomNumberGenerator>(cfg => cfg
+                                .WithFactory(() => RandomNumberGenerator.Create())
+                                .WithSingletonLifetime());
+                        }
+                        break;
+                    default:
+                        var configurationProvider = container.Resolve<IConfigurationProvider>();
+                        var config = await configurationProvider.GetConfigAsync(context.GetCancellationToken());
+                        container.RegisterInstance(config);
+                        break;
                 }
-
-                var configurationProvider = container.Resolve<IConfigurationProvider>();
-                var config = await configurationProvider.GetConfigAsync(context.GetCancellationToken());
-                container.RegisterInstance(config);
                 await next(context);
             })
             .UseMiddleware(async (context, next) =>
@@ -84,6 +95,8 @@ internal static class Program
             .UseParseErrorReporting()
             .UseExceptionHandler((exception, context) =>
             {
+                exception = UnwrapTargetInvocationException(exception);
+                
                 var hasVerboseOption = context.ParseResult.FindResultFor(CommandBuilder.VerboseOption) is not null;
                 var output = container.Resolve<IOutput>();
                 switch (exception)
@@ -123,11 +136,20 @@ internal static class Program
 
         return await parser.InvokeAsync(args);
     }
-        
+
     private static void RegisterWithDynamicMemberAccess(Type serviceType, 
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type implementationType, 
         StashboxContainer container)
     {
         container.Register(serviceType, implementationType, c => c.WithTransientLifetime());
+    }
+
+    private static Exception UnwrapTargetInvocationException(Exception ex)
+    {
+        while (ex is TargetInvocationException { InnerException: not null })
+        {
+            ex = ex.InnerException;
+        }
+        return ex;
     }
 }
