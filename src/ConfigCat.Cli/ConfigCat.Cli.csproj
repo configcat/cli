@@ -11,24 +11,41 @@
     <AssemblyName>configcat</AssemblyName>
     <AssemblyTitle>ConfigCat CLI</AssemblyTitle>
     <InvariantGlobalization>true</InvariantGlobalization>
-    <PublishTrimmed>true</PublishTrimmed>
-    <TrimmerDefaultAction>link</TrimmerDefaultAction>
-    <TrimmerRemoveSymbols>true</TrimmerRemoveSymbols>
-    <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
-    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
-    <PublishReadyToRun>true</PublishReadyToRun>
     <Version>0.0.0</Version>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Content Include="..\..\test\integ.ps1" Link="integ.ps1">
-    </Content>
-  </ItemGroup>
+  <Choose>
+    <When Condition="'$(_IsPacking)' == 'true'">
+      <!-- Setup for .NET CLI tool build -->
+      <PropertyGroup>
+        <PackAsTool>true</PackAsTool>
+        <PackageId>ConfigCat.Cli</PackageId>
+        <ToolCommandName>configcat</ToolCommandName>
+        <RollForward>Major</RollForward>
+      </PropertyGroup>
+    </When>
 
-  <ItemGroup>
-    <TrimmerRootAssembly Include="ConfigCat.Cli.Services" />
-    <TrimmerRootAssembly Include="ConfigCat.Cli.Models" />
-  </ItemGroup>
+    <Otherwise>
+      <PropertyGroup>
+        <PublishTrimmed>true</PublishTrimmed>
+        <TrimmerDefaultAction>link</TrimmerDefaultAction>
+        <TrimmerRemoveSymbols>true</TrimmerRemoveSymbols>
+        <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
+        <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+        <PublishReadyToRun>true</PublishReadyToRun>
+      </PropertyGroup>
+
+      <ItemGroup>
+        <Content Include="..\..\test\integ.ps1" Link="integ.ps1">
+        </Content>
+      </ItemGroup>
+
+      <ItemGroup>
+        <TrimmerRootAssembly Include="ConfigCat.Cli.Services" />
+        <TrimmerRootAssembly Include="ConfigCat.Cli.Models" />
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
 
   <ItemGroup>
     <PackageReference Include="Stashbox" Version="5.4.2" />
