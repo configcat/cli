@@ -19,7 +19,7 @@
       <!-- Setup for .NET CLI tool build -->
       <PropertyGroup>
         <PackAsTool>true</PackAsTool>
-        <PackageId>ConfigCat.Cli</PackageId>
+        <PackageId>configcat-cli</PackageId>
         <ToolCommandName>configcat</ToolCommandName>
         <RollForward>Major</RollForward>
       </PropertyGroup>
