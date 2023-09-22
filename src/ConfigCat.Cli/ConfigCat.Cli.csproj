@@ -19,10 +19,38 @@
       <!-- Setup for .NET CLI tool build -->
       <PropertyGroup>
         <PackAsTool>true</PackAsTool>
-        <PackageId>configcat-cli</PackageId>
         <ToolCommandName>configcat</ToolCommandName>
         <RollForward>Major</RollForward>
+        <Authors>ConfigCat</Authors>
+        <Description>The ConfigCat Command Line Interface allows you to interact with the ConfigCat Management API via the command line. It supports most functionality found on the ConfigCat Dashboard. You can manage ConfigCat resources like Feature Flags, Targeting / Percentage rules, Products, Configs, Environments, and more.</Description>
+        <PackageIcon>icon-128x128.png</PackageIcon>
+        <PackageId>configcat-cli</PackageId>
+        <PackageLicenseFile>LICENSE</PackageLicenseFile>
+        <PackageProjectUrl>https://configcat.com</PackageProjectUrl>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageReleaseNotes>https://github.com/configcat/cli/releases</PackageReleaseNotes>
+        <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+        <PackageTags>configcat feature flag toggle feature-flag feature-toggle</PackageTags>
+        <RepositoryType>git</RepositoryType>
+        <RepositoryUrl>https://github.com/configcat/cli</RepositoryUrl>
+        <Summary>Command Line Interface for ConfigCat</Summary>
+        <Title>ConfigCat CLI</Title>
       </PropertyGroup>
+
+      <ItemGroup>
+        <None Include="..\..\media\icon-128x128.png">
+          <Pack>True</Pack>
+          <PackagePath>\</PackagePath>
+        </None>
+        <None Include="..\..\LICENSE">
+          <Pack>True</Pack>
+          <PackagePath>\</PackagePath>
+        </None>
+        <None Include="..\..\README.md">
+          <Pack>True</Pack>
+          <PackagePath>\</PackagePath>
+        </None>
+      </ItemGroup>
     </When>
 
     <Otherwise>
