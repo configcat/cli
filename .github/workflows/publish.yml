@@ -268,7 +268,6 @@ jobs:
         omitNameDuringUpdate: true
         token: ${{ secrets.GITHUB_TOKEN }}
 
-
   brew:
     runs-on: ubuntu-latest
     needs: github-release
@@ -316,3 +315,22 @@ jobs:
         GH_USER_EMAIL: ${{ secrets.GH_USER_EMAIL }}
         GH_USER_NAME: ${{ secrets.GH_USER_NAME }}
         GH_API_TOKEN: ${{ secrets.GH_API_TOKEN }}
+
+  nuget:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup dotnet
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: '6.0.x'
+    
+    - name: Get version from tag
+      run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
+
+    - name: Pack
+      run: |
+        dotnet pack src/ConfigCat.Cli/ConfigCat.Cli.csproj -c Release -p:Version=${{ env.VERSION }} -o publish/nuget
+
+    - name: Publish to NuGet.org
+      run: dotnet nuget push publish/nuget/configcat-cli.${{ env.VERSION }}.nupkg -k ${{ secrets.NUGET_API_KEY }}

@@ -62,6 +62,21 @@ choco install configcat
 </details>
 
 <details>
+  <summary><strong>.NET tool / NuGet.org</strong></summary>
+
+The CLI can be installed as a [.NET tool](https://learn.microsoft.com/en-us/dotnet/core/tools/global-tools) via the .NET SDK.
+```bash
+dotnet tool install -g configcat-cli
+```
+
+After installing, you can execute the CLI using the `configcat` command:
+```bash
+configcat scan "/repository" --print --config-id <CONFIG-ID>
+```
+
+</details>
+
+<details>
   <summary><strong>Docker</strong></summary>
 
 The CLI can be executed from a [Docker](https://www.docker.com/) image.
