@@ -15,7 +15,7 @@
   </PropertyGroup>
 
   <Choose>
-    <When Condition="'$(_IsPacking)' == 'true'">
+    <When Condition="'$(NetToolPack)' == 'true'">
       <!-- Setup for .NET CLI tool build -->
       <PropertyGroup>
         <PackAsTool>true</PackAsTool>

@@ -21,7 +21,7 @@ jobs:
 
       - name: Pack
         run: |
-          dotnet pack src/ConfigCat.Cli/ConfigCat.Cli.csproj -c Release -p:Version=${{ env.VERSION }} -o publish/nuget
+          dotnet pack src/ConfigCat.Cli/ConfigCat.Cli.csproj -c Release -p:Version=${{ env.VERSION }} -o publish/nuget -p:NetToolPack=true
 
       - name: Publish to NuGet.org
         run: dotnet nuget push publish/nuget/configcat-cli.${{ env.VERSION }}.nupkg -k ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
