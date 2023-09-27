@@ -32,7 +32,7 @@ public class GitClient : IGitClient
         {
             return this.CollectInfoFromCli(path);
         }
-        catch
+        catch (Exception e) when (e is not TimeoutException)
         {
             this.output.WriteYellow("Could not execute the Git CLI, it's probably not installed. Skipping.").WriteLine();
             return null;
@@ -41,7 +41,7 @@ public class GitClient : IGitClient
 
     private GitRepositoryInfo CollectInfoFromCli(string path)
     {
-        using var process = GetGitProcess(path);
+        using var process = GetProcess(path, "git");
 
         var repoWorkingDir = ExecuteCommand(process, "rev-parse --show-toplevel");
         if (repoWorkingDir.IsEmpty() || !Directory.Exists(repoWorkingDir))
@@ -57,7 +57,7 @@ public class GitClient : IGitClient
         var remoteBranches = ExecuteCommand(process, "ls-remote --heads --quiet");
 
         var activeBranches = new List<string>();
-        var regex = Regex.Match(remoteBranches, @"refs\/heads\/(.*)",
+        var regex = Regex.Match(remoteBranches, "refs/heads/(.*)",
             RegexOptions.IgnoreCase | RegexOptions.Compiled,
             TimeSpan.FromSeconds(1));
 
@@ -76,13 +76,13 @@ public class GitClient : IGitClient
         };
     }
 
-    private static Process GetGitProcess(string path)
+    private static Process GetProcess(string path, string processName)
     {
         var processInfo = new ProcessStartInfo
         {
             UseShellExecute = false,
             RedirectStandardOutput = true,
-            FileName = "git",
+            FileName = processName,
             CreateNoWindow = true,
             WorkingDirectory = path
         };
@@ -95,8 +95,12 @@ public class GitClient : IGitClient
     {
         process.StartInfo.Arguments = arguments;
         process.Start();
+        var exited = process.WaitForExit(10 * 1000);
+        if (!exited)
+        {
+            throw new TimeoutException($"'{process.StartInfo.FileName} {arguments}' has timed out without result.");
+        }
         var output = process.StandardOutput.ReadToEnd();
-        process.WaitForExit();
         return output.Trim();
     }
 }

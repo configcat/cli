@@ -109,3 +109,9 @@ This is the complete list of the available commands provided by the CLI.
 | Command | Description |
 | ------ | ----------- |
 | [configcat scan](configcat-scan.md) | Scan files for Feature Flag & Setting usages |
+### configcat config-json
+| Command | Description |
+| ------ | ----------- |
+| [configcat config-json](configcat-config-json.md) | Config JSON-related utilities |
+| [configcat config-json convert](configcat-config-json-convert.md) | Convert between config JSON versions |
+| [configcat config-json get](configcat-config-json-get.md) | Download a config JSON from the CDN servers. |

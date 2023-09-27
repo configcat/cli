@@ -35,7 +35,7 @@ configcat permission-group create -p <product-id> -n Developers --can-view-sdk-k
 | `--can-view-product-audit-log` | View the Product level Audit Log about who changed what in the Product |
 | `--can-create-or-update-segments` | Create, and edit Segments |
 | `--can-delete-segments` | Delete Segments |
-| `--default-when-not-set`, `-def` | Indicates whether each permission must be enabled or disabled when not set |
+| `--default-when-not-set`, `-def` | Indicates whether each unspecified permission should be enabled or disabled by default |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |
 | `--non-interactive`, `-ni` | Turn off progress rendering and interactive features |
 | `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |
