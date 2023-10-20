@@ -7,8 +7,8 @@ namespace ConfigCat.Cli.Models.ConfigFile.V6
         /// <summary>
         /// Classic targeting rule
         /// </summary>
-        [JsonPropertyName("t")]
-        public ComparisonRuleV6 ComparisonRule { get; set; }
+        [JsonPropertyName("u")]
+        public ComparisonRuleV6 UserCondition { get; set; }
 
         /// <summary>
         /// Segment targeting rule
@@ -19,7 +19,7 @@ namespace ConfigCat.Cli.Models.ConfigFile.V6
         /// <summary>
         /// Prerequisite targeting rule
         /// </summary>
-        [JsonPropertyName("d")]
+        [JsonPropertyName("p")]
         public PrerequisiteFlagConditionV6 PrerequisiteFlagCondition { get; set; }
     }
 }

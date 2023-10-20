@@ -3,15 +3,15 @@
 namespace ConfigCat.Cli.Models.ConfigFile
 {
     /// <summary>
-    /// The comparison operator the evaluation process must use when it compares the given user attribute's value with the comparison value. 
+    /// The comparison operator which defines the relation between the comparison attribute and the comparison value.
     /// </summary>
     public enum UserComparator
     {
-        /* [Display(Name = "IS ONE OF")]
+        [Display(Name = "IS ONE OF")]
         IsOneOf = 0,
 
         [Display(Name = "IS NOT ONE OF")]
-        IsNotOneOf = 1, */
+        IsNotOneOf = 1,
 
         [Display(Name = "CONTAINS ANY OF")]
         ContainsAnyOf = 2,
@@ -57,6 +57,7 @@ namespace ConfigCat.Cli.Models.ConfigFile
         [Display(Name = "NUMBER GREATER THAN OR EQUALS TO")]
         NumberGreaterOrEquals = 15,
 
+
         [Display(Name = "SENSITIVE IS ONE OF")]
         SensitiveIsOneOf = 16,
 
@@ -87,10 +88,35 @@ namespace ConfigCat.Cli.Models.ConfigFile
         [Display(Name = "SENSITIVE TEXT NOT ENDS WITH ANY OF")]
         SensitiveTextNotEndsWithAnyOf = 25,
 
+        [Display(Name = "SENSITIVE ARRAY CONTAINS ANY OF")]
+        SensitiveArrayContainsAnyOf = 26,
+
+        [Display(Name = "SENSITIVE ARRAY NOT CONTAINS ANY OF")]
+        SensitiveArrayDoesNotContainAnyOf = 27,
+
+
+        [Display(Name = "TEXT EQUALS TO")]
+        TextEquals = 28,
+
+        [Display(Name = "TEXT NOT EQUALS TO")]
+        TextDoesNotEqual = 29,
+
+        [Display(Name = "TEXT STARTS WITH ANY OF")]
+        TextStartsWithAnyOf = 30,
+
+        [Display(Name = "TEXT NOT STARTS WITH ANY OF")]
+        TextNotStartsWithAnyOf = 31,
+
+        [Display(Name = "TEXT ENDS WITH ANY OF")]
+        TextEndsWithAnyOf = 32,
+
+        [Display(Name = "TEXT NOT ENDS WITH ANY OF")]
+        TextNotEndsWithAnyOf = 33,
+
         [Display(Name = "ARRAY CONTAINS ANY OF")]
-        ArrayContainsAnyOf = 26,
+        ArrayContainsAnyOf = 34,
 
         [Display(Name = "ARRAY NOT CONTAINS ANY OF")]
-        ArrayDoesNotContainAnyOf = 27,
+        ArrayDoesNotContainAnyOf = 35,
     }
 }
