@@ -43,9 +43,9 @@ namespace ConfigCat.Cli.Services.ConfigFile
             var redirect = configV5.Preferences?.RedirectMode;
 
             var featureFlags = configV5.Settings is { Count: > 0 }
-                ? configV5.Settings.ToDictionary(
-                    s => s.Key,
-                    s => s.Value is not null ? ConvertSetting(s.Value, s.Key) : null)
+                ? configV5.Settings
+                    .OrderBy(s => s.Key)
+                    .ToDictionary(s => s.Key, s => ConvertSetting(s.Value, s.Key))
                 : null;
 
             var needsSalt = configJsonSalt.IsValueCreated || !skipSaltIfUnused;
@@ -125,7 +125,7 @@ namespace ConfigCat.Cli.Services.ConfigFile
                 {
                     Conditions = new List<ConditionV6>
                     {
-                        new() { ComparisonRule = ConvertComparisonRule(ruleV5, settingKey) },
+                        new() { UserCondition = ConvertComparisonRule(ruleV5, settingKey) },
                     },
                     ServedValue = servedValue
                 };
@@ -133,13 +133,7 @@ namespace ConfigCat.Cli.Services.ConfigFile
 
             ComparisonRuleV6 ConvertComparisonRule(RolloutRuleV5 ruleV5, string settingKey)
             {
-                // The IsOneOf and IsNotOneOf comparators are obsolete, we just simply convert them to the sensitive parts.
-                var comparator = ruleV5.Comparator switch
-                {
-                    RolloutRuleComparator.IsOneOf => UserComparator.SensitiveIsOneOf,
-                    RolloutRuleComparator.IsNotOneOf => UserComparator.SensitiveIsNotOneOf,
-                    _ => (UserComparator)ruleV5.Comparator
-                };
+                var comparator = (UserComparator)ruleV5.Comparator;
 
                 var rule = new ComparisonRuleV6
                 {
@@ -151,22 +145,6 @@ namespace ConfigCat.Cli.Services.ConfigFile
                 {
                     case RolloutRuleComparator.IsOneOf:
                     case RolloutRuleComparator.IsNotOneOf:
-                        // This conversion is copied from the .Net SDK (we are now basically doing here what the SDKs are doing in config_v5).
-                        // I added a .Distinct() here, so we can free up space in some rare cases in the config.json
-                        rule.StringListValue =
-                            (ruleV5.ComparisonValue ?? string.Empty)
-                                .Split(',', StringSplitOptions.RemoveEmptyEntries)
-                                .Select(t => t.Trim())
-                                .Select(t => GetHashedValue(t, configJsonSalt.Value, contextSalt: settingKey))
-                                .Distinct()
-                                .ToList();
-                        break;
-
-                    case RolloutRuleComparator.Contains:
-                    case RolloutRuleComparator.DoesNotContain:
-                        rule.StringListValue = new List<string> { ruleV5.ComparisonValue };
-                        break;
-
                     case RolloutRuleComparator.SemVerIsOneOf:
                     case RolloutRuleComparator.SemVerIsNotOneOf:
                         // This conversion is copied from the .Net SDK (we are now basically doing here what the SDKs are doing in config_v5).
@@ -177,6 +155,11 @@ namespace ConfigCat.Cli.Services.ConfigFile
                                 .Select(t => t.Trim())
                                 .Distinct()
                                 .ToList();
+                        break;
+
+                    case RolloutRuleComparator.Contains:
+                    case RolloutRuleComparator.DoesNotContain:
+                        rule.StringListValue = new List<string> { ruleV5.ComparisonValue };
                         break;
 
                     case RolloutRuleComparator.SemVerLess:

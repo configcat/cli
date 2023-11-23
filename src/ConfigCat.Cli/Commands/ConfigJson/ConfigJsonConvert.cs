@@ -25,6 +25,13 @@ internal class ConfigJsonConvert
     public const string V6TestConversion = "test-v6";
     public const string V5ToV6Conversion = "v5-to-v6";
 
+    private static JsonSerializerOptions SerializerOptionsFrom(JsonDocumentOptions documentOptions) => new()
+    {
+        AllowTrailingCommas = documentOptions.AllowTrailingCommas,
+        ReadCommentHandling = documentOptions.CommentHandling,
+        MaxDepth = documentOptions.MaxDepth,
+    };
+
     private readonly IOutput output;
     private readonly IConfigJsonConverter configJsonConverter;
 
@@ -74,14 +81,20 @@ internal class ConfigJsonConvert
 
         Func<Stream, Task> writeOutput;
 
+        var deserializeOptions = new JsonDocumentOptions
+        {
+            AllowTrailingCommas = true,
+            CommentHandling = JsonCommentHandling.Skip,
+        };
+
         using (var inputStream = Console.OpenStandardInput())
         {
             switch (conversion)
             {
                 case V5TestConversion:
-                    var jsonNode = JsonNode.Parse(inputStream);
+                    var jsonNode = JsonNode.Parse(inputStream, documentOptions: deserializeOptions);
 
-                    var configV5 = JsonSerializer.Deserialize<ConfigV5>(jsonNode)
+                    var configV5 = JsonSerializer.Deserialize<ConfigV5>(jsonNode, SerializerOptionsFrom(deserializeOptions))
                         ?? throw new InvalidOperationException("Invalid config JSON content.");
 
                     token.ThrowIfCancellationRequested();
@@ -94,9 +107,9 @@ internal class ConfigJsonConvert
                     break;
 
                 case V6TestConversion:
-                    jsonNode = JsonNode.Parse(inputStream);
+                    jsonNode = JsonNode.Parse(inputStream, documentOptions: deserializeOptions);
 
-                    var configV6 = JsonSerializer.Deserialize<ConfigV6>(jsonNode)
+                    var configV6 = JsonSerializer.Deserialize<ConfigV6>(jsonNode, SerializerOptionsFrom(deserializeOptions))
                         ?? throw new InvalidOperationException("Invalid config JSON content.");
 
                     token.ThrowIfCancellationRequested();
@@ -109,7 +122,7 @@ internal class ConfigJsonConvert
                     break;
 
                 case V5ToV6Conversion:
-                    configV5 = await JsonSerializer.DeserializeAsync<ConfigV5>(inputStream, cancellationToken: token)
+                    configV5 = await JsonSerializer.DeserializeAsync<ConfigV5>(inputStream, SerializerOptionsFrom(deserializeOptions), cancellationToken: token)
                         ?? throw new InvalidOperationException("Invalid config JSON content.");
 
                     writeOutput = outputStream =>
