@@ -173,7 +173,7 @@ public class GitClient : IGitClient
         result.StdOut = stdOutBuilder.ToString().Trim();
         result.StdErr = stdErrBuilder.ToString().Trim();
         
-        if (result.ExitCode != 0)
+        if (result.ExitCode is not 0)
         {
             output.WriteWarning($"{startInfo.FileName} exited with code {result.ExitCode}. Error: {result.StdOut}{Environment.NewLine}{result.StdErr}");
         }
