@@ -6,7 +6,7 @@ RUN apk add --no-cache \
         ca-certificates \
         krb5-libs \
         libintl \
-        libssl1.1 \
+        libssl3 \
         libstdc++ \
         zlib
 
