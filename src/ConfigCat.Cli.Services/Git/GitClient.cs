@@ -45,7 +45,15 @@ public class GitClient : IGitClient
 
     private async Task<GitRepositoryInfo> CollectInfoFromCli(string path)
     {
-        var startInfo = GetProcessStartInfo(path, "git");
+        var startInfo = new ProcessStartInfo()
+        {
+            UseShellExecute = false,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            FileName = "git",
+            CreateNoWindow = true,
+            WorkingDirectory = path
+        };
 
         var repoWorkingDir = await ExecuteAsync(startInfo, "rev-parse --show-toplevel", GitCmdTimeoutMs);
         if (repoWorkingDir.StdOut.IsEmpty() || !Directory.Exists(repoWorkingDir.StdOut))
@@ -79,17 +87,6 @@ public class GitClient : IGitClient
             CurrentCommitHash = commitHash.StdOut,
         };
     }
-
-    private static ProcessStartInfo GetProcessStartInfo(string path, string processName) =>
-        new()
-        {
-            UseShellExecute = false,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            FileName = processName,
-            CreateNoWindow = true,
-            WorkingDirectory = path
-        };
 
     private async Task<Result> ExecuteAsync(ProcessStartInfo startInfo, string arguments, int? timeoutMs = null)
     {
