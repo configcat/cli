@@ -24,7 +24,7 @@ public class GitClient : IGitClient
         this.output = output;
     }
     
-    private const int GitCmdTimeoutMs = 30 * 1000;
+    private static readonly TimeSpan GitCmdTimeout = TimeSpan.FromSeconds(30);
     
     public async Task<GitRepositoryInfo> GatherGitInfo(string path)
     {
@@ -55,7 +55,7 @@ public class GitClient : IGitClient
             WorkingDirectory = path
         };
 
-        var repoWorkingDir = await ExecuteAsync(startInfo, "rev-parse --show-toplevel", GitCmdTimeoutMs);
+        var repoWorkingDir = await ExecuteAsync(startInfo, "rev-parse --show-toplevel", GitCmdTimeout);
         if (repoWorkingDir.StdOut.IsEmpty() || !Directory.Exists(repoWorkingDir.StdOut))
         {
             output.WriteYellow($"{path} is not a Git repository. Skipping.").WriteLine();
@@ -64,9 +64,9 @@ public class GitClient : IGitClient
 
         output.WriteGreen($"Git repository found at {repoWorkingDir.StdOut}").WriteLine();
 
-        var commitHash = await ExecuteAsync(startInfo, "rev-parse HEAD", GitCmdTimeoutMs);
-        var branchName = await ExecuteAsync(startInfo, "rev-parse --abbrev-ref HEAD", GitCmdTimeoutMs);
-        var remoteBranches = await ExecuteAsync(startInfo, "ls-remote --heads --quiet", GitCmdTimeoutMs);
+        var commitHash = await ExecuteAsync(startInfo, "rev-parse HEAD", GitCmdTimeout);
+        var branchName = await ExecuteAsync(startInfo, "rev-parse --abbrev-ref HEAD", GitCmdTimeout);
+        var remoteBranches = await ExecuteAsync(startInfo, "ls-remote --heads --quiet", GitCmdTimeout);
 
         var activeBranches = new List<string>();
         var regex = Regex.Match(remoteBranches.StdOut, "refs/heads/(.*)",
@@ -88,7 +88,7 @@ public class GitClient : IGitClient
         };
     }
 
-    private async Task<Result> ExecuteAsync(ProcessStartInfo startInfo, string arguments, int? timeoutMs = null)
+    private async Task<Result> ExecuteAsync(ProcessStartInfo startInfo, string arguments, TimeSpan timeout)
     {
         var result = new Result();
 
@@ -148,9 +148,7 @@ public class GitClient : IGitClient
         
         var processCompletionTask = Task.WhenAll(processTasks);
 
-        var awaitingTask = timeoutMs.HasValue
-            ? Task.WhenAny(Task.Delay(timeoutMs.Value), processCompletionTask)
-            : Task.WhenAny(processCompletionTask);
+        var awaitingTask = Task.WhenAny(Task.Delay(timeout), processCompletionTask);
 
         if (await awaitingTask == processCompletionTask)
         {
