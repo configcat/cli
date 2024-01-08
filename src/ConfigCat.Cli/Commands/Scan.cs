@@ -127,7 +127,7 @@ internal class Scan
 
         this.output.WriteLine("Initiating code reference upload...");
 
-        var gitInfo = this.gitClient.GatherGitInfo(directory.FullName);
+        var gitInfo = await this.gitClient.GatherGitInfo(directory.FullName);
 
         branch = branch.NullIfEmpty() ?? gitInfo?.Branch;
         commitHash = commitHash.NullIfEmpty() ?? gitInfo?.CurrentCommitHash;
