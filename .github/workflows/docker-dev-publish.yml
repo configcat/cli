@@ -1,0 +1,64 @@
+name: ConfigCat CLI Docker Dev Publish
+
+on:
+  workflow_dispatch:
+    
+jobs:
+  produce-executables:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [linux-musl-x64]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: '6.0.x'
+
+      - name: Get version from tag
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
+
+      - name: Publish ${{ matrix.arch }}
+        run: |
+          dotnet publish src/ConfigCat.Cli/ConfigCat.Cli.csproj -c Release -r ${{ matrix.arch }} --self-contained true -p:PublishSingleFile=true -p:Version=${{ env.VERSION }} -o publish/${{ matrix.arch }}
+          cp LICENSE publish/${{ matrix.arch }}/LICENSE
+          cp README.md publish/${{ matrix.arch }}/README.md
+
+      - name: Archive executables
+        uses: actions/upload-artifact@v3
+        with:
+          name: executables
+          path: publish
+          
+  docker:
+    runs-on: ubuntu-latest
+    needs: [ produce-executables ]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download executables
+        uses: actions/download-artifact@v3
+        with:
+          name: executables
+
+      - name: Get version from tag
+        run: echo "BRANCH=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+      
+      - name: Set permissions
+        run: chmod +x ./linux-musl-x64/configcat
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: true
+          tags: |
+            configcat/cli:dev-${{ github.run_id }}
