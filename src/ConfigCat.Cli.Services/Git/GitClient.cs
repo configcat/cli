@@ -161,7 +161,7 @@ public class GitClient : IGitClient
                 process.Kill();
             }
             catch { /*ignored*/ }
-            output.WriteWarning($"{startInfo.FileName} {arguments} has timed out without a result.");
+            output.WriteWarning($"'{startInfo.FileName} {arguments}' has timed out without a result.");
             
         }
 
@@ -170,7 +170,7 @@ public class GitClient : IGitClient
         
         if (result.ExitCode is not 0)
         {
-            output.WriteWarning($"{startInfo.FileName} exited with code {result.ExitCode}. Error: {result.StdOut}{Environment.NewLine}{result.StdErr}");
+            output.WriteWarning($"'{startInfo.FileName} {arguments}' exited with code {result.ExitCode}. Error: {result.StdOut}{Environment.NewLine}{result.StdErr}");
         }
 
         return result;
