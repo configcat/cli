@@ -4,62 +4,74 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace ConfigCat.Cli.Services.Git;
 
 public interface IGitClient
 {
-    GitRepositoryInfo GatherGitInfo(string path);
+    Task<GitRepositoryInfo> GatherGitInfo(string path);
 }
 
 public class GitClient : IGitClient
 {
     private readonly IOutput output;
-
+    
     public GitClient(IOutput output)
     {
         this.output = output;
     }
-
-    public GitRepositoryInfo GatherGitInfo(string path)
+    
+    private static readonly TimeSpan GitCmdTimeout = TimeSpan.FromSeconds(30);
+    
+    public async Task<GitRepositoryInfo> GatherGitInfo(string path)
     {
-        this.output.Write("Collecting Git repository information from ")
+        output.Write("Collecting Git repository information from ")
             .WriteCyan(path)
             .WriteLine();
 
         try
         {
-            return this.CollectInfoFromCli(path);
+            return await this.CollectInfoFromCli(path);
         }
-        catch (Exception e) when (e is not TimeoutException)
+        catch (Exception)
         {
-            this.output.WriteYellow("Could not execute the Git CLI, it's probably not installed. Skipping.").WriteLine();
+            output.WriteYellow("Could not execute the Git CLI, it's probably not installed. Skipping.").WriteLine();
             return null;
         }
     }
 
-    private GitRepositoryInfo CollectInfoFromCli(string path)
+    private async Task<GitRepositoryInfo> CollectInfoFromCli(string path)
     {
-        using var process = GetProcess(path, "git");
-
-        var repoWorkingDir = ExecuteCommand(process, "rev-parse --show-toplevel");
-        if (repoWorkingDir.IsEmpty() || !Directory.Exists(repoWorkingDir))
+        var startInfo = new ProcessStartInfo()
         {
-            this.output.WriteYellow($"{path} is not a Git repository. Skipping.").WriteLine();
+            UseShellExecute = false,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            FileName = "git",
+            CreateNoWindow = true,
+            WorkingDirectory = path
+        };
+
+        var repoWorkingDir = await ExecuteAsync(startInfo, "rev-parse --show-toplevel", GitCmdTimeout);
+        if (repoWorkingDir.StdOut.IsEmpty() || !Directory.Exists(repoWorkingDir.StdOut))
+        {
+            output.WriteYellow($"{path} is not a Git repository. Skipping.").WriteLine();
             return null;
         }
 
-        this.output.WriteGreen($"Git repository found at {repoWorkingDir}").WriteLine();
+        output.WriteGreen($"Git repository found at {repoWorkingDir.StdOut}").WriteLine();
 
-        var commitHash = ExecuteCommand(process, "rev-parse HEAD");
-        var branchName = ExecuteCommand(process, "rev-parse --abbrev-ref HEAD");
-        var remoteBranches = ExecuteCommand(process, "ls-remote --heads --quiet");
+        var commitHash = await ExecuteAsync(startInfo, "rev-parse HEAD", GitCmdTimeout);
+        var branchName = await ExecuteAsync(startInfo, "rev-parse --abbrev-ref HEAD", GitCmdTimeout);
+        var remoteBranches = await ExecuteAsync(startInfo, "ls-remote --heads --quiet", GitCmdTimeout);
 
         var activeBranches = new List<string>();
-        var regex = Regex.Match(remoteBranches, "refs/heads/(.*)",
+        var regex = Regex.Match(remoteBranches.StdOut, "refs/heads/(.*)",
             RegexOptions.IgnoreCase | RegexOptions.Compiled,
-            TimeSpan.FromSeconds(1));
+            TimeSpan.FromSeconds(5));
 
         while (regex.Success)
         {
@@ -70,37 +82,104 @@ public class GitClient : IGitClient
         return new GitRepositoryInfo
         {
             ActiveBranches = activeBranches,
-            WorkingDirectory = repoWorkingDir,
-            Branch = branchName,
-            CurrentCommitHash = commitHash,
+            WorkingDirectory = repoWorkingDir.StdOut,
+            Branch = branchName.StdOut,
+            CurrentCommitHash = commitHash.StdOut,
         };
     }
 
-    private static Process GetProcess(string path, string processName)
+    private async Task<Result> ExecuteAsync(ProcessStartInfo startInfo, string arguments, TimeSpan timeout)
     {
-        var processInfo = new ProcessStartInfo
+        var result = new Result();
+
+        using var process = new Process();
+        startInfo.Arguments = arguments;
+        process.StartInfo = startInfo;
+        process.EnableRaisingEvents = true;
+        var processTasks = new List<Task>();
+
+        var processExitEvent = new TaskCompletionSource<object>();
+        process.Exited += (_, _) =>
         {
-            UseShellExecute = false,
-            RedirectStandardOutput = true,
-            FileName = processName,
-            CreateNoWindow = true,
-            WorkingDirectory = path
+            processExitEvent.TrySetResult(true);
+        };
+        processTasks.Add(processExitEvent.Task);
+
+        var stdOutBuilder = new StringBuilder();
+        var stdErrBuilder = new StringBuilder();
+        var stdOutCloseEvent = new TaskCompletionSource<bool>();
+        var stdErrCloseEvent = new TaskCompletionSource<bool>();
+
+        process.OutputDataReceived += (s, e) =>
+        {
+            if (e.Data == null)
+            {
+                stdOutCloseEvent.TrySetResult(true);
+            }
+            else
+            {
+                stdOutBuilder.AppendLine(e.Data);
+            }
+        };
+        
+        process.ErrorDataReceived += (s, e) =>
+        {
+            if (e.Data == null)
+            {
+                stdErrCloseEvent.TrySetResult(true);
+            }
+            else
+            {
+                stdErrBuilder.AppendLine(e.Data);
+            }
         };
 
-        var process = new Process { StartInfo = processInfo };
-        return process;
-    }
-
-    private static string ExecuteCommand(Process process, string arguments)
-    {
-        process.StartInfo.Arguments = arguments;
-        process.Start();
-        var exited = process.WaitForExit(10 * 1000);
-        if (!exited)
+        processTasks.Add(stdOutCloseEvent.Task);
+        processTasks.Add(stdErrCloseEvent.Task);
+            
+        if (!process.Start())
         {
-            throw new TimeoutException($"'{process.StartInfo.FileName} {arguments}' has timed out without result.");
+            result.ExitCode = process.ExitCode;
+            return result;
         }
-        var output = process.StandardOutput.ReadToEnd();
-        return output.Trim();
+
+        process.BeginOutputReadLine();
+        process.BeginErrorReadLine();
+        
+        var processCompletionTask = Task.WhenAll(processTasks);
+
+        var awaitingTask = Task.WhenAny(Task.Delay(timeout), processCompletionTask);
+
+        if (await awaitingTask == processCompletionTask)
+        {
+            result.ExitCode = process.ExitCode;
+        }
+        else
+        {
+            try
+            {
+                process.Kill();
+            }
+            catch { /*ignored*/ }
+            output.WriteWarning($"'{startInfo.FileName} {arguments}' has timed out without a result.");
+            
+        }
+
+        result.StdOut = stdOutBuilder.ToString().Trim();
+        result.StdErr = stdErrBuilder.ToString().Trim();
+        
+        if (result.ExitCode is not 0)
+        {
+            output.WriteWarning($"'{startInfo.FileName} {arguments}' exited with code {result.ExitCode}. Error: {result.StdOut}{Environment.NewLine}{result.StdErr}");
+        }
+
+        return result;
+    }
+
+    private class Result
+    {
+        public int? ExitCode { get; set; }
+        public string StdErr { get; set; }
+        public string StdOut { get; set; }
     }
 }

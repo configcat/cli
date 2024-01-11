@@ -1,4 +1,4 @@
-FROM alpine:3.17
+FROM alpine:3.19
 
 RUN apk add --no-cache \
         git \
@@ -6,7 +6,7 @@ RUN apk add --no-cache \
         ca-certificates \
         krb5-libs \
         libintl \
-        libssl1.1 \
+        libssl3 \
         libstdc++ \
         zlib
 

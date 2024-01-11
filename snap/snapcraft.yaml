@@ -1,6 +1,6 @@
 name: configcat
 version: '#VERSION_PLACEHOLDER#'
-base: core18
+base: core20
 summary: Command Line Interface for ConfigCat
 description: |
   The ConfigCat Command Line Interface allows you to interact with the ConfigCat Management API via the command line.

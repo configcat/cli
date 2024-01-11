@@ -4,7 +4,7 @@ COPY ./linux-musl-x64/configcat /usr/local/bin
 
 RUN apk add --no-cache \
         git openssh-client ca-certificates \
-        krb5-libs libintl libssl1.1 libstdc++ zlib \
+        krb5-libs libintl libssl3 libstdc++ zlib \
         bash sudo shadow
 
 RUN apk add --no-cache --virtual .pipeline-deps readline linux-pam \
