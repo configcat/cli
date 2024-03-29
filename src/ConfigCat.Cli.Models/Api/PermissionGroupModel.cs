@@ -54,7 +54,7 @@ public class PermissionGroupModel
     public bool CanDeleteSegments { get; set; }
     public string AccessType { get; set; } = "full";
     public string NewEnvironmentAccessType { get; set; } = "full";
-    public List<EnvironmentAccessModel> EnvironmentAccesses { get; set; } = new();
+    public List<EnvironmentAccessModel> EnvironmentAccesses { get; set; } = [];
 
     public ProductModel Product { get; set; }
 }

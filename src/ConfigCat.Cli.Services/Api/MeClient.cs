@@ -13,15 +13,13 @@ public interface IMeClient
     Task<MeModel> GetMeAsync(CancellationToken token);
 }
 
-public class MeClient : ApiClient, IMeClient
+public class MeClient(
+    IOutput output,
+    CliConfig config,
+    IBotPolicy<HttpResponseMessage> botPolicy,
+    HttpClient httpClient)
+    : ApiClient(output, config, botPolicy, httpClient), IMeClient
 {
-    public MeClient(IOutput output,
-        CliConfig config,
-        IBotPolicy<HttpResponseMessage> botPolicy,
-        HttpClient httpClient)
-        : base(output, config, botPolicy, httpClient)
-    { }
-
     public Task<MeModel> GetMeAsync(CancellationToken token) =>
         this.GetAsync<MeModel>(HttpMethod.Get, "v1/me", token);
 }

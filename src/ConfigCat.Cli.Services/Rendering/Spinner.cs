@@ -16,12 +16,12 @@ public class Spinner : IDisposable
     private readonly bool isVerboseEnabled;
 
     private static readonly string[] SpinnerFragments =
-    {
+    [
         "/",
         "-",
         "\\",
-        "|",
-    };
+        "|"
+    ];
 
     public Spinner(CancellationToken token, IOutput output, bool isVerboseEnabled, bool isNonInteractive)
     {

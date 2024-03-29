@@ -6,20 +6,13 @@ using System.Reflection;
 
 namespace ConfigCat.Cli;
 
-public class CommandDescriptor
+public class CommandDescriptor(string name, string description, string example = null)
 {
-    public CommandDescriptor(string name, string description, string example = null)
-    {
-        this.Name = name;
-        this.Description = description;
-        this.Example = example;
-    }
+    public string Name { get; } = name;
 
-    public string Name { get; }
+    public string Description { get; } = description;
 
-    public string Description { get; }
-    
-    public string Example { get; }
+    public string Example { get; } = example;
 
     public bool IsHidden { get; init; }
 
@@ -34,15 +27,9 @@ public class CommandDescriptor
     public HandlerDescriptor Handler { get; init; }
 }
 
-public class HandlerDescriptor
+public class HandlerDescriptor(Type handlerType, MethodInfo method)
 {
-    public HandlerDescriptor(Type handlerType, MethodInfo method)
-    {
-        this.HandlerType = handlerType;
-        this.Method = method;
-    }
+    public MethodInfo Method { get; } = method;
 
-    public MethodInfo Method { get; }
-
-    public Type HandlerType { get; }
+    public Type HandlerType { get; } = handlerType;
 }

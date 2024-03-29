@@ -7,7 +7,7 @@
     <Description>Command Line Interface for ConfigCat.</Description>
     <Copyright>Copyright © ConfigCat 2021</Copyright>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <AssemblyName>configcat</AssemblyName>
     <AssemblyTitle>ConfigCat CLI</AssemblyTitle>
     <InvariantGlobalization>true</InvariantGlobalization>
@@ -56,10 +56,10 @@
     <Otherwise>
       <PropertyGroup>
         <PublishTrimmed>true</PublishTrimmed>
-        <TrimmerDefaultAction>link</TrimmerDefaultAction>
         <TrimmerRemoveSymbols>true</TrimmerRemoveSymbols>
         <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
         <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+        <JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
         <PublishReadyToRun>true</PublishReadyToRun>
       </PropertyGroup>
 
@@ -71,14 +71,15 @@
       <ItemGroup>
         <TrimmerRootAssembly Include="ConfigCat.Cli.Services" />
         <TrimmerRootAssembly Include="ConfigCat.Cli.Models" />
+        <TrimmerRootAssembly Include="System.Runtime.InteropServices" />
       </ItemGroup>
     </Otherwise>
   </Choose>
 
   <ItemGroup>
-    <PackageReference Include="Stashbox" Version="5.4.2" />
+    <PackageReference Include="Stashbox" Version="5.14.0" />
     <PackageReference Include="System.CommandLine" Version="2.0.0-beta1.21308.1" />
-    <PackageReference Include="System.Text.Json" Version="6.0.5" />
+    <PackageReference Include="System.Text.Json" Version="8.0.3" />
   </ItemGroup>
 
   <ItemGroup>

@@ -6,7 +6,7 @@ namespace ConfigCat.Cli.Services.FileSystem.Ignore;
 
 internal class IgnoreRuleSet
 {
-    private readonly List<Glob> rules = new List<Glob>();
+    private readonly List<Glob> rules = [];
 
     public void Add(string pattern)
     {

@@ -7,10 +7,10 @@ public static class ListExtensions
     public static List<List<T>> Split<T>(this List<T> source, int chunkSize)
     {
         if (source is null || source.Count == 0)
-            return new List<List<T>>();
+            return [];
 
         if (chunkSize > source.Count || chunkSize == 0)
-            return new List<List<T>> { source };
+            return [source];
 
         var whole = source.Count / chunkSize;
         var remaining = source.Count % chunkSize;
@@ -23,7 +23,7 @@ public static class ListExtensions
             if (remaining != 0 && i == 0)
                 chunkSize = remaining;
 
-            split.Add(new List<T>(source.GetRange(from, chunkSize)));
+            split.Add([..source.GetRange(from, chunkSize)]);
             from += chunkSize;
         }
 
@@ -33,10 +33,10 @@ public static class ListExtensions
     public static List<List<T>> SplitFilled<T>(this List<T> source, int chunkSize)
     {
         if (source is null || source.Count == 0)
-            return new List<List<T>>();
+            return [];
 
         if (chunkSize > source.Count || chunkSize == 0)
-            return new List<List<T>> { source };
+            return [source];
 
         var split = source.Split(chunkSize);
         var last = split[^1];

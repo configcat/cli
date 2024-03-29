@@ -9,36 +9,24 @@ using System.Threading.Tasks;
 
 namespace ConfigCat.Cli.Commands;
 
-internal class ListAll
+internal class ListAll(
+    IProductClient productClient,
+    IConfigClient configClient,
+    IEnvironmentClient environmentClient,
+    IOutput output)
 {
-    private readonly IProductClient productClient;
-    private readonly IConfigClient configClient;
-    private readonly IEnvironmentClient environmentClient;
-    private readonly IOutput output;
-
-    public ListAll(IProductClient productClient,
-        IConfigClient configClient,
-        IEnvironmentClient environmentClient,
-        IOutput output)
-    {
-        this.productClient = productClient;
-        this.configClient = configClient;
-        this.environmentClient = environmentClient;
-        this.output = output;
-    }
-
     public async Task<int> InvokeAsync(bool json, CancellationToken token)
     {
 
-        var products = await this.productClient.GetProductsAsync(token);
+        var products = await productClient.GetProductsAsync(token);
 
         if (json)
         {
             var jsonOutput = new List<ProductJsonOutput>();
             foreach (var product in products)
             {
-                var configs = await this.configClient.GetConfigsAsync(product.ProductId, token);
-                var environments = await this.environmentClient.GetEnvironmentsAsync(product.ProductId, token);
+                var configs = await configClient.GetConfigsAsync(product.ProductId, token);
+                var environments = await environmentClient.GetEnvironmentsAsync(product.ProductId, token);
                 jsonOutput.Add(new ProductJsonOutput
                 {
                     Configs = configs,
@@ -49,15 +37,15 @@ internal class ListAll
                 });
             }
 
-            this.output.RenderJson(jsonOutput);
+            output.RenderJson(jsonOutput);
             return ExitCodes.Ok;
         }
 
         var items = new List<ConfigEnvironment>();
         foreach (var product in products)
         {
-            var configs = await this.configClient.GetConfigsAsync(product.ProductId, token);
-            var environments = await this.environmentClient.GetEnvironmentsAsync(product.ProductId, token);
+            var configs = await configClient.GetConfigsAsync(product.ProductId, token);
+            var environments = await environmentClient.GetEnvironmentsAsync(product.ProductId, token);
 
             items.AddRange(from config in configs
                 from environment in environments
@@ -71,7 +59,7 @@ internal class ListAll
             Config = $"{p.Config.ConfigId} ({p.Config.Name})",
             Environment = $"{p.Environment.EnvironmentId} ({p.Environment.Name})",
         });
-        this.output.RenderTable(itemsToRender);
+        output.RenderTable(itemsToRender);
 
         return ExitCodes.Ok;
     }

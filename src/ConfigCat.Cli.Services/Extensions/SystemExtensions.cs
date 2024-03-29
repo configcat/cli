@@ -49,6 +49,18 @@ public static class SystemExtensions
                 return false;
         }
     }
+    
+    public static string ToValuePropertyName(this string settingType)
+    {
+        return settingType switch
+        {
+            SettingTypes.Boolean => "boolValue",
+            SettingTypes.String => "stringValue",
+            SettingTypes.Int => "intValue",
+            SettingTypes.Double => "doubleValue",
+            _ => ""
+        };
+    }
 
     public static string GetDefaultValueForType(this string type) =>
         type switch
@@ -59,4 +71,7 @@ public static class SystemExtensions
             SettingTypes.String => "initial value",
             _ => ""
         };
+    
+    public static string Cut(this string text, int length)
+        => text == null ? string.Empty : text.Length > length ? $"{text[..(length-3)]}..." : text;
 }

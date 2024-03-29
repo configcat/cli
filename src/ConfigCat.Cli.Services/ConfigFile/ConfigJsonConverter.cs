@@ -26,15 +26,8 @@ namespace ConfigCat.Cli.Services.ConfigFile
         JsonSerializerOptions CreateSerializerOptionsV6(bool pretty = false);
     }
 
-    public class ConfigJsonConverter : IConfigJsonConverter
+    public class ConfigJsonConverter(ITokenGenerator tokenGenerator) : IConfigJsonConverter
     {
-        private readonly ITokenGenerator tokenGenerator;
-
-        public ConfigJsonConverter(ITokenGenerator tokenGenerator)
-        {
-            this.tokenGenerator = tokenGenerator;
-        }
-
         public ConfigV6 ConvertV5ToV6(ConfigV5 configV5, bool skipSaltIfUnused = false, Func<string, string?>? reverseComparisonValueHash = null, Action<string>? reportWarning = null)
         {
             var configJsonSalt = new Lazy<string>(() => tokenGenerator.GenerateTokenString(32), isThreadSafe: false);
@@ -123,10 +116,10 @@ namespace ConfigCat.Cli.Services.ConfigFile
 
                 return new TargetingRuleV6
                 {
-                    Conditions = new List<ConditionV6>
-                    {
-                        new() { UserCondition = ConvertComparisonRule(ruleV5, settingKey) },
-                    },
+                    Conditions =
+                    [
+                        new() { UserCondition = ConvertComparisonRule(ruleV5, settingKey) }
+                    ],
                     ServedValue = servedValue
                 };
             }
@@ -159,7 +152,7 @@ namespace ConfigCat.Cli.Services.ConfigFile
 
                     case RolloutRuleComparator.Contains:
                     case RolloutRuleComparator.DoesNotContain:
-                        rule.StringListValue = new List<string> { ruleV5.ComparisonValue };
+                        rule.StringListValue = [ruleV5.ComparisonValue];
                         break;
 
                     case RolloutRuleComparator.SemVerLess:

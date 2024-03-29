@@ -30,18 +30,9 @@ public interface IPrompt
         List<TItem> preSelectedItems = null);
 }
 
-public class Prompt : IPrompt
+public class Prompt(IOutput output, CliOptions options) : IPrompt
 {
     private const int DefaultPageSize = 15;
-
-    private readonly IOutput output;
-    private readonly CliOptions options;
-
-    public Prompt(IOutput output, CliOptions options)
-    {
-        this.output = output;
-        this.options = options;
-    }
 
     public async Task<string> GetStringAsync(string label,
         CancellationToken token,
@@ -52,12 +43,12 @@ public class Prompt : IPrompt
             options.IsNonInteractive)
             return defaultValue;
 
-        this.output.Write(label)
+        output.Write(label)
             .WriteDarkGray(!defaultValue.IsEmpty() ? $" [default: '{defaultValue}']" : "")
             .Write(": ");
 
         var result = await output.ReadLineAsync(token);
-        this.output.WriteLine();
+        output.WriteLine();
         return result.IsEmpty() ? defaultValue : result;
     }
 
@@ -70,12 +61,12 @@ public class Prompt : IPrompt
             options.IsNonInteractive)
             return defaultValue;
 
-        this.output.Write(label)
+        output.Write(label)
             .WriteDarkGray(!defaultValue.IsEmpty() ? $" [default: '{defaultValue}']" : "")
             .Write(": ");
 
         var result = await output.ReadLineAsync(token, true);
-        this.output.WriteLine();
+        output.WriteLine();
         return result.IsEmpty() ? defaultValue : result;
     }
 
@@ -86,15 +77,15 @@ public class Prompt : IPrompt
         TItem selectedValue = default)
     {
         if (token.IsCancellationRequested ||
-            this.output.IsOutputRedirected ||
+            output.IsOutputRedirected ||
             options.IsNonInteractive)
             return default;
 
-        using var _ = this.output.CreateCursorHider();
+        using var _ = output.CreateCursorHider();
 
-        this.output.Write(label).Write(":").WriteLine();
+        output.Write(label).Write(":").WriteLine();
 
-        this.output.WriteDarkGray("(Use the ").WriteCyan("UP").WriteDarkGray(" and ").WriteCyan("DOWN").WriteDarkGray(" keys to navigate)")
+        output.WriteDarkGray("(Use the ").WriteCyan("UP").WriteDarkGray(" and ").WriteCyan("DOWN").WriteDarkGray(" keys to navigate)")
             .WriteLine().WriteLine();
 
         var pages = this.GetPages(items);
@@ -106,16 +97,16 @@ public class Prompt : IPrompt
         {
             do
             {
-                key = await this.output.ReadKeyAsync(token, true);
+                key = await output.ReadKeyAsync(token, true);
                 switch (key.Key)
                 {
                     case ConsoleKey.UpArrow:
                         if (index <= 0)
                             continue;
 
-                        this.output.ClearCurrentLine();
+                        output.ClearCurrentLine();
                         this.PrintNonSelected(page[index], labelSelector);
-                        this.output.MoveCursorUp(0).ClearCurrentLine();
+                        output.MoveCursorUp(0).ClearCurrentLine();
                         this.PrintSelected(page[--index], labelSelector, false);
                         break;
 
@@ -123,9 +114,9 @@ public class Prompt : IPrompt
                         if (index >= page.Count - 1 || page[index + 1] is null || page[index + 1].Equals(default(TItem)))
                             continue;
 
-                        this.output.ClearCurrentLine();
+                        output.ClearCurrentLine();
                         this.PrintNonSelected(page[index], labelSelector);
-                        this.output.MoveCursorDown(0).ClearCurrentLine();
+                        output.MoveCursorDown(0).ClearCurrentLine();
                         this.PrintSelected(page[++index], labelSelector, false);
                         break;
 
@@ -133,7 +124,7 @@ public class Prompt : IPrompt
                         if (pageIndex <= 0)
                             continue;
 
-                        this.output.SetCursorPosition(0, this.output.CursorTop - index);
+                        output.SetCursorPosition(0, output.CursorTop - index);
                         page = pages[--pageIndex];
                         index = this.PrintChooseSection(page, selectedValue, labelSelector, pageIndex, pages.Count);
                         break;
@@ -142,7 +133,7 @@ public class Prompt : IPrompt
                         if (pageIndex >= pages.Count - 1)
                             continue;
 
-                        this.output.SetCursorPosition(0, this.output.CursorTop - index);
+                        output.SetCursorPosition(0, output.CursorTop - index);
                         page = pages[++pageIndex];
                         index = this.PrintChooseSection(page, selectedValue, labelSelector, pageIndex, pages.Count);
                         break;
@@ -150,15 +141,15 @@ public class Prompt : IPrompt
             } while (!token.IsCancellationRequested &&
                      key.Key != ConsoleKey.Enter);
 
-            this.output.ClearCurrentLine();
+            output.ClearCurrentLine();
             this.PrintSelected(page[index], labelSelector, true);
-            this.output.SetCursorPosition(0, this.output.CursorTop + page.Count - index).WriteLine().ClearCurrentLine();
+            output.SetCursorPosition(0, output.CursorTop + page.Count - index).WriteLine().ClearCurrentLine();
 
             return page[index];
         }
         catch (OperationCanceledException)
         {
-            this.output.SetCursorPosition(0, this.output.CursorTop + page.Count - index).ClearCurrentLine();
+            output.SetCursorPosition(0, output.CursorTop + page.Count - index).ClearCurrentLine();
             throw;
         }
     }
@@ -170,15 +161,15 @@ public class Prompt : IPrompt
         List<TItem> preSelectedItems = null)
     {
         if (token.IsCancellationRequested ||
-            this.output.IsOutputRedirected ||
+            output.IsOutputRedirected ||
             options.IsNonInteractive)
             return default;
 
-        using var _ = this.output.CreateCursorHider();
+        using var _ = output.CreateCursorHider();
 
-        this.output.Write(label).Write(":").WriteLine();
+        output.Write(label).Write(":").WriteLine();
 
-        this.output.WriteDarkGray("(Use the ")
+        output.WriteDarkGray("(Use the ")
             .WriteCyan("UP")
             .WriteDarkGray(" and ")
             .WriteCyan("DOWN")
@@ -188,7 +179,7 @@ public class Prompt : IPrompt
             .WriteLine().WriteLine();
 
         int index = 0, pageIndex = 0;
-        var selectedItems = preSelectedItems?.ToList() ?? new List<TItem>();
+        var selectedItems = preSelectedItems?.ToList() ?? [];
 
         var pages = this.GetPages(items);
         var page = pages[pageIndex];
@@ -198,7 +189,7 @@ public class Prompt : IPrompt
         {
             do
             {
-                key = await this.output.ReadKeyAsync(token, true);
+                key = await output.ReadKeyAsync(token, true);
 
                 switch (key.Key)
                 {
@@ -206,9 +197,9 @@ public class Prompt : IPrompt
                         if (index <= 0)
                             continue;
 
-                        this.output.ClearCurrentLine();
+                        output.ClearCurrentLine();
                         this.PrintNonSelectedInMulti(page[index], labelSelector, selectedItems);
-                        this.output.MoveCursorUp(0).ClearCurrentLine();
+                        output.MoveCursorUp(0).ClearCurrentLine();
                         this.PrintSelectedInMulti(page[--index], labelSelector, selectedItems);
                         break;
 
@@ -216,9 +207,9 @@ public class Prompt : IPrompt
                         if (index >= page.Count - 1 || page[index + 1] is null || page[index + 1].Equals(default(TItem)))
                             continue;
 
-                        this.output.ClearCurrentLine();
+                        output.ClearCurrentLine();
                         this.PrintNonSelectedInMulti(page[index], labelSelector, selectedItems);
-                        this.output.MoveCursorDown(0).ClearCurrentLine();
+                        output.MoveCursorDown(0).ClearCurrentLine();
                         this.PrintSelectedInMulti(page[++index], labelSelector, selectedItems);
                         break;
 
@@ -226,7 +217,7 @@ public class Prompt : IPrompt
                         if (pageIndex <= 0)
                             continue;
 
-                        this.output.SetCursorPosition(0, this.output.CursorTop - index);
+                        output.SetCursorPosition(0, output.CursorTop - index);
                         page = pages[--pageIndex];
                         index = 0;
                         this.PrintMultiChooseSection(page, labelSelector, selectedItems, pageIndex, pages.Count);
@@ -236,7 +227,7 @@ public class Prompt : IPrompt
                         if (pageIndex >= pages.Count - 1)
                             continue;
 
-                        this.output.SetCursorPosition(0, this.output.CursorTop - index);
+                        output.SetCursorPosition(0, output.CursorTop - index);
                         page = pages[++pageIndex];
                         index = 0;
                         this.PrintMultiChooseSection(page, labelSelector, selectedItems, pageIndex, pages.Count);
@@ -247,13 +238,13 @@ public class Prompt : IPrompt
                         if (selectedItems.Contains(item))
                         {
                             selectedItems.Remove(item);
-                            this.output.ClearCurrentLine();
+                            output.ClearCurrentLine();
                             this.PrintSelected(item, labelSelector, false);
                         }
                         else
                         {
                             selectedItems.Add(item);
-                            this.output.ClearCurrentLine();
+                            output.ClearCurrentLine();
                             this.PrintSelectedInMulti(item, labelSelector, selectedItems);
                         }
                         break;
@@ -261,22 +252,22 @@ public class Prompt : IPrompt
             } while (!token.IsCancellationRequested &&
                      key.Key != ConsoleKey.Enter);
 
-            this.output.ClearCurrentLine();
+            output.ClearCurrentLine();
             this.PrintNonSelectedInMulti(page[index], labelSelector, selectedItems);
-            this.output.SetCursorPosition(0, this.output.CursorTop + page.Count - index + (pages.Count > 1 ? 1 : 0)).ClearCurrentLine().WriteLine();
+            output.SetCursorPosition(0, output.CursorTop + page.Count - index + (pages.Count > 1 ? 1 : 0)).ClearCurrentLine().WriteLine();
 
             return selectedItems;
         }
         catch (OperationCanceledException)
         {
-            this.output.SetCursorPosition(0, this.output.CursorTop + page.Count - index + (pages.Count > 1 ? 1 : 0)).ClearCurrentLine();
+            output.SetCursorPosition(0, output.CursorTop + page.Count - index + (pages.Count > 1 ? 1 : 0)).ClearCurrentLine();
             throw;
         }
     }
 
     private List<List<T>> GetPages<T>(List<T> source)
     {
-        var bufferHeight = this.output.BufferHeight - 4;
+        var bufferHeight = output.BufferHeight - 4;
         var pageSize = DefaultPageSize > bufferHeight ? bufferHeight : DefaultPageSize;
         return source.SplitFilled(pageSize);
     }
@@ -292,23 +283,23 @@ public class Prompt : IPrompt
         index = index == -1 ? 0 : index;
         foreach (var item in items)
         {
-            this.output.ClearCurrentLine();
+            output.ClearCurrentLine();
             if (items.IndexOf(item) == index)
                 this.PrintSelected(item, labelSelector, false);
             else
                 this.PrintNonSelected(item, labelSelector);
 
-            this.output.WriteLine();
+            output.WriteLine();
         }
 
         if (pageLength > 1)
         {
             this.RenderPageSection(pageIndex, pageLength);
-            this.output.SetCursorPosition(0, this.output.CursorTop - items.Count - 2 + index);
+            output.SetCursorPosition(0, output.CursorTop - items.Count - 2 + index);
             return index;
         }
 
-        this.output.SetCursorPosition(0, this.output.CursorTop - items.Count + index);
+        output.SetCursorPosition(0, output.CursorTop - items.Count + index);
         return index;
     }
 
@@ -321,7 +312,7 @@ public class Prompt : IPrompt
     {
         foreach (var item in items)
         {
-            this.output.ClearCurrentLine();
+            output.ClearCurrentLine();
             int index = items.IndexOf(item);
             if (preSelectedItems.Contains(item))
                 this.PrintSelected(item, labelSelector, true, index == 0);
@@ -330,22 +321,22 @@ public class Prompt : IPrompt
             else
                 this.PrintNonSelected(item, labelSelector);
 
-            this.output.WriteLine();
+            output.WriteLine();
         }
 
         if (pageLength > 1)
         {
             this.RenderPageSection(pageIndex, pageLength);
-            this.output.SetCursorPosition(0, this.output.CursorTop - items.Count - 2);
+            output.SetCursorPosition(0, output.CursorTop - items.Count - 2);
             return;
         }
 
-        this.output.SetCursorPosition(0, this.output.CursorTop - items.Count);
+        output.SetCursorPosition(0, output.CursorTop - items.Count);
     }
 
     private void RenderPageSection(int pageIndex, int pageLength)
     {
-        this.output.WriteLine()
+        output.WriteLine()
             .WriteColor("Page: ", ConsoleColor.DarkGray)
             .WriteColor($"{pageIndex + 1} / {pageLength}", ConsoleColor.Green)
             .WriteColor(" (Use the ", ConsoleColor.DarkGray)
@@ -363,22 +354,22 @@ public class Prompt : IPrompt
     {
         if (isHighlight)
         {
-            this.output.WriteColor($"| {(showIndicator ? ">" : " ")} {labelSelector(item)}", ConsoleColor.White, ConsoleColor.DarkMagenta);
+            output.WriteColor($"| {(showIndicator ? ">" : " ")} {labelSelector(item)}", ConsoleColor.White, ConsoleColor.DarkMagenta);
             return;
         }
 
-        this.output.WriteColor("|", ConsoleColor.DarkGray).WriteColor($" > ", ConsoleColor.Magenta).Write(labelSelector(item));
+        output.WriteColor("|", ConsoleColor.DarkGray).WriteColor($" > ", ConsoleColor.Magenta).Write(labelSelector(item));
     }
 
     private void PrintNonSelected<TItem>(TItem item, Func<TItem, string> labelSelector)
     {
         if (item is null || item.Equals(default(TItem)))
         {
-            this.output.WriteColor($"|", ConsoleColor.DarkGray);
+            output.WriteColor($"|", ConsoleColor.DarkGray);
             return;
         }
 
-        this.output.WriteColor($"|   {labelSelector(item)}", ConsoleColor.DarkGray);
+        output.WriteColor($"|   {labelSelector(item)}", ConsoleColor.DarkGray);
     }
 
     private void PrintSelectedInMulti<TItem>(TItem item, Func<TItem, string> labelSelector, List<TItem> selectedItems)

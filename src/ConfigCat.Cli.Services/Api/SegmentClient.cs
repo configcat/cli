@@ -22,15 +22,13 @@ public interface ISegmentClient
     Task DeleteSegmentAsync(string segmentId, CancellationToken token);
 }
 
-public class SegmentClient : ApiClient, ISegmentClient
+public class SegmentClient(
+    IOutput output,
+    CliConfig config,
+    IBotPolicy<HttpResponseMessage> botPolicy,
+    HttpClient httpClient)
+    : ApiClient(output, config, botPolicy, httpClient), ISegmentClient
 {
-    public SegmentClient(IOutput output,
-        CliConfig config,
-        IBotPolicy<HttpResponseMessage> botPolicy,
-        HttpClient httpClient)
-        : base(output, config, botPolicy, httpClient)
-    { }
-
     public Task<IEnumerable<SegmentModel>> GetSegmentsAsync(string productId, CancellationToken token) =>
         this.GetAsync<IEnumerable<SegmentModel>>(HttpMethod.Get, $"v1/products/{productId}/segments", token);
 

@@ -4,7 +4,7 @@ namespace ConfigCat.Cli.Services.Json;
 
 public class JsonPatchDocument
 {
-    public List<JsonPatchOperation> Operations { get; } = new List<JsonPatchOperation>();
+    public List<JsonPatchOperation> Operations { get; } = [];
 
     public void Add(string path, object value) =>
         this.Operations.Add(new JsonPatchOperation

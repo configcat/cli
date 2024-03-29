@@ -2,16 +2,12 @@
 
 namespace ConfigCat.Cli.Options;
 
-internal class VerboseOption : Option<bool>
+internal class VerboseOption() : Option<bool>([
+    "--verbose",
+    "-v",
+    "/v"
+], "Print detailed execution information")
 {
-    public VerboseOption() : base(new[]
-    {
-        "--verbose",
-        "-v",
-        "/v",
-    }, "Print detailed execution information")
-    { }
-
     public override bool Equals(object obj)
     {
         return obj is VerboseOption;

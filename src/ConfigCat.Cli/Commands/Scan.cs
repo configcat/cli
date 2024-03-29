@@ -18,36 +18,18 @@ using System.Threading.Tasks;
 
 namespace ConfigCat.Cli.Commands;
 
-internal class Scan
+internal class Scan(
+    IWorkspaceLoader workspaceLoader,
+    IFlagClient flagClient,
+    ICodeReferenceClient codeReferenceClient,
+    IFileCollector fileCollector,
+    IFileScanner fileScanner,
+    IGitClient gitClient,
+    IOutput output)
 {
     private static readonly Lazy<string> Version = new(() =>
         Assembly.GetEntryAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>()
             .InformationalVersion);
-
-    private readonly IWorkspaceLoader workspaceLoader;
-    private readonly IFlagClient flagClient;
-    private readonly ICodeReferenceClient codeReferenceClient;
-    private readonly IFileCollector fileCollector;
-    private readonly IFileScanner fileScanner;
-    private readonly IGitClient gitClient;
-    private readonly IOutput output;
-
-    public Scan(IWorkspaceLoader workspaceLoader,
-        IFlagClient flagClient,
-        ICodeReferenceClient codeReferenceClient,
-        IFileCollector fileCollector,
-        IFileScanner fileScanner,
-        IGitClient gitClient,
-        IOutput output)
-    {
-        this.workspaceLoader = workspaceLoader;
-        this.flagClient = flagClient;
-        this.codeReferenceClient = codeReferenceClient;
-        this.fileCollector = fileCollector;
-        this.fileScanner = fileScanner;
-        this.gitClient = gitClient;
-        this.output = output;
-    }
 
     public async Task<int> InvokeAsync(DirectoryInfo directory,
         string configId,
@@ -68,8 +50,8 @@ internal class Scan
 
         if (configId.IsEmpty())
         {
-            this.output.WriteLine("Comparing the feature flags in the code to the feature flags in the ConfigCat Dashboard.");
-            configId = (await this.workspaceLoader.LoadConfigAsync(token)).ConfigId;
+            output.WriteLine("Comparing the feature flags in the code to the feature flags in the ConfigCat Dashboard.");
+            configId = (await workspaceLoader.LoadConfigAsync(token)).ConfigId;
         }
 
         if (excludeFlagKeys is {Length: 1} && excludeFlagKeys[0].Contains(','))
@@ -82,24 +64,24 @@ internal class Scan
             ? 4
             : lineCount;
 
-        var flags = await this.flagClient.GetFlagsAsync(configId, token);
+        var flags = await flagClient.GetFlagsAsync(configId, token);
         if (excludeFlagKeys is {Length: > 0})
             flags = flags.Where(f => !excludeFlagKeys.Contains(f.Key));
-        var deletedFlags = await this.flagClient.GetDeletedFlagsAsync(configId, token);
+        var deletedFlags = await flagClient.GetDeletedFlagsAsync(configId, token);
         deletedFlags = deletedFlags
             .Where(d => flags.All(f => f.Key != d.Key))
             .Distinct(new FlagModelEqualityComparer());
         if (excludeFlagKeys is {Length: > 0})
             deletedFlags = deletedFlags.Where(f => !excludeFlagKeys.Contains(f.Key));
 
-        var files = await this.fileCollector.CollectAsync(directory, token);
-        var flagReferences = await this.fileScanner.ScanAsync(flags.Concat(deletedFlags).ToArray(), files.ToArray(), lineCount, token);
+        var files = await fileCollector.CollectAsync(directory, token);
+        var flagReferences = await fileScanner.ScanAsync(flags.Concat(deletedFlags).ToArray(), files.ToArray(), lineCount, token);
 
         var flagReferenceResults = flagReferences as FlagReferenceResult[] ?? flagReferences.ToArray();
         var aliveFlagReferences = Filter(flagReferenceResults, r => r.FoundFlag is not DeletedFlagModel).ToArray();
         var deletedFlagReferences = Filter(flagReferenceResults, r => r.FoundFlag is DeletedFlagModel).ToArray();
 
-        this.output.Write("Found ")
+        output.Write("Found ")
             .WriteCyan(aliveFlagReferences.Sum(f => f.References.Count).ToString())
             .Write($" feature flag / setting reference(s) in ")
             .WriteCyan(aliveFlagReferences.Length.ToString())
@@ -111,23 +93,23 @@ internal class Scan
             this.PrintReferences(aliveFlagReferences, token);
 
         if (deletedFlagReferences.Length > 0)
-            this.output.WriteWarning(
+            output.WriteWarning(
                 $"{deletedFlagReferences.Sum(f => f.References.Count)} deleted feature flag/setting " +
                 $"reference(s) found in {deletedFlagReferences.Length} file(s). " +
                 $"Keys: [{string.Join(", ", deletedFlagReferences.SelectMany(r => r.References).Select(r => r.FoundFlag.Key).Distinct())}]");
         else
-            this.output.WriteGreen("OK. Didn't find any deleted feature flag / setting references.");
+            output.WriteGreen("OK. Didn't find any deleted feature flag / setting references.");
 
-        this.output.WriteLine();
+        output.WriteLine();
 
         if (print)
             this.PrintReferences(deletedFlagReferences, token);
 
         if (!upload) return ExitCodes.Ok;
 
-        this.output.WriteLine("Initiating code reference upload...");
+        output.WriteLine("Initiating code reference upload...");
 
-        var gitInfo = await this.gitClient.GatherGitInfo(directory.FullName);
+        var gitInfo = await gitClient.GatherGitInfo(directory.FullName);
 
         branch = branch.NullIfEmpty() ?? gitInfo?.Branch;
         commitHash = commitHash.NullIfEmpty() ?? gitInfo?.CurrentCommitHash;
@@ -136,14 +118,14 @@ internal class Scan
             throw new ShowHelpException(
                 "Could not determine the current branch name, make sure the scanned folder is inside a Git repository, or use the --branch argument.");
 
-        this.output.Write("Repository").Write(":").WriteCyan($" {repo}").WriteLine()
+        output.Write("Repository").Write(":").WriteCyan($" {repo}").WriteLine()
             .Write("Branch").Write(":").WriteCyan($" {branch}").WriteLine()
             .Write("Commit").Write(":").WriteCyan($" {commitHash}").WriteLine();
 
         var repositoryDirectory = gitInfo == null || gitInfo.WorkingDirectory.IsEmpty()
             ? directory.FullName.AsSlash()
             : gitInfo.WorkingDirectory;
-        await this.codeReferenceClient.UploadAsync(new CodeReferenceRequest
+        await codeReferenceClient.UploadAsync(new CodeReferenceRequest
         {
             FlagReferences = aliveFlagReferences
                 .SelectMany(referenceResult => referenceResult.References, (file, reference) => new { file.File, reference })
@@ -185,13 +167,13 @@ internal class Scan
         if (references.Length == 0)
             return;
 
-        this.output.WriteLine();
+        output.WriteLine();
         foreach (var fileReference in references)
         {
             if (token.IsCancellationRequested)
                 break;
 
-            this.output.WriteYellow(fileReference.File.FullName).WriteLine();
+            output.WriteYellow(fileReference.File.FullName).WriteLine();
             foreach (var reference in fileReference.References)
             {
                 if (token.IsCancellationRequested)
@@ -208,7 +190,7 @@ internal class Scan
                 foreach (var postLine in reference.PostLines)
                     this.PrintRegularLine(postLine, maxDigitCount);
 
-                this.output.WriteLine();
+                output.WriteLine();
             }
         }
     }
@@ -216,7 +198,7 @@ internal class Scan
     private void PrintRegularLine(Line line, int maxDigitCount)
     {
         var spaces = maxDigitCount - line.LineNumber.GetDigitCount();
-        this.output.WriteCyan($"{line.LineNumber}:")
+        output.WriteCyan($"{line.LineNumber}:")
             .Write($"{new string(' ', spaces)} ")
             .WriteDarkGray(line.LineText)
             .WriteLine();
@@ -225,12 +207,12 @@ internal class Scan
     private void PrintSelectedLine(Line line, int maxDigitCount, Reference reference)
     {
         var spaces = maxDigitCount - line.LineNumber.GetDigitCount();
-        this.output.WriteCyan($"{line.LineNumber}:")
+        output.WriteCyan($"{line.LineNumber}:")
             .Write($"{new string(' ', spaces)} ");
 
         this.SearchKeyInText(line.LineText, reference);
 
-        this.output.WriteLine();
+        output.WriteLine();
     }
 
     private void SearchKeyInText(string text, Reference reference)
@@ -260,7 +242,7 @@ internal class Scan
 
                 if (keyIndex == -1)
                 {
-                    this.output.Write(text);
+                    output.Write(text);
                     return;
                 }
             }
@@ -268,7 +250,7 @@ internal class Scan
 
         var preText = text[..keyIndex];
         var postText = text[(keyIndex + key.Length)..text.Length];
-        this.output.Write(preText)
+        output.Write(preText)
             .WriteColor(key, ConsoleColor.White, ConsoleColor.DarkMagenta);
         this.SearchKeyInText(postText, reference);
     }

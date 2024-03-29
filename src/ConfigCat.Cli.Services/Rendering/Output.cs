@@ -46,7 +46,7 @@ public interface IOutput
     IOutput RenderJson(object toRender);
 }
 
-public class Output : IOutput
+public class Output(CliOptions options) : IOutput
 {
     public bool IsOutputRedirected { get; } = Console.IsOutputRedirected;
     public int CursorTop => Console.CursorTop;
@@ -55,16 +55,9 @@ public class Output : IOutput
 
     private readonly object consoleLock = new();
 
-    private readonly CliOptions options;
-
-    public Output(CliOptions options)
-    {
-        this.options = options;
-    }
-
     public IOutput Verbose(string text, ConsoleColor color = default)
     {
-        if (!this.options.IsVerboseEnabled)
+        if (!options.IsVerboseEnabled)
             return this;
 
         lock (this.consoleLock)
@@ -151,7 +144,7 @@ public class Output : IOutput
 
     public IOutput WriteSuccess() => this.WriteGreen($"Ok.");
 
-    public Spinner CreateSpinner(CancellationToken token) => new Spinner(token, this, this.options.IsVerboseEnabled, this.options.IsNonInteractive);
+    public Spinner CreateSpinner(CancellationToken token) => new Spinner(token, this, options.IsVerboseEnabled, options.IsNonInteractive);
 
     public CursorHider CreateCursorHider() => new(this);
 
@@ -315,7 +308,7 @@ public class Output : IOutput
 
     public IOutput RenderJson(object toRender)
     {
-        var jsonOptions = this.options.IsVerboseEnabled
+        var jsonOptions = options.IsVerboseEnabled
             ? Constants.PrettyFormattedCamelCaseOptions
             : Constants.CamelCaseOptions;
         return this.Write(JsonSerializer.Serialize(toRender, jsonOptions));

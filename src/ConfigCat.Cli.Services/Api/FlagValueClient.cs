@@ -19,15 +19,13 @@ public interface IFlagValueClient
     Task UpdateValueAsync(int settingId, string environmentId, List<JsonPatchOperation> operations, CancellationToken token);
 }
 
-public class FlagValueClient : ApiClient, IFlagValueClient
+public class FlagValueClient(
+    IOutput output,
+    CliConfig config,
+    IBotPolicy<HttpResponseMessage> botPolicy,
+    HttpClient httpClient)
+    : ApiClient(output, config, botPolicy, httpClient), IFlagValueClient
 {
-    public FlagValueClient(IOutput output,
-        CliConfig config,
-        IBotPolicy<HttpResponseMessage> botPolicy,
-        HttpClient httpClient)
-        : base(output, config, botPolicy, httpClient)
-    { }
-
     public Task<FlagValueModel> GetValueAsync(int settingId, string environmentId, CancellationToken token) =>
         this.GetAsync<FlagValueModel>(HttpMethod.Get, $"v1/environments/{environmentId}/settings/{settingId}/value", token);
 

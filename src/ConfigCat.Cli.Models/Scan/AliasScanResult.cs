@@ -10,5 +10,5 @@ public class AliasScanResult
 
     public ConcurrentDictionary<FlagModel, ConcurrentBag<string>> FlagAliases { get; set; } = new ConcurrentDictionary<FlagModel, ConcurrentBag<string>>();
 
-    public ConcurrentBag<FlagModel> FoundFlags { get; set; } = new ConcurrentBag<FlagModel>();
+    public ConcurrentBag<FlagModel> FoundFlags { get; set; } = [];
 }

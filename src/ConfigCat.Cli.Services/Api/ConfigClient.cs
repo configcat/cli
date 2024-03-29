@@ -13,7 +13,7 @@ public interface IConfigClient
 {
     Task<IEnumerable<ConfigModel>> GetConfigsAsync(string productId, CancellationToken token);
 
-    Task<ConfigModel> CreateConfigAsync(string productId, string name, string description, CancellationToken token);
+    Task<ConfigModel> CreateConfigAsync(string productId, string name, string evalVersion, string description, CancellationToken token);
 
     Task<ConfigModel> GetConfigAsync(string configId, CancellationToken token);
 
@@ -22,20 +22,18 @@ public interface IConfigClient
     Task DeleteConfigAsync(string configId, CancellationToken token);
 }
 
-public class ConfigClient : ApiClient, IConfigClient
+public class ConfigClient(
+    IOutput output,
+    CliConfig config,
+    IBotPolicy<HttpResponseMessage> botPolicy,
+    HttpClient httpClient)
+    : ApiClient(output, config, botPolicy, httpClient), IConfigClient
 {
-    public ConfigClient(IOutput output,
-        CliConfig config,
-        IBotPolicy<HttpResponseMessage> botPolicy,
-        HttpClient httpClient)
-        : base(output, config, botPolicy, httpClient)
-    { }
-
     public Task<IEnumerable<ConfigModel>> GetConfigsAsync(string productId, CancellationToken token) =>
         this.GetAsync<IEnumerable<ConfigModel>>(HttpMethod.Get, $"v1/products/{productId}/configs", token);
 
-    public Task<ConfigModel> CreateConfigAsync(string productId, string name, string description, CancellationToken token) =>
-        this.SendAsync<ConfigModel>(HttpMethod.Post, $"v1/products/{productId}/configs", new { Name = name, Description = description }, token);
+    public Task<ConfigModel> CreateConfigAsync(string productId, string name, string evalVersion, string description, CancellationToken token) =>
+        this.SendAsync<ConfigModel>(HttpMethod.Post, $"v1/products/{productId}/configs", new { Name = name, Description = description, EvaluationVersion = evalVersion }, token);
 
     public Task<ConfigModel> GetConfigAsync(string configId, CancellationToken token) =>
         this.GetAsync<ConfigModel>(HttpMethod.Get, $"v1/configs/{configId}", token);

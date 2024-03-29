@@ -10,42 +10,28 @@ using System.Threading.Tasks;
 
 namespace ConfigCat.Cli.Commands;
 
-internal class Environment
+internal class Environment(
+    IEnvironmentClient environmentClient,
+    IWorkspaceLoader workspaceLoader,
+    IProductClient productClient,
+    IPrompt prompt,
+    IOutput output)
 {
-    private readonly IEnvironmentClient environmentClient;
-    private readonly IWorkspaceLoader workspaceLoader;
-    private readonly IProductClient productClient;
-    private readonly IPrompt prompt;
-    private readonly IOutput output;
-
-    public Environment(IEnvironmentClient environmentClient,
-        IWorkspaceLoader workspaceLoader,
-        IProductClient productClient,
-        IPrompt prompt,
-        IOutput output)
-    {
-        this.environmentClient = environmentClient;
-        this.workspaceLoader = workspaceLoader;
-        this.productClient = productClient;
-        this.prompt = prompt;
-        this.output = output;
-    }
-
     public async Task<int> ListAllEnvironmentsAsync(string productId, bool json, CancellationToken token)
     {
         var environments = new List<EnvironmentModel>();
         if (!productId.IsEmpty())
-            environments.AddRange(await this.environmentClient.GetEnvironmentsAsync(productId, token));
+            environments.AddRange(await environmentClient.GetEnvironmentsAsync(productId, token));
         else
         {
-            var products = await this.productClient.GetProductsAsync(token);
+            var products = await productClient.GetProductsAsync(token);
             foreach (var product in products)
-                environments.AddRange(await this.environmentClient.GetEnvironmentsAsync(product.ProductId, token));
+                environments.AddRange(await environmentClient.GetEnvironmentsAsync(product.ProductId, token));
         }
 
         if (json)
         {
-            this.output.RenderJson(environments);
+            output.RenderJson(environments);
             return ExitCodes.Ok;
         }
 
@@ -57,26 +43,26 @@ internal class Environment
             e.Color,
             Product = $"{e.Product.Name} [{e.Product.ProductId}]"
         });
-        this.output.RenderTable(itemsToRender);
+        output.RenderTable(itemsToRender);
         return ExitCodes.Ok;
     }
 
     public async Task<int> CreateEnvironmentAsync(string productId, string name, string description, string color, CancellationToken token)
     {
         if (productId.IsEmpty())
-            productId = (await this.workspaceLoader.LoadProductAsync(token)).ProductId;
+            productId = (await workspaceLoader.LoadProductAsync(token)).ProductId;
 
         if (name.IsEmpty())
-            name = await this.prompt.GetStringAsync("Name", token);
+            name = await prompt.GetStringAsync("Name", token);
 
         if (description.IsEmpty())
-            description = await this.prompt.GetStringAsync("Description", token);
+            description = await prompt.GetStringAsync("Description", token);
 
         if (color.IsEmpty())
-            color = await this.prompt.GetStringAsync("Color", token);
+            color = await prompt.GetStringAsync("Color", token);
 
-        var result = await this.environmentClient.CreateEnvironmentAsync(productId, name, description, color, token);
-        this.output.Write(result.EnvironmentId);
+        var result = await environmentClient.CreateEnvironmentAsync(productId, name, description, color, token);
+        output.Write(result.EnvironmentId);
 
         return ExitCodes.Ok;
     }
@@ -84,36 +70,36 @@ internal class Environment
     public async Task<int> DeleteEnvironmentAsync(string environmentId, CancellationToken token)
     {
         if (environmentId.IsEmpty())
-            environmentId = (await this.workspaceLoader.LoadEnvironmentAsync(token)).EnvironmentId;
+            environmentId = (await workspaceLoader.LoadEnvironmentAsync(token)).EnvironmentId;
 
-        await this.environmentClient.DeleteEnvironmentAsync(environmentId, token);
+        await environmentClient.DeleteEnvironmentAsync(environmentId, token);
         return ExitCodes.Ok;
     }
 
     public async Task<int> UpdateEnvironmentAsync(string environmentId, string name, string description, string color, CancellationToken token)
     {
         var environment = environmentId.IsEmpty()
-            ? await this.workspaceLoader.LoadEnvironmentAsync(token)
-            : await this.environmentClient.GetEnvironmentAsync(environmentId, token);
+            ? await workspaceLoader.LoadEnvironmentAsync(token)
+            : await environmentClient.GetEnvironmentAsync(environmentId, token);
 
         if (name.IsEmpty())
-            name = await this.prompt.GetStringAsync("Name", token, environment.Name);
+            name = await prompt.GetStringAsync("Name", token, environment.Name);
 
         if (description.IsEmpty())
-            description = await this.prompt.GetStringAsync("Description", token, environment.Description);
+            description = await prompt.GetStringAsync("Description", token, environment.Description);
 
         if (color.IsEmpty())
-            color = await this.prompt.GetStringAsync("Color", token, environment.Color);
+            color = await prompt.GetStringAsync("Color", token, environment.Color);
 
         if (name.IsEmptyOrEquals(environment.Name) &&
             description.IsEmptyOrEquals(environment.Description) &&
             color.IsEmptyOrEquals(environment.Color))
         {
-            this.output.WriteNoChange();
+            output.WriteNoChange();
             return ExitCodes.Ok;
         }
 
-        await this.environmentClient.UpdateEnvironmentAsync(environment.EnvironmentId, name, description, color, token);
+        await environmentClient.UpdateEnvironmentAsync(environment.EnvironmentId, name, description, color, token);
         return ExitCodes.Ok;
     }
 }

@@ -7,7 +7,7 @@ namespace ConfigCat.Cli.Options;
 
 internal sealed class PermissionGroupEnvironmentAccessOption : Option<EnvironmentSpecificAccess[]>
 {
-    public PermissionGroupEnvironmentAccessOption() : base(new[] { "--environment-specific-access-types", "-esat" }, argumentResult =>
+    public PermissionGroupEnvironmentAccessOption() : base(["--environment-specific-access-types", "-esat"], argumentResult =>
     {
         var length = argumentResult.Tokens.Count;
         if (length == 0)

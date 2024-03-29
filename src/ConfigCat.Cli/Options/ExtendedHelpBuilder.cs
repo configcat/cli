@@ -6,11 +6,8 @@ using System.Linq;
 
 namespace ConfigCat.Cli.Options;
 
-public class ExtendedHelpBuilder : HelpBuilder
+public class ExtendedHelpBuilder(IConsole console, int maxWidth = int.MaxValue) : HelpBuilder(console, maxWidth)
 {
-    public ExtendedHelpBuilder(IConsole console, int maxWidth = int.MaxValue) : base(console, maxWidth)
-    { }
-
     public override void Write(ICommand command)
     {
         base.Write(command);

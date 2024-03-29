@@ -15,15 +15,8 @@ public interface IGitClient
     Task<GitRepositoryInfo> GatherGitInfo(string path);
 }
 
-public class GitClient : IGitClient
+public class GitClient(IOutput output) : IGitClient
 {
-    private readonly IOutput output;
-    
-    public GitClient(IOutput output)
-    {
-        this.output = output;
-    }
-    
     private static readonly TimeSpan GitCmdTimeout = TimeSpan.FromSeconds(30);
     
     public async Task<GitRepositoryInfo> GatherGitInfo(string path)

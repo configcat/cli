@@ -11,33 +11,21 @@ using System.Threading.Tasks;
 
 namespace ConfigCat.Cli.Commands.PermissionGroups;
 
-internal class PermissionGroupEnvironmentAccess
+internal class PermissionGroupEnvironmentAccess(
+    IPermissionGroupClient permissionGroupClient,
+    IWorkspaceLoader workspaceLoader,
+    IEnvironmentClient environmentClient,
+    IPrompt prompt)
 {
-    private readonly IPermissionGroupClient permissionGroupClient;
-    private readonly IWorkspaceLoader workspaceLoader;
-    private readonly IEnvironmentClient environmentClient;
-    private readonly IPrompt prompt;
-
-    public PermissionGroupEnvironmentAccess(IPermissionGroupClient permissionGroupClient,
-        IWorkspaceLoader workspaceLoader,
-        IEnvironmentClient environmentClient,
-        IPrompt prompt)
-    {
-        this.permissionGroupClient = permissionGroupClient;
-        this.workspaceLoader = workspaceLoader;
-        this.environmentClient = environmentClient;
-        this.prompt = prompt;
-    }
-
     public async Task<int> UpdatePermissionGroupEnvironmentAccessesAsync(long? permissionGroupId, string accessType, 
         string newEnvironmentAccessType, EnvironmentSpecificAccess[] environmentSpecificAccessTypes, string defaultAccessTypeWhenNotSet, CancellationToken token)
     {
         var permissionGroup = permissionGroupId == null
-            ? await this.workspaceLoader.LoadPermissionGroupAsync(token)
-            : await this.permissionGroupClient.GetPermissionGroupAsync(permissionGroupId.Value, token);
+            ? await workspaceLoader.LoadPermissionGroupAsync(token)
+            : await permissionGroupClient.GetPermissionGroupAsync(permissionGroupId.Value, token);
 
         if (accessType.IsEmpty() || !Constants.AccessTypes.Keys.Contains(accessType, StringComparer.OrdinalIgnoreCase))
-            accessType = (await this.prompt.ChooseFromListAsync("Choose access type", Constants.AccessTypes.ToList(), t => t.Value, token,
+            accessType = (await prompt.ChooseFromListAsync("Choose access type", Constants.AccessTypes.ToList(), t => t.Value, token,
                 new KeyValuePair<string, string>(permissionGroup.AccessType, Constants.AccessTypes[permissionGroup.AccessType]))).Key;
 
         if (!accessType.IsEmptyOrEquals(permissionGroup.AccessType))
@@ -51,7 +39,7 @@ internal class PermissionGroupEnvironmentAccess
             }
             
             if (newEnvironmentAccessType.IsEmpty() || !Constants.EnvironmentAccessTypes.Keys.Contains(newEnvironmentAccessType, StringComparer.OrdinalIgnoreCase))
-                newEnvironmentAccessType = (await this.prompt.ChooseFromListAsync(
+                newEnvironmentAccessType = (await prompt.ChooseFromListAsync(
                     "Choose access type for newly created environments",
                     Constants.EnvironmentAccessTypes.ToList(),
                     t => t.Value,
@@ -63,11 +51,11 @@ internal class PermissionGroupEnvironmentAccess
 
             if ((environmentSpecificAccessTypes == null || environmentSpecificAccessTypes.Length == 0) && defaultAccessTypeWhenNotSet.IsEmpty())
             {
-                var environments = await this.environmentClient.GetEnvironmentsAsync(permissionGroup.Product.ProductId, token);
+                var environments = await environmentClient.GetEnvironmentsAsync(permissionGroup.Product.ProductId, token);
                 foreach (var environment in environments)
                 {
                     var existing = permissionGroup.EnvironmentAccesses?.FirstOrDefault(e => e.EnvironmentId == environment.EnvironmentId);
-                    var result = await this.prompt.ChooseFromListAsync($"Choose access type for {environment.Name} environment", Constants.EnvironmentAccessTypes.ToList(), e => e.Value, token,
+                    var result = await prompt.ChooseFromListAsync($"Choose access type for {environment.Name} environment", Constants.EnvironmentAccessTypes.ToList(), e => e.Value, token,
                         existing == null ? default : new KeyValuePair<string, string>(existing.EnvironmentAccessType, Constants.EnvironmentAccessTypes[existing.EnvironmentAccessType]));
 
                     if (existing != null)
@@ -84,7 +72,7 @@ internal class PermissionGroupEnvironmentAccess
             {
                 if (!defaultAccessTypeWhenNotSet.IsEmpty())
                 {
-                    var environments = await this.environmentClient.GetEnvironmentsAsync(permissionGroup.Product.ProductId, token);
+                    var environments = await environmentClient.GetEnvironmentsAsync(permissionGroup.Product.ProductId, token);
                     foreach (var environment in environments)
                     {
                         var existing =
@@ -121,7 +109,7 @@ internal class PermissionGroupEnvironmentAccess
             }
         }
 
-        await this.permissionGroupClient.UpdatePermissionGroupAsync(permissionGroup.PermissionGroupId, permissionGroup, token);
+        await permissionGroupClient.UpdatePermissionGroupAsync(permissionGroup.PermissionGroupId, permissionGroup, token);
         return ExitCodes.Ok;
     }
 }

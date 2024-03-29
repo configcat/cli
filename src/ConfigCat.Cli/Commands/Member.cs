@@ -11,48 +11,45 @@ using ConfigCat.Cli.Services.Rendering;
 
 namespace ConfigCat.Cli.Commands;
 
-internal class Member
+internal class Member(
+    IMemberClient memberClient,
+    IProductClient productClient,
+    IPermissionGroupClient permissionGroupClient,
+    IWorkspaceLoader workspaceLoader,
+    IPrompt prompt,
+    IOutput output)
 {
-    private readonly IMemberClient memberClient;
-    private readonly IProductClient productClient;
-    private readonly IPermissionGroupClient permissionGroupClient;
-    private readonly IWorkspaceLoader workspaceLoader;
-    private readonly IPrompt prompt;
-    private readonly IOutput output;
-
-    public Member(IMemberClient memberClient,
-        IProductClient productClient,
-        IPermissionGroupClient permissionGroupClient,
-        IWorkspaceLoader workspaceLoader,
-        IPrompt prompt,
-        IOutput output)
-    {
-        this.memberClient = memberClient;
-        this.productClient = productClient;
-        this.permissionGroupClient = permissionGroupClient;
-        this.workspaceLoader = workspaceLoader;
-        this.prompt = prompt;
-        this.output = output;
-    }
-
     public async Task<int> ListOrganizationMembersAsync(string organizationId, bool json, CancellationToken token)
     {
-        var members = new List<MemberModel>();
+        OrganizationMembersModel members;
         if (!organizationId.IsEmpty())
-            members.AddRange(await this.memberClient.GetOrganizationMembersAsync(organizationId, token));
+            members = await memberClient.GetOrganizationMembersAsync(organizationId, token);
         else
         {
-            var organization = await this.workspaceLoader.LoadOrganizationAsync(token);
-            members.AddRange(await this.memberClient.GetOrganizationMembersAsync(organization.OrganizationId, token));
+            var organization = await workspaceLoader.LoadOrganizationAsync(token);
+            members = await memberClient.GetOrganizationMembersAsync(organization.OrganizationId, token);
         }
 
         if (json)
         {
-            this.output.RenderJson(members);
+            output.RenderJson(members);
             return ExitCodes.Ok;
         }
 
-        this.output.RenderTable(members);
+        var result = members.Admins.Select(m => new
+        {
+            m.Email,
+            m.FullName,
+            m.UserId,
+            Permission = "Organization Admin"
+        }).Concat(members.Members.Select(m => new
+        {
+            m.Email,
+            m.FullName,
+            m.UserId,
+            Permission = string.Join(", ", m.Permissions.Select(p => $"{p.PermissionGroup.Name} ({p.Product.Name})"))
+        }));
+        output.RenderTable(result);
         return ExitCodes.Ok;
     }
 
@@ -60,15 +57,15 @@ internal class Member
     {
         var members = new List<ProductMemberModel>();
         if (!productId.IsEmpty())
-            members.AddRange(await this.memberClient.GetProductMembersAsync(productId, token));
+            members.AddRange(await memberClient.GetProductMembersAsync(productId, token));
         else
         {
-            var product = await this.workspaceLoader.LoadProductAsync(token);
+            var product = await workspaceLoader.LoadProductAsync(token);
             productId = product.ProductId;
-            members.AddRange(await this.memberClient.GetProductMembersAsync(productId, token));
+            members.AddRange(await memberClient.GetProductMembersAsync(productId, token));
         }
 
-        var permissionGroups = await this.permissionGroupClient.GetPermissionGroupsAsync(productId, token);
+        var permissionGroups = await permissionGroupClient.GetPermissionGroupsAsync(productId, token);
         var result = members.Select(m => new
         {
             m.Email,
@@ -79,11 +76,11 @@ internal class Member
 
         if (json)
         {
-            this.output.RenderJson(result);
+            output.RenderJson(result);
             return ExitCodes.Ok;
         }
 
-        this.output.RenderTable(result.Select(m => new
+        output.RenderTable(result.Select(m => new
         {
             m.Email,
             m.FullName,
@@ -96,15 +93,16 @@ internal class Member
     public async Task<int> RemoveMemberFromOrganizationAsync(string organizationId, string userId, CancellationToken token)
     {
         if (organizationId.IsEmpty())
-            organizationId = (await this.workspaceLoader.LoadOrganizationAsync(token)).OrganizationId;
+            organizationId = (await workspaceLoader.LoadOrganizationAsync(token)).OrganizationId;
 
         if (userId.IsEmpty())
         {
-            var members = await this.memberClient.GetOrganizationMembersAsync(organizationId, token);
-            userId = (await this.prompt.ChooseFromListAsync("Choose member", members.ToList(), m => $"{m.FullName} ({m.Email})", token)).UserId;
+            var membersResult = await memberClient.GetOrganizationMembersAsync(organizationId, token);
+            var members = membersResult.Admins.Concat(membersResult.Members);
+            userId = (await prompt.ChooseFromListAsync("Choose member", members.ToList(), m => $"{m.FullName} ({m.Email})", token)).UserId;
         }
 
-        await this.memberClient.RemoveFromOrganizationAsync(organizationId, userId, token);
+        await memberClient.RemoveFromOrganizationAsync(organizationId, userId, token);
         return ExitCodes.Ok;
     }
 
@@ -114,34 +112,35 @@ internal class Member
             throw new ShowHelpException("Required argument <emails> is missing.");
 
         if (productId.IsEmpty())
-            productId = (await this.workspaceLoader.LoadProductAsync(token)).ProductId;
+            productId = (await workspaceLoader.LoadProductAsync(token)).ProductId;
 
         if (permissionGroupId == null)
         {
-            var permissionGroups = await this.permissionGroupClient.GetPermissionGroupsAsync(productId, token);
-            permissionGroupId = (await this.prompt.ChooseFromListAsync("Choose permission group", permissionGroups.ToList(), pg => pg.Name, token)).PermissionGroupId;
+            var permissionGroups = await permissionGroupClient.GetPermissionGroupsAsync(productId, token);
+            permissionGroupId = (await prompt.ChooseFromListAsync("Choose permission group", permissionGroups.ToList(), pg => pg.Name, token)).PermissionGroupId;
         }
 
-        await this.memberClient.InviteMemberAsync(productId, new InviteMemberModel { Emails = emails, PermissionGroupId = permissionGroupId }, token);
+        await memberClient.InviteMemberAsync(productId, new InviteMemberModel { Emails = emails, PermissionGroupId = permissionGroupId }, token);
         return ExitCodes.Ok;
     }
 
     public async Task<int> AddPermissionsAsync(string organizationId, string userId, long[] permissionGroupIds, CancellationToken token)
     {
         if (organizationId.IsEmpty())
-            organizationId = (await this.workspaceLoader.LoadOrganizationAsync(token)).OrganizationId;
+            organizationId = (await workspaceLoader.LoadOrganizationAsync(token)).OrganizationId;
 
         if (userId.IsEmpty())
         {
-            var members = await this.memberClient.GetOrganizationMembersAsync(organizationId, token);
-            userId = (await this.prompt.ChooseFromListAsync("Choose member", members.ToList(), m => $"{m.FullName} ({m.Email})", token)).UserId;
+            var membersResult = await memberClient.GetOrganizationMembersAsync(organizationId, token);
+            var members = membersResult.Admins.Concat(membersResult.Members);
+            userId = (await prompt.ChooseFromListAsync("Choose member", members.ToList(), m => $"{m.FullName} ({m.Email})", token)).UserId;
         }
 
-        var products = (await this.productClient.GetProductsAsync(token)).Where(p => p.Organization.OrganizationId == organizationId).ToList();
+        var products = (await productClient.GetProductsAsync(token)).Where(p => p.Organization.OrganizationId == organizationId).ToList();
         var userPermissions = new List<long>();
         foreach (var product in products)
         {
-            var productPermissions = await this.memberClient.GetProductMembersAsync(product.ProductId, token);
+            var productPermissions = await memberClient.GetProductMembersAsync(product.ProductId, token);
             var userPermission = productPermissions.FirstOrDefault(p => p.UserId == userId);
             if (userPermission != null)
                 userPermissions.Add(userPermission.PermissionGroupId);
@@ -152,10 +151,10 @@ internal class Member
         {
             var permissionGroups = new List<PermissionGroupModel>();
             foreach (var product in products)
-                permissionGroups.AddRange(await this.permissionGroupClient.GetPermissionGroupsAsync(product.ProductId, token));
+                permissionGroups.AddRange(await permissionGroupClient.GetPermissionGroupsAsync(product.ProductId, token));
 
             var existingPermissions = permissionGroups.Where(pg => userPermissions.Contains(pg.PermissionGroupId)).ToList();
-            var selected = await this.prompt.ChooseMultipleFromListAsync("Choose permission groups (only 1 group is allowed per Product)",
+            var selected = await prompt.ChooseMultipleFromListAsync("Choose permission groups (only 1 group is allowed per Product)",
                 permissionGroups.ToList(), pg => $"{pg.Name} ({pg.Product.Name})", token, existingPermissions);
 
             if (selected == null)
@@ -163,33 +162,34 @@ internal class Member
 
             if (selected.Count == 0)
             {
-                this.output.WriteNoChange();
+                output.WriteNoChange();
                 return ExitCodes.Ok;
             }
 
             permissionGroupIds = selected.Select(pg => pg.PermissionGroupId).ToArray();
         }
 
-        await this.memberClient.UpdateMemberAsync(organizationId, userId, new UpdateMembersModel { PermissionGroupIds = permissionGroupIds }, token);
+        await memberClient.UpdateMemberAsync(organizationId, userId, new UpdateMembersModel { PermissionGroupIds = permissionGroupIds }, token);
         return ExitCodes.Ok;
     }
 
     public async Task<int> RemovePermissionsAsync(string organizationId, string userId, long[] permissionGroupIds, CancellationToken token)
     {
         if (organizationId.IsEmpty())
-            organizationId = (await this.workspaceLoader.LoadOrganizationAsync(token)).OrganizationId;
+            organizationId = (await workspaceLoader.LoadOrganizationAsync(token)).OrganizationId;
 
         if (userId.IsEmpty())
         {
-            var members = await this.memberClient.GetOrganizationMembersAsync(organizationId, token);
-            userId = (await this.prompt.ChooseFromListAsync("Choose member", members.ToList(), m => $"{m.FullName} ({m.Email})", token)).UserId;
+            var membersResult = await memberClient.GetOrganizationMembersAsync(organizationId, token);
+            var members = membersResult.Admins.Concat(membersResult.Members);
+            userId = (await prompt.ChooseFromListAsync("Choose member", members.ToList(), m => $"{m.FullName} ({m.Email})", token)).UserId;
         }
 
-        var products = (await this.productClient.GetProductsAsync(token)).Where(p => p.Organization.OrganizationId == organizationId).ToList();
+        var products = (await productClient.GetProductsAsync(token)).Where(p => p.Organization.OrganizationId == organizationId).ToList();
         var userPermissions = new List<long>();
         foreach (var product in products)
         {
-            var productPermissions = await this.memberClient.GetProductMembersAsync(product.ProductId, token);
+            var productPermissions = await memberClient.GetProductMembersAsync(product.ProductId, token);
             var userPermission = productPermissions.FirstOrDefault(p => p.UserId == userId);
             if (userPermission != null)
                 userPermissions.Add(userPermission.PermissionGroupId);
@@ -197,12 +197,12 @@ internal class Member
 
         var permissionGroups = new List<PermissionGroupModel>();
         foreach (var product in products)
-            permissionGroups.AddRange(await this.permissionGroupClient.GetPermissionGroupsAsync(product.ProductId, token));
+            permissionGroups.AddRange(await permissionGroupClient.GetPermissionGroupsAsync(product.ProductId, token));
         var existingPermissions = permissionGroups.Where(pg => userPermissions.Contains(pg.PermissionGroupId)).ToList();
 
         if (permissionGroupIds == null || !permissionGroupIds.Any())
         {
-            var selected = await this.prompt.ChooseMultipleFromListAsync("Choose permission groups to remove",
+            var selected = await prompt.ChooseMultipleFromListAsync("Choose permission groups to remove",
                 existingPermissions.ToList(), pg => $"{pg.Name} ({pg.Product.Name})", token);
 
             if (selected == null)
@@ -210,7 +210,7 @@ internal class Member
 
             if (selected.Count == 0)
             {
-                this.output.WriteNoChange();
+                output.WriteNoChange();
                 return ExitCodes.Ok;
             }
 
@@ -219,7 +219,7 @@ internal class Member
 
         var permissionGroupsToDelete = permissionGroups.Where(pg => permissionGroupIds.Contains(pg.PermissionGroupId));
         foreach (var pg in permissionGroupsToDelete)
-            await this.memberClient.RemoveFromProductAsync(pg.Product, userId, token);
+            await memberClient.RemoveFromProductAsync(pg.Product, userId, token);
 
         return ExitCodes.Ok;
     }

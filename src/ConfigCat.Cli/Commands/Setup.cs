@@ -9,53 +9,39 @@ using System.Threading.Tasks;
 
 namespace ConfigCat.Cli.Commands;
 
-internal class Setup
+internal class Setup(
+    IPrompt prompt,
+    IMeClient meClient,
+    IConfigurationStorage configurationStorage,
+    IOutput output,
+    CliConfig cliConfig)
 {
-    private readonly IPrompt prompt;
-    private readonly IMeClient meClient;
-    private readonly IConfigurationStorage configurationStorage;
-    private readonly IOutput output;
-    private readonly CliConfig cliConfig;
-
-    public Setup(IPrompt prompt,
-        IMeClient meClient,
-        IConfigurationStorage configurationStorage,
-        IOutput output,
-        CliConfig cliConfig)
-    {
-        this.prompt = prompt;
-        this.meClient = meClient;
-        this.configurationStorage = configurationStorage;
-        this.output = output;
-        this.cliConfig = cliConfig;
-    }
-
     public async Task<int> InvokeAsync(string apiHost, string userName, string password, CancellationToken token)
     {
         if (apiHost.IsEmpty())
-            apiHost = await this.prompt.GetStringAsync("API Host", token, Constants.DefaultApiHost);
+            apiHost = await prompt.GetStringAsync("API Host", token, Constants.DefaultApiHost);
 
         if (userName.IsEmpty())
-            userName = await this.prompt.GetStringAsync("Username", token);
+            userName = await prompt.GetStringAsync("Username", token);
 
         if (password.IsEmpty())
-            password = await this.prompt.GetMaskedStringAsync("Password", token);
+            password = await prompt.GetMaskedStringAsync("Password", token);
 
-        this.output.WriteLine();
-        this.output.Write($"Saving the configuration to '{Constants.ConfigFilePath}'... ");
-        this.cliConfig.Auth = new Auth
+        output.WriteLine();
+        output.Write($"Saving the configuration to '{Constants.ConfigFilePath}'... ");
+        cliConfig.Auth = new Auth
         {
             ApiHost = apiHost,
             UserName = userName,
             Password = password
         };
-        await this.configurationStorage.WriteConfigAsync(this.cliConfig, token);
+        await configurationStorage.WriteConfigAsync(cliConfig, token);
 
-        this.output.WriteSuccess().WriteLine().Write($"Verifying your credentials against '{apiHost}'... ");
+        output.WriteSuccess().WriteLine().Write($"Verifying your credentials against '{apiHost}'... ");
 
-        var me = await this.meClient.GetMeAsync(token);
+        var me = await meClient.GetMeAsync(token);
 
-        this.output.WriteSuccess()
+        output.WriteSuccess()
             .Write($" Welcome, {me.FullName}.")
             .WriteLine().WriteLine()
             .WriteGreen("Setup complete.")

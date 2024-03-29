@@ -22,15 +22,13 @@ public interface IEnvironmentClient
     Task DeleteEnvironmentAsync(string environmentId, CancellationToken token);
 }
 
-public class EnvironmentClient : ApiClient, IEnvironmentClient
+public class EnvironmentClient(
+    IOutput output,
+    CliConfig config,
+    IBotPolicy<HttpResponseMessage> botPolicy,
+    HttpClient httpClient)
+    : ApiClient(output, config, botPolicy, httpClient), IEnvironmentClient
 {
-    public EnvironmentClient(IOutput output,
-        CliConfig config,
-        IBotPolicy<HttpResponseMessage> botPolicy,
-        HttpClient httpClient)
-        : base(output, config, botPolicy, httpClient)
-    { }
-
     public Task<IEnumerable<EnvironmentModel>> GetEnvironmentsAsync(string productId, CancellationToken token) =>
         this.GetAsync<IEnumerable<EnvironmentModel>>(HttpMethod.Get, $"v1/products/{productId}/environments", token);
 

@@ -10,26 +10,19 @@ namespace ConfigCat.Cli.Services.Utilities
         byte[] GenerateToken(int length);
     }
 
-    public class TokenGenerator : ITokenGenerator
+    public class TokenGenerator(RandomNumberGenerator randomNumberGenerator) : ITokenGenerator
     {
-        private readonly RandomNumberGenerator randomNumberGenerator;
-
-        public TokenGenerator(RandomNumberGenerator randomNumberGenerator)
-        {
-            this.randomNumberGenerator = randomNumberGenerator;
-        }
-
         public byte[] GenerateToken(int length)
         {
             var bytes = new byte[length];
-            this.randomNumberGenerator.GetBytes(bytes);
+            randomNumberGenerator.GetBytes(bytes);
             return bytes;
         }
 
         public string GenerateTokenString(int length)
         {
             var bytes = new byte[length];
-            this.randomNumberGenerator.GetBytes(bytes);
+            randomNumberGenerator.GetBytes(bytes);
             return Convert.ToBase64String(bytes);
         }
     }

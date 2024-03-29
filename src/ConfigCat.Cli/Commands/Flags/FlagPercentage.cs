@@ -11,40 +11,28 @@ using ConfigCat.Cli.Services.Rendering;
 
 namespace ConfigCat.Cli.Commands.Flags;
 
-class FlagPercentage
+class FlagPercentage(
+    IFlagValueClient flagValueClient,
+    IFlagClient flagClient,
+    IWorkspaceLoader workspaceLoader,
+    IOutput output)
 {
-    private readonly IFlagValueClient flagValueClient;
-    private readonly IFlagClient flagClient;
-    private readonly IWorkspaceLoader workspaceLoader;
-    private readonly IOutput output;
-
-    public FlagPercentage(IFlagValueClient flagValueClient,
-        IFlagClient flagClient,
-        IWorkspaceLoader workspaceLoader,
-        IOutput output)
-    {
-        this.flagValueClient = flagValueClient;
-        this.flagClient = flagClient;
-        this.workspaceLoader = workspaceLoader;
-        this.output = output;
-    }
-
     public async Task<int> UpdatePercentageRulesAsync(int? flagId, string environmentId, UpdatePercentageModel[] rules, CancellationToken token)
     {
         if (rules.Length == 0)
         {
-            this.output.WriteNoChange();
+            output.WriteNoChange();
             return ExitCodes.Ok;
         }
 
         var flag = flagId is null
-            ? await this.workspaceLoader.LoadFlagAsync(token)
-            : await this.flagClient.GetFlagAsync(flagId.Value, token);
+            ? await workspaceLoader.LoadFlagAsync(token)
+            : await flagClient.GetFlagAsync(flagId.Value, token);
 
         if (environmentId.IsEmpty())
-            environmentId = (await this.workspaceLoader.LoadEnvironmentAsync(token, flag.ConfigId)).EnvironmentId;
+            environmentId = (await workspaceLoader.LoadEnvironmentAsync(token, flag.ConfigId)).EnvironmentId;
 
-        var value = await this.flagValueClient.GetValueAsync(flag.SettingId, environmentId, token);
+        var value = await flagValueClient.GetValueAsync(flag.SettingId, environmentId, token);
 
         if (value.Setting.SettingType == SettingTypes.Boolean && rules.Length != 2)
             throw new ShowHelpException($"Boolean type can only have 2 percentage rules.");
@@ -64,7 +52,7 @@ class FlagPercentage
             throw new ShowHelpException($"Boolean percentage rules cannot have the same value.");
 
         value.PercentageRules = result;
-        await this.flagValueClient.ReplaceValueAsync(flag.SettingId, environmentId, value, token);
+        await flagValueClient.ReplaceValueAsync(flag.SettingId, environmentId, value, token);
 
         return ExitCodes.Ok;
     }
@@ -72,15 +60,15 @@ class FlagPercentage
     public async Task<int> DeletePercentageRulesAsync(int? flagId, string environmentId, CancellationToken token)
     {
         var flag = flagId is null
-            ? await this.workspaceLoader.LoadFlagAsync(token)
-            : await this.flagClient.GetFlagAsync(flagId.Value, token);
+            ? await workspaceLoader.LoadFlagAsync(token)
+            : await flagClient.GetFlagAsync(flagId.Value, token);
 
         if (environmentId.IsEmpty())
-            environmentId = (await this.workspaceLoader.LoadEnvironmentAsync(token, flag.ConfigId)).EnvironmentId;
+            environmentId = (await workspaceLoader.LoadEnvironmentAsync(token, flag.ConfigId)).EnvironmentId;
 
-        var value = await this.flagValueClient.GetValueAsync(flag.SettingId, environmentId, token);
-        value.PercentageRules = new List<PercentageModel>();
-        await this.flagValueClient.ReplaceValueAsync(flag.SettingId, environmentId, value, token);
+        var value = await flagValueClient.GetValueAsync(flag.SettingId, environmentId, token);
+        value.PercentageRules = [];
+        await flagValueClient.ReplaceValueAsync(flag.SettingId, environmentId, value, token);
 
         return ExitCodes.Ok;
     }

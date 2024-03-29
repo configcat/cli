@@ -14,15 +14,13 @@ public interface ICodeReferenceClient
     Task UploadAsync(CodeReferenceRequest request, CancellationToken token);
 }
 
-public class CodeReferenceClient : ApiClient, ICodeReferenceClient
+public class CodeReferenceClient(
+    IOutput output,
+    CliConfig config,
+    IBotPolicy<HttpResponseMessage> botPolicy,
+    HttpClient httpClient)
+    : ApiClient(output, config, botPolicy, httpClient), ICodeReferenceClient
 {
-    public CodeReferenceClient(IOutput output,
-        CliConfig config,
-        IBotPolicy<HttpResponseMessage> botPolicy,
-        HttpClient httpClient)
-        : base(output, config, botPolicy, httpClient)
-    { }
-
     public async Task UploadAsync(CodeReferenceRequest request, CancellationToken token)
     {
         this.Output.Write($"Uploading code references... ");
@@ -64,9 +62,9 @@ public class ReferenceLines
 
     public string FileUrl { get; set; }
 
-    public List<Line> PreLines { get; set; } = new();
+    public List<Line> PreLines { get; set; } = [];
 
-    public List<Line> PostLines { get; set; } = new();
+    public List<Line> PostLines { get; set; } = [];
 
     public Line ReferenceLine { get; set; }
 }

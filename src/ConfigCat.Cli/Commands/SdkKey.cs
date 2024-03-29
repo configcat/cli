@@ -9,35 +9,21 @@ using System.Threading.Tasks;
 
 namespace ConfigCat.Cli.Commands;
 
-internal class SdkKey
+internal class SdkKey(
+    IProductClient productClient,
+    IConfigClient configClient,
+    IEnvironmentClient environmentClient,
+    ISdkKeyClient sdkKeyClient,
+    IOutput output)
 {
-    private readonly IProductClient productClient;
-    private readonly IConfigClient configClient;
-    private readonly IEnvironmentClient environmentClient;
-    private readonly ISdkKeyClient sdkKeyClient;
-    private readonly IOutput output;
-
-    public SdkKey(IProductClient productClient,
-        IConfigClient configClient,
-        IEnvironmentClient environmentClient,
-        ISdkKeyClient sdkKeyClient,
-        IOutput output)
-    {
-        this.productClient = productClient;
-        this.configClient = configClient;
-        this.environmentClient = environmentClient;
-        this.sdkKeyClient = sdkKeyClient;
-        this.output = output;
-    }
-
     public async Task<int> InvokeAsync(bool json, CancellationToken token)
     {
         var items = new List<SdkKeyTableItem>();
-        var products = await this.productClient.GetProductsAsync(token);
+        var products = await productClient.GetProductsAsync(token);
         foreach (var product in products)
         {
-            var configs = await this.configClient.GetConfigsAsync(product.ProductId, token);
-            var environments = await this.environmentClient.GetEnvironmentsAsync(product.ProductId, token);
+            var configs = await configClient.GetConfigsAsync(product.ProductId, token);
+            var environments = await environmentClient.GetEnvironmentsAsync(product.ProductId, token);
 
             foreach (var config in configs)
             foreach (var environment in environments)
@@ -45,13 +31,13 @@ internal class SdkKey
                 {
                     Config = config,
                     Environment = environment,
-                    SdkKey = await this.sdkKeyClient.GetSdkKeyAsync(config.ConfigId, environment.EnvironmentId, token)
+                    SdkKey = await sdkKeyClient.GetSdkKeyAsync(config.ConfigId, environment.EnvironmentId, token)
                 });
         }
 
         if (json)
         {
-            this.output.RenderJson(items);
+            output.RenderJson(items);
             return ExitCodes.Ok;
         }
 
@@ -63,7 +49,7 @@ internal class SdkKey
             Config = p.Config.Name,
             Product = p.Config.Product.Name
         });
-        this.output.RenderTable(itemsToRender);
+        output.RenderTable(itemsToRender);
 
         return ExitCodes.Ok;
     }

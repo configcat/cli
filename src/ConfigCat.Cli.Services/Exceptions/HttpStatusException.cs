@@ -3,18 +3,14 @@ using System.Net;
 
 namespace ConfigCat.Cli.Services.Exceptions;
 
-public class HttpStatusException : Exception
+public class HttpStatusException(
+    HttpStatusCode statusCode,
+    string reason,
+    string message = null,
+    Exception innerException = null)
+    : Exception(message, innerException)
 {
-    public HttpStatusException(HttpStatusCode statusCode,
-        string reason,
-        string message = null,
-        Exception innerException = null) : base(message, innerException)
-    {
-        this.StatusCode = statusCode;
-        this.ReasonPhrase = reason;
-    }
+    public HttpStatusCode StatusCode { get; } = statusCode;
 
-    public HttpStatusCode StatusCode { get; }
-
-    public string ReasonPhrase { get; }
+    public string ReasonPhrase { get; } = reason;
 }
