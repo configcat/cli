@@ -1,12 +1,13 @@
 ﻿using System;
 using System.CommandLine;
+using System.CommandLine.Parsing;
 using System.Linq;
 
 namespace ConfigCat.Cli.Options;
 
 internal sealed class PercentageRuleArgument : Argument<UpdatePercentageModel[]>
 {
-    public PercentageRuleArgument() : base(argumentResult =>
+    public static UpdatePercentageModel[] Parse(ArgumentResult argumentResult)
     {
         var length = argumentResult.Tokens.Count;
         if (length == 0)
@@ -57,8 +58,9 @@ internal sealed class PercentageRuleArgument : Argument<UpdatePercentageModel[]>
         if (result.Length != 1) return result;
         argumentResult.ErrorMessage = $"There must be at least 2 rules.";
         return null;
-
-    })
+    }
+    
+    public PercentageRuleArgument() : base(Parse)
     {
         Name = "rules";
         Description = "Format: `<percentage>:<value>`, e.g., `30:true 70:false`";
@@ -73,6 +75,14 @@ internal sealed class PercentageRuleArgument : Argument<UpdatePercentageModel[]>
     {
         return typeof(PercentageRuleArgument).GetHashCode();
     }
+}
+
+internal sealed class PercentageOptionArgument() : Option<UpdatePercentageModel[]>(["-po", "--percentage-options"],
+    PercentageRuleArgument.Parse, false, "Format: `<percentage>:<value>`, e.g., `30:true 70:false`")
+{
+    public override bool Equals(object obj) => obj is PercentageOptionArgument;
+
+    public override int GetHashCode() => typeof(PercentageOptionArgument).GetHashCode();
 }
 
 internal class UpdatePercentageModel

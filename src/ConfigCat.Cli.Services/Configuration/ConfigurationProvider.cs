@@ -44,6 +44,11 @@ public class ConfigurationProvider(IOutput output, IConfigurationStorage configu
                 ApiHost = host ?? config?.Auth?.ApiHost ?? Constants.DefaultApiHost,
                 Password = pass ?? config.Auth.Password,
                 UserName = user ?? config.Auth.UserName
+            },
+            Workspace = new Workspace
+            {
+                Config = config?.Workspace?.Config,
+                Product = config?.Workspace?.Product
             }
         };
     }

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using ConfigCat.Cli.Models.Configuration;
 
 namespace ConfigCat.Cli.Services.Api;
 
@@ -16,6 +17,8 @@ public interface IWorkspaceLoader
     Task<ProductModel> LoadProductAsync(CancellationToken token);
 
     Task<ConfigModel> LoadConfigAsync(CancellationToken token);
+
+    Task<ConfigModel> LoadConfigAsync(string productId, CancellationToken token);
 
     Task<SegmentModel> LoadSegmentAsync(CancellationToken token);
 
@@ -39,7 +42,9 @@ public class WorkspaceLoader(
     ITagClient tagClient,
     IFlagClient flagClient,
     IPermissionGroupClient permissionGroupClient,
-    IPrompt prompt)
+    IPrompt prompt,
+    IOutput output,
+    CliConfig cliConfig)
     : IWorkspaceLoader
 {
     public async Task<OrganizationModel> LoadOrganizationAsync(CancellationToken token)
@@ -47,73 +52,94 @@ public class WorkspaceLoader(
         var organizations = await organizationClient.GetOrganizationsAsync(token);
         var selected = await prompt.ChooseFromListAsync("Choose organization", organizations.ToList(), o => o.Name, token);
         if (selected == null)
-            this.ThrowHelpException("--organization-id");
+            throw CreateHelpException("--organization-id");
 
         return selected;
     }
 
     public async Task<ProductModel> LoadProductAsync(CancellationToken token)
     {
-        var products = await productClient.GetProductsAsync(token);
+        var products = await PreloadProducts(token);
 
-        if (!products.Any())
-            this.ThrowInformalException("product", "product create");
-
+        if (products.Count == 1) return products[0];
+        
         var selected = await prompt.ChooseFromListAsync("Choose product", products.ToList(), p => $"{p.Name} ({p.Organization.Name})", token);
         if (selected == null)
-            this.ThrowHelpException("--product-id");
+            throw CreateHelpException("--product-id");
 
         return selected;
     }
 
     public async Task<ConfigModel> LoadConfigAsync(CancellationToken token)
     {
-        var products = await productClient.GetProductsAsync(token);
-        var configs = new List<ConfigModel>();
-        foreach (var product in products)
-            configs.AddRange(await configClient.GetConfigsAsync(product.ProductId, token));
+        var products = await PreloadProducts(token);
 
-        if (!configs.Any())
-            this.ThrowInformalException("config", "config create");
+        var configs = new List<ConfigModel>();
+        if (products.Count == 1)
+        {
+            configs = await PreloadConfigs(products[0].ProductId, token);
+            if (configs.Count == 1) return configs[0];
+        }
+        else
+        {
+            foreach (var product in products)
+                configs.AddRange(await configClient.GetConfigsAsync(product.ProductId, token));
+        }
+
+        if (configs.Count == 0)
+            throw CreateInformalException("config", "config create");
 
         var selected = await prompt.ChooseFromListAsync("Choose config", configs.ToList(), c => $"{c.Name} ({c.Product.Name})", token);
         if (selected == null)
-            this.ThrowHelpException("--config-id");
+            throw CreateHelpException("--config-id");
+
+        return selected;
+    }
+    
+    public async Task<ConfigModel> LoadConfigAsync(string productId, CancellationToken token)
+    {
+        var configs = (await configClient.GetConfigsAsync(productId, token)).ToList();
+        if (configs.Count == 0)
+            throw CreateInformalException("config", "config create");
+
+        var selected = await prompt.ChooseFromListAsync("Choose config", configs.ToList(), c => $"{c.Name} ({c.Product.Name})", token);
+        if (selected == null)
+            throw CreateHelpException("--config-id");
 
         return selected;
     }
 
     public async Task<PermissionGroupModel> LoadPermissionGroupAsync(CancellationToken token)
     {
-        var products = await productClient.GetProductsAsync(token);
+        var products = await PreloadProducts(token);
         var permissionGroups = new List<PermissionGroupModel>();
         foreach (var product in products)
             permissionGroups.AddRange(await permissionGroupClient.GetPermissionGroupsAsync(product.ProductId, token));
 
-        if (!permissionGroups.Any())
-            this.ThrowInformalException("permission-group", "permission-group create");
+        if (permissionGroups.Count == 0)
+            throw CreateInformalException("permission-group", "permission-group create");
 
         var selected = await prompt.ChooseFromListAsync("Choose permission group",
             permissionGroups.ToList(), c => $"{c.Name} ({c.Product.Name})", token);
         if (selected == null)
-            this.ThrowHelpException("--permission-group-id");
+            throw CreateHelpException("--permission-group-id");
 
         return selected;
     }
 
     public async Task<SegmentModel> LoadSegmentAsync(CancellationToken token)
     {
-        var products = await productClient.GetProductsAsync(token);
+        var products = await PreloadProducts(token);
         var segments = new List<SegmentModel>();
         foreach (var product in products)
             segments.AddRange(await segmentClient.GetSegmentsAsync(product.ProductId, token));
 
-        if (!segments.Any())
-            this.ThrowInformalException("segment", "segment create");
+        if (segments.Count == 0)
+            throw CreateInformalException("segment", "segment create");
 
         var selected = await prompt.ChooseFromListAsync("Choose segment", segments.ToList(), s => $"{s.Name} ({s.Product.Name})", token);
         if (selected == null)
-            this.ThrowHelpException("--segment-id");
+            throw CreateHelpException("--segment-id");
 
         return await segmentClient.GetSegmentAsync(selected.SegmentId, token);
     }
@@ -123,7 +149,7 @@ public class WorkspaceLoader(
         var environments = new List<EnvironmentModel>();
         if (configId == null)
         {
-            var products = await productClient.GetProductsAsync(token);
+            var products = await PreloadProducts(token);
             foreach (var product in products)
                 environments.AddRange(await environmentClient.GetEnvironmentsAsync(product.ProductId, token));
         }
@@ -133,29 +159,29 @@ public class WorkspaceLoader(
             environments = (await environmentClient.GetEnvironmentsAsync(config.Product.ProductId, token)).ToList();
         }
 
-        if (!environments.Any())
-            this.ThrowInformalException("environment", "environment create");
+        if (environments.Count == 0)
+            throw CreateInformalException("environment", "environment create");
 
         var selected = await prompt.ChooseFromListAsync("Choose environment", environments.ToList(), e => $"{e.Name} ({e.Product.Name})", token);
         if (selected == null)
-            this.ThrowHelpException("--environment-id");
+            throw CreateHelpException("--environment-id");
 
         return selected;
     }
 
     public async Task<TagModel> LoadTagAsync(CancellationToken token)
     {
-        var products = await productClient.GetProductsAsync(token);
+        var products = await PreloadProducts(token);
         var tags = new List<TagModel>();
         foreach (var product in products)
             tags.AddRange(await tagClient.GetTagsAsync(product.ProductId, token));
 
-        if (!tags.Any())
-            this.ThrowInformalException("tag", "tag create");
+        if (tags.Count == 0)
+            throw CreateInformalException("tag", "tag create");
 
         var selected = await prompt.ChooseFromListAsync("Choose tag", tags.ToList(), t => $"{t.Name} ({t.Product.Name})", token);
         if (selected == null)
-            this.ThrowHelpException("--tag-id");
+            throw CreateHelpException("--tag-id");
 
         return selected;
     }
@@ -163,20 +189,20 @@ public class WorkspaceLoader(
     public async Task<FlagModel> LoadFlagAsync(CancellationToken token)
     {
         var flags = new List<FlagModel>();
-        var products = await productClient.GetProductsAsync(token);
+        var products = await PreloadProducts(token);
         foreach (var product in products)
         {
-            var configs = await configClient.GetConfigsAsync(product.ProductId, token);
+            var configs = await PreloadConfigs(product.ProductId, token);
             foreach (var config in configs)
                 flags.AddRange(await flagClient.GetFlagsAsync(config.ConfigId, token));
         }
 
-        if (!flags.Any())
-            this.ThrowInformalException("flag", "flag create");
+        if (flags.Count == 0)
+            throw CreateInformalException("flag", "flag create");
 
         var selected = await prompt.ChooseFromListAsync("Choose flag", flags.ToList(), f => $"{f.Name} ({f.ConfigName})", token);
         if (selected == null)
-            this.ThrowHelpException("--flag-id / --setting-id");
+            throw CreateHelpException("--flag-id / --setting-id");
 
         return selected;
     }
@@ -186,7 +212,7 @@ public class WorkspaceLoader(
         var tags = new List<TagModel>();
         if (configId == null)
         {
-            var products = await productClient.GetProductsAsync(token);
+            var products = await PreloadProducts(token);
             foreach (var product in products)
                 tags.AddRange(await tagClient.GetTagsAsync(product.ProductId, token));
         }
@@ -196,24 +222,51 @@ public class WorkspaceLoader(
             tags = (await tagClient.GetTagsAsync(config.Product.ProductId, token)).ToList();
         }
 
-        if (!tags.Any())
+        if (tags.Count == 0)
         {
             if (optional)
                 return [];
 
-            this.ThrowInformalException("tag", "tag create");
+            throw CreateInformalException("tag", "tag create");
         }
 
         var selected = await prompt.ChooseMultipleFromListAsync("Choose tags", tags.ToList(), t => t.Name, token, defaultTags);
         if (selected == null)
-            this.ThrowHelpException("--tag-ids");
+            throw CreateHelpException("--tag-ids");
 
         return selected;
     }
 
-    private void ThrowHelpException(string argument) =>
-        throw new ShowHelpException($"Required option `{argument}` is missing.");
+    private async Task<List<ConfigModel>> PreloadConfigs(string productId, CancellationToken token)
+    {
+        var configs = (await configClient.GetConfigsAsync(productId, token)).ToList();
 
-    private void ThrowInformalException(string resource, string argument) =>
-        throw new Exception($"No available {resource} found, to create one, use the `configcat {argument}` command.");
+        if (cliConfig.Workspace?.Config.IsEmpty() ?? true) return configs;
+        var config = configs.FirstOrDefault(c => c.ConfigId == cliConfig.Workspace.Config);
+        if (config is null) return configs;
+        output.Verbose($"Using config '{config.Name}' from workspace.");
+        return [config];
+
+    }
+    
+    private async Task<List<ProductModel>> PreloadProducts(CancellationToken token)
+    {
+        var products = (await productClient.GetProductsAsync(token)).ToList();
+
+        if (products.Count == 0)
+            throw CreateInformalException("product", "product create");
+
+        if (cliConfig.Workspace?.Product.IsEmpty() ?? true) return products;
+        var product = products.FirstOrDefault(p => p.ProductId == cliConfig.Workspace.Product);
+        if (product is null) return products;
+        output.Verbose($"Using product '{product.Name}' from workspace.");
+        return [product];
+
+    }
+
+    private static ShowHelpException CreateHelpException(string argument) =>
+        new ShowHelpException($"Required option `{argument}` is missing.");
+
+    private static Exception CreateInformalException(string resource, string argument) =>
+        new Exception($"No available {resource} found, to create one, use the `configcat {argument}` command.");
 }

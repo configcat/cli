@@ -16,7 +16,7 @@ public interface IConfigurationStorage
 
 public class ConfigurationFileStorage(IOutput output) : IConfigurationStorage
 {
-    private static readonly JsonSerializerOptions Options = new JsonSerializerOptions
+    private static readonly JsonSerializerOptions Options = new()
     {
         WriteIndented = true,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase

@@ -10,6 +10,7 @@ using System.Linq;
 using ConfigCat.Cli.Commands.PermissionGroups;
 using ConfigCat.Cli.Commands.ConfigJson;
 using ConfigCat.Cli.Commands.Flags.V2;
+using Workspace = ConfigCat.Cli.Models.Configuration.Workspace;
 
 namespace ConfigCat.Cli;
 
@@ -50,6 +51,7 @@ public static class CommandBuilder
                 BuildScanCommand(),
                 BuildCatCommand(),
                 BuildConfigJsonCommand(),
+                BuildWorkspaceCommand(),
             }
         };
 
@@ -572,6 +574,38 @@ public static class CommandBuilder
             }
         };
 
+    private static CommandDescriptor BuildV2FlagTargetingCommand() =>
+        new("targeting", "Manage targeting rules")
+        {
+            Aliases = new[] { "t" },
+            SubCommands = new[]
+            {
+                new CommandDescriptor("create-with-user", "Create new user targeting rule",
+                    "configcat flag-v2 targeting create-with-user -i <flag-id> -e <environment-id> -a Email -c contains -t @example.com -f true")
+                {
+                    Aliases = new[] { "cru" },
+                    Handler = CreateHandler<Commands.Flags.V2.FlagTargeting>(nameof(Commands.Flags.V2.FlagTargeting
+                        .AddUserTargetingRuleAsync)),
+                    Options = new Option[]
+                    {
+                        new Option<int>(["--flag-id", "-i", "--setting-id"], "ID of the Feature Flag or Setting")
+                        {
+                            Name = "--flag-id"
+                        },
+                        new Option<string>(["--environment-id", "-e"],
+                            "ID of the Environment where the rule must be created"),
+                        new Option<string>(["--attribute", "-a"], "The User Object attribute that the condition is based on"),
+                        new Option<string>(["--comparator", "-c"], "The operator which defines the relation between the comparison attribute and the comparison value")
+                            .AddSuggestions(Constants.UserComparatorTypes.Keys.ToArray()),
+                        new Option<string>(["--comparison-value", "-cv"], "The value that the User Object attribute is compared to"),
+                        new Option<string>(["--flag-value", "-f"],
+                            "The value associated with the targeting rule. Leave it empty if the targeting rule has percentage options. It must respect the setting type"),
+                        new PercentageOptionArgument()
+                    }
+                },
+            },
+        };
+    
     private static CommandDescriptor BuildFlagTargetingCommand() =>
         new("targeting", "Manage targeting rules")
         {
@@ -581,7 +615,7 @@ public static class CommandBuilder
                 new CommandDescriptor("create", "Create new targeting rule", "configcat flag targeting create -i <flag-id> -e <environment-id> -a Email -c contains -t @example.com -f true")
                 {
                     Aliases = new[] { "cr" },
-                    Handler = CreateHandler<FlagTargeting>(nameof(FlagTargeting.AddTargetingRuleAsync)),
+                    Handler = CreateHandler<Commands.Flags.FlagTargeting>(nameof(Commands.Flags.FlagTargeting.AddTargetingRuleAsync)),
                     Options = new Option[]
                     {
                         new Option<int>(["--flag-id", "-i", "--setting-id"], "ID of the Feature Flag or Setting")
@@ -602,7 +636,7 @@ public static class CommandBuilder
                 new CommandDescriptor("update", "Update targeting rule", "configcat flag targeting update -i <flag-id> -e <environment-id> -p 1 -a Email -c contains -t @example.com -f true")
                 {
                     Aliases = new[] { "up" },
-                    Handler = CreateHandler<FlagTargeting>(nameof(FlagTargeting.UpdateTargetingRuleAsync)),
+                    Handler = CreateHandler<Commands.Flags.FlagTargeting>(nameof(Commands.Flags.FlagTargeting.UpdateTargetingRuleAsync)),
                     Options = new Option[]
                     {
                         new Option<int>(["--flag-id", "-i", "--setting-id"], "ID of the Feature Flag or Setting")
@@ -623,7 +657,7 @@ public static class CommandBuilder
                 },
                 new CommandDescriptor("rm", "Delete targeting rule", "configcat flag targeting rm -i <flag-id> -e <environment-id> -p 1")
                 {
-                    Handler = CreateHandler<FlagTargeting>(nameof(FlagTargeting.DeleteTargetingRuleAsync)),
+                    Handler = CreateHandler<Commands.Flags.FlagTargeting>(nameof(Commands.Flags.FlagTargeting.DeleteTargetingRuleAsync)),
                     Options = new Option[]
                     {
                         new Option<int>(["--flag-id", "-i", "--setting-id"], "ID of the Feature Flag or Setting")
@@ -637,7 +671,7 @@ public static class CommandBuilder
                 new CommandDescriptor("move", "Move a targeting rule into a different position", "configcat flag targeting move -i <flag-id> -e <environment-id> --from 0 --to 1")
                 {
                     Aliases = new[] { "mv" },
-                    Handler = CreateHandler<FlagTargeting>(nameof(FlagTargeting.MoveTargetingRuleAsync)),
+                    Handler = CreateHandler<Commands.Flags.FlagTargeting>(nameof(Commands.Flags.FlagTargeting.MoveTargetingRuleAsync)),
                     Options = new Option[]
                     {
                         new Option<int>(["--flag-id", "-i", "--setting-id"], "ID of the Feature Flag or Setting")
@@ -906,6 +940,34 @@ public static class CommandBuilder
                         new Option<bool>(["--pretty", "-p"], "Pretty print the downloaded JSON."),
                     },
                 }
+            }
+        };
+    
+    private static CommandDescriptor BuildWorkspaceCommand() =>
+        new("workspace", "Manage the CLI workspace. When set, the CLI's interactive mode filters Product and Config selectors by the values set in the workspace")
+        {
+            Aliases = new[] { "w" },
+            SubCommands = new[]
+            {
+                new CommandDescriptor("set", "Set the workspace", "configcat workspace set -p <product-id> -c <config-id>")
+                {
+                    Aliases = new[] { "s" },
+                    Handler = CreateHandler<Commands.Workspace>(nameof(Commands.Workspace.SetAsync)),
+                    Options = new Option[]
+                    {
+                        new Option<int>(["--product-id", "-p"], "ID of the Product"),
+                        new Option<bool>(["--config-id", "-c"], "ID of the Config"),
+                    }
+                },
+                new CommandDescriptor("clr", "Clear the workspace", "configcat workspace clr")
+                {
+                    Handler = CreateHandler<Commands.Workspace>(nameof(Commands.Workspace.UnSetAsync)),
+                },
+                new CommandDescriptor("show", "Show the values saved in the workspace", "configcat workspace show")
+                {
+                    Aliases = ["sh", "p", "print"],
+                    Handler = CreateHandler<Commands.Workspace>(nameof(Commands.Workspace.ShowAsync)),
+                },
             }
         };
 

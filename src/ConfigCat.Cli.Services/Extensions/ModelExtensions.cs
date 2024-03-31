@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using ConfigCat.Cli.Models.Api;
+using ConfigCat.Cli.Models.Configuration;
 
 namespace ConfigCat.Cli.Services.Extensions;
 
@@ -17,7 +18,7 @@ public static class ModelExtensions
             _ => ""
         };
     }
-    
+
     public static string ToStringValue(this ComparisonValueModel model)
     {
         if (!string.IsNullOrWhiteSpace(model.StringValue))
@@ -26,4 +27,7 @@ public static class ModelExtensions
             return model.DoubleValue.ToString();
         return !model.ListValue.IsEmpty() ? $"[{model.ListValue.Count} items]" : "";
     }
+
+    public static bool IsEmpty(this Workspace workspace) => workspace is null || workspace.Product.IsEmpty();
+
 }

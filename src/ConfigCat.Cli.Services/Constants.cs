@@ -8,11 +8,8 @@ namespace ConfigCat.Cli.Services;
 public static class Constants
 {
     public const string DefaultApiHost = "api.configcat.com";
-
     public const string ApiHostEnvironmentVariableName = "CONFIGCAT_API_HOST";
-
     public const string ApiUserNameEnvironmentVariableName = "CONFIGCAT_API_USER";
-
     public const string ApiPasswordEnvironmentVariableName = "CONFIGCAT_API_PASS";
 
     public static readonly string ConfigFilePath = Path.Combine(
