@@ -16,6 +16,10 @@ public interface IPrompt
     Task<string> GetMaskedStringAsync(string label,
         CancellationToken token,
         string defaultValue = null);
+    
+    Task<List<List<string>>> GetRepeatedValuesAsync(string label,
+        CancellationToken token,
+        List<string> values);
 
     Task<TItem> ChooseFromListAsync<TItem>(string label,
         List<TItem> items,
@@ -68,6 +72,37 @@ public class Prompt(IOutput output, CliOptions options) : IPrompt
         var result = await output.ReadLineAsync(token, true);
         output.WriteLine();
         return result.IsEmpty() ? defaultValue : result;
+    }
+
+    public async Task<List<List<string>>> GetRepeatedValuesAsync(string label, CancellationToken token, List<string> values)
+    {
+        if (token.IsCancellationRequested ||
+            output.IsOutputRedirected ||
+            options.IsNonInteractive)
+            return null;
+
+        var result = new List<List<string>>();
+        output.Write(label).Write(":").WriteLine();
+        output.Write("How many items you'd like to add? ");
+        var times = await output.ReadLineAsync(token);
+        if (!int.TryParse(times, out var timesInt)) return null;
+
+        output.WriteLine();
+        for (var i = 0; i < timesInt; i++)
+        {
+            output.WriteDarkGray($"{i + 1}. item:").WriteLine();
+            var valueResult = new List<string>();
+            foreach (var value in values)
+            {
+                output.Write(value).Write(": ");
+                var read = await output.ReadLineAsync(token);
+                if (read.IsEmpty()) return null;
+                valueResult.Add(read);
+                output.WriteLine();
+            }
+            result.Add(valueResult);
+        }
+        return result;
     }
 
     public async Task<TItem> ChooseFromListAsync<TItem>(string label,

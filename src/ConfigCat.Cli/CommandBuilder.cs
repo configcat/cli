@@ -531,7 +531,8 @@ public static class CommandBuilder
         new("flag", "Manage Feature Flags & Settings")
         {
             Aliases = new[] { "setting", "f", "s" },
-            SubCommands = ManageFlagCommands.Concat([
+            SubCommands = ManageFlagCommands.Concat(
+            [
                 BuildFlagValueCommand(),
                 BuildFlagTargetingCommand(),
                 BuildFlagPercentageCommand()
@@ -574,38 +575,6 @@ public static class CommandBuilder
             }
         };
 
-    private static CommandDescriptor BuildV2FlagTargetingCommand() =>
-        new("targeting", "Manage targeting rules")
-        {
-            Aliases = new[] { "t" },
-            SubCommands = new[]
-            {
-                new CommandDescriptor("create-with-user", "Create new user targeting rule",
-                    "configcat flag-v2 targeting create-with-user -i <flag-id> -e <environment-id> -a Email -c contains -t @example.com -f true")
-                {
-                    Aliases = new[] { "cru" },
-                    Handler = CreateHandler<Commands.Flags.V2.FlagTargeting>(nameof(Commands.Flags.V2.FlagTargeting
-                        .AddUserTargetingRuleAsync)),
-                    Options = new Option[]
-                    {
-                        new Option<int>(["--flag-id", "-i", "--setting-id"], "ID of the Feature Flag or Setting")
-                        {
-                            Name = "--flag-id"
-                        },
-                        new Option<string>(["--environment-id", "-e"],
-                            "ID of the Environment where the rule must be created"),
-                        new Option<string>(["--attribute", "-a"], "The User Object attribute that the condition is based on"),
-                        new Option<string>(["--comparator", "-c"], "The operator which defines the relation between the comparison attribute and the comparison value")
-                            .AddSuggestions(Constants.UserComparatorTypes.Keys.ToArray()),
-                        new Option<string>(["--comparison-value", "-cv"], "The value that the User Object attribute is compared to"),
-                        new Option<string>(["--flag-value", "-f"],
-                            "The value associated with the targeting rule. Leave it empty if the targeting rule has percentage options. It must respect the setting type"),
-                        new PercentageOptionArgument()
-                    }
-                },
-            },
-        };
-    
     private static CommandDescriptor BuildFlagTargetingCommand() =>
         new("targeting", "Manage targeting rules")
         {
@@ -729,7 +698,11 @@ public static class CommandBuilder
         new("flag-v2", "Manage V2 Feature Flags & Settings")
         {
             Aliases = new[] { "setting-v2", "f2", "s2" },
-            SubCommands = ManageFlagCommands.Concat([BuildFlagValueV2Command()])
+            SubCommands = ManageFlagCommands.Concat(
+            [
+                BuildFlagValueV2Command(), 
+                BuildV2FlagTargetingCommand()
+            ])
         };
 
     private static CommandDescriptor BuildFlagValueV2Command() =>
@@ -768,6 +741,90 @@ public static class CommandBuilder
             }
         };
 
+    private static CommandDescriptor BuildV2FlagTargetingCommand() =>
+        new("targeting", "Manage targeting rules")
+        {
+            Aliases = new[] { "t" },
+            SubCommands = new[]
+            {
+                 new CommandDescriptor("create", "Create new user/segment/prerequisite targeting rule")
+                        {
+                            Aliases = ["cr"],
+                            SubCommands = new[]
+                            {
+                                new CommandDescriptor("user", "Create user based targeting rule",
+                                    "configcat flag-v2 targeting create user -i <flag-id> -e <environment-id> -a Email -c contains -cv @example.com -f true")
+                                {
+                                    Aliases = new[] { "u" },
+                                    Handler = CreateHandler<Commands.Flags.V2.FlagTargeting>(nameof(Commands.Flags.V2.FlagTargeting
+                                        .AddUserTargetingRuleAsync)),
+                                    Options = new Option[]
+                                    {
+                                        new Option<int>(["--flag-id", "-i", "--setting-id"], "ID of the Feature Flag or Setting")
+                                        {
+                                            Name = "--flag-id"
+                                        },
+                                        new Option<string>(["--environment-id", "-e"],
+                                            "ID of the Environment where the rule must be created"),
+                                        new Option<string>(["--attribute", "-a"], "The User Object attribute that the condition is based on"),
+                                        new Option<string>(["--comparator", "-c"], "The operator which defines the relation between the comparison attribute and the comparison value")
+                                            .AddSuggestions(Constants.UserComparatorTypes.Keys.ToArray()),
+                                        new ComparisonValueOption(),
+                                        new Option<string>(["--served-value", "-sv"],
+                                            "The value associated with the targeting rule. Leave it empty if the targeting rule has percentage options. It must respect the setting type"),
+                                        new PercentageOptionArgument()
+                                    }
+                                },
+                                new CommandDescriptor("segment", "Create segment based targeting rule",
+                                    "configcat flag-v2 targeting create segment -i <flag-id> -e <environment-id> -c isIn -si <segment-id> -f true")
+                                {
+                                    Aliases = new[] { "sg" },
+                                    Handler = CreateHandler<Commands.Flags.V2.FlagTargeting>(nameof(Commands.Flags.V2.FlagTargeting
+                                        .AddSegmentTargetingRuleAsync)),
+                                    Options = new Option[]
+                                    {
+                                        new Option<int>(["--flag-id", "-i", "--setting-id"], "ID of the Feature Flag or Setting")
+                                        {
+                                            Name = "--flag-id"
+                                        },
+                                        new Option<string>(["--environment-id", "-e"],
+                                            "ID of the Environment where the rule must be created"),
+                                        new Option<string>(["--comparator", "-c"], "The operator which defines the expected result of the evaluation of the segment")
+                                            .AddSuggestions(Constants.SegmentComparatorTypes.Keys.ToArray()),
+                                        new Option<string>(["--segment-id", "-si"], "ID of the segment that the condition is based on"),
+                                        new Option<string>(["--served-value", "-sv"],
+                                            "The value associated with the targeting rule. Leave it empty if the targeting rule has percentage options. It must respect the setting type"),
+                                        new PercentageOptionArgument()
+                                    }
+                                },
+                                new CommandDescriptor("prerequisite", "Create prerequisite flag based targeting rule",
+                                    "configcat flag-v2 targeting create prerequisite -i <flag-id> -e <environment-id> -c isIn -si <segment-id> -f true")
+                                {
+                                    Aliases = new[] { "pr" },
+                                    Handler = CreateHandler<Commands.Flags.V2.FlagTargeting>(nameof(Commands.Flags.V2.FlagTargeting
+                                        .AddPrerequisiteTargetingRuleAsync)),
+                                    Options = new Option[]
+                                    {
+                                        new Option<int>(["--flag-id", "-i", "--setting-id"], "ID of the Feature Flag or Setting")
+                                        {
+                                            Name = "--flag-id"
+                                        },
+                                        new Option<string>(["--environment-id", "-e"],
+                                            "ID of the Environment where the rule must be created"),
+                                        new Option<string>(["--comparator", "-c"], "The operator which defines the relation between the evaluated value of the prerequisite flag and the comparison value")
+                                            .AddSuggestions(Constants.PrerequisiteComparatorTypes.Keys.ToArray()),
+                                        new Option<int>(["--prerequisite-id", "-pi"], "ID of the prerequisite flag that the condition is based on"),
+                                        new Option<string>(["--prerequisite-value", "-pv"], "The evaluated value of the prerequisite flag is compared to. It must respect the prerequisite flag's setting type"),
+                                        new Option<string>(["--served-value", "-sv"],
+                                            "The value associated with the targeting rule. Leave it empty if the targeting rule has percentage options. It must respect the setting type"),
+                                        new PercentageOptionArgument()
+                                    }
+                                },
+                            }
+                        }
+            },
+        };
+    
     private static CommandDescriptor[] ManageFlagCommands =
     [
         new CommandDescriptor("ls", "List all Feature Flags & Settings that belongs to the configured user",

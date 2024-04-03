@@ -30,4 +30,5 @@ public static class ModelExtensions
 
     public static bool IsEmpty(this Workspace workspace) => workspace is null || workspace.Product.IsEmpty();
 
+    public static bool IsEmpty(this ComparisonValueModel cv) => cv is null || (!cv.DoubleValue.HasValue && cv.StringValue.IsEmpty() && cv.ListValue.IsEmpty());
 }
