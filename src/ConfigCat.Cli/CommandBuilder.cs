@@ -648,7 +648,7 @@ public static class CommandBuilder
                             Name = "--flag-id"
                         },
                         new Option<string>(["--environment-id", "-e"], "ID of the Environment where the move must be applied"),
-                        new Option<int?>(["--from"], "The position of the targeting rule to delete"),
+                        new Option<int?>(["--from"], "The position of the targeting rule to move"),
                         new Option<int?>(["--to"], "The desired position of the targeting rule"),
                     }
                 },
@@ -664,7 +664,7 @@ public static class CommandBuilder
                 new CommandDescriptor("update", "Update percentage rules", "configcat flag % update -i <flag-id> -e <environment-id> 30:true 70:false")
                 {
                     Aliases = new[] { "up" },
-                    Handler = CreateHandler<FlagPercentage>(nameof(FlagPercentage.UpdatePercentageRulesAsync)),
+                    Handler = CreateHandler<Commands.Flags.FlagPercentage>(nameof(Commands.Flags.FlagPercentage.UpdatePercentageRulesAsync)),
                     Arguments = new Argument[]
                     {
                         new PercentageRuleArgument()
@@ -681,7 +681,7 @@ public static class CommandBuilder
                 new CommandDescriptor("clear", "Delete all percentage rules", "configcat flag % clear -i <flag-id> -e <environment-id>")
                 {
                     Aliases = new[] { "clr" },
-                    Handler = CreateHandler<FlagPercentage>(nameof(FlagPercentage.DeletePercentageRulesAsync)),
+                    Handler = CreateHandler<Commands.Flags.FlagPercentage>(nameof(Commands.Flags.FlagPercentage.DeletePercentageRulesAsync)),
                     Options = new Option[]
                     {
                         new Option<int>(["--flag-id", "-i", "--setting-id"], "ID of the Feature Flag or Setting")
@@ -742,87 +742,265 @@ public static class CommandBuilder
         };
 
     private static CommandDescriptor BuildV2FlagTargetingCommand() =>
-        new("targeting", "Manage targeting rules")
+        new("targeting", "Manage V2 Feature Flag & Setting targeting options")
         {
-            Aliases = new[] { "t" },
-            SubCommands = new[]
-            {
-                 new CommandDescriptor("create", "Create new user/segment/prerequisite targeting rule")
+            Aliases = ["t"],
+            SubCommands = 
+            [
+                 new CommandDescriptor("rule", "Manage targeting rules")
+                 {
+                     Aliases = ["r"],
+                     SubCommands = 
+                     [
+                        new CommandDescriptor("create", "Create new targeting rule")
                         {
                             Aliases = ["cr"],
-                            SubCommands = new[]
-                            {
+                            SubCommands = 
+                            [
                                 new CommandDescriptor("user", "Create user based targeting rule",
-                                    "configcat flag-v2 targeting create user -i <flag-id> -e <environment-id> -a Email -c contains -cv @example.com -f true")
+                                    "configcat flag-v2 targeting rule create user -i <flag-id> -e <environment-id> -a Email -c contains -cv @example.com -sv true")
                                 {
-                                    Aliases = new[] { "u" },
-                                    Handler = CreateHandler<Commands.Flags.V2.FlagTargeting>(nameof(Commands.Flags.V2.FlagTargeting
-                                        .AddUserTargetingRuleAsync)),
+                                    Aliases = ["u"],
+                                    Handler = CreateHandler<Commands.Flags.V2.FlagTargeting>(nameof(Commands.Flags.V2.FlagTargeting.AddUserTargetingRuleAsync)),
                                     Options = new Option[]
                                     {
                                         new Option<int>(["--flag-id", "-i", "--setting-id"], "ID of the Feature Flag or Setting")
                                         {
                                             Name = "--flag-id"
                                         },
-                                        new Option<string>(["--environment-id", "-e"],
-                                            "ID of the Environment where the rule must be created"),
+                                        new Option<string>(["--environment-id", "-e"], "ID of the Environment where the rule must be created"),
                                         new Option<string>(["--attribute", "-a"], "The User Object attribute that the condition is based on"),
                                         new Option<string>(["--comparator", "-c"], "The operator which defines the relation between the comparison attribute and the comparison value")
                                             .AddSuggestions(Constants.UserComparatorTypes.Keys.ToArray()),
-                                        new ComparisonValueOption(),
-                                        new Option<string>(["--served-value", "-sv"],
-                                            "The value associated with the targeting rule. Leave it empty if the targeting rule has percentage options. It must respect the setting type"),
+                                        new Option<string[]>(["--comparison-value", "-cv"], "The value that the User Object attribute is compared to. Can be a double, string, or value-hint list in the format: `<value>:<hint>`"),
+                                        new Option<string>(["--served-value", "-sv"], "The value associated with the targeting rule. Leave it empty if the targeting rule has percentage options. It must respect the setting type"),
                                         new PercentageOptionArgument()
                                     }
                                 },
                                 new CommandDescriptor("segment", "Create segment based targeting rule",
-                                    "configcat flag-v2 targeting create segment -i <flag-id> -e <environment-id> -c isIn -si <segment-id> -f true")
+                                    "configcat flag-v2 targeting rule create segment -i <flag-id> -e <environment-id> -c isIn -si <segment-id> -sv true")
                                 {
-                                    Aliases = new[] { "sg" },
-                                    Handler = CreateHandler<Commands.Flags.V2.FlagTargeting>(nameof(Commands.Flags.V2.FlagTargeting
-                                        .AddSegmentTargetingRuleAsync)),
+                                    Aliases = ["sg"],
+                                    Handler = CreateHandler<Commands.Flags.V2.FlagTargeting>(nameof(Commands.Flags.V2.FlagTargeting.AddSegmentTargetingRuleAsync)),
                                     Options = new Option[]
                                     {
                                         new Option<int>(["--flag-id", "-i", "--setting-id"], "ID of the Feature Flag or Setting")
                                         {
                                             Name = "--flag-id"
                                         },
-                                        new Option<string>(["--environment-id", "-e"],
-                                            "ID of the Environment where the rule must be created"),
+                                        new Option<string>(["--environment-id", "-e"], "ID of the Environment where the rule must be created"),
                                         new Option<string>(["--comparator", "-c"], "The operator which defines the expected result of the evaluation of the segment")
                                             .AddSuggestions(Constants.SegmentComparatorTypes.Keys.ToArray()),
                                         new Option<string>(["--segment-id", "-si"], "ID of the segment that the condition is based on"),
-                                        new Option<string>(["--served-value", "-sv"],
-                                            "The value associated with the targeting rule. Leave it empty if the targeting rule has percentage options. It must respect the setting type"),
+                                        new Option<string>(["--served-value", "-sv"], "The value associated with the targeting rule. Leave it empty if the targeting rule has percentage options. It must respect the setting type"),
                                         new PercentageOptionArgument()
                                     }
                                 },
                                 new CommandDescriptor("prerequisite", "Create prerequisite flag based targeting rule",
-                                    "configcat flag-v2 targeting create prerequisite -i <flag-id> -e <environment-id> -c isIn -si <segment-id> -f true")
+                                    "configcat flag-v2 targeting rule create prerequisite -i <flag-id> -e <environment-id> -c equals -pi <prerequisite-id> -pv true -sv true")
                                 {
-                                    Aliases = new[] { "pr" },
-                                    Handler = CreateHandler<Commands.Flags.V2.FlagTargeting>(nameof(Commands.Flags.V2.FlagTargeting
-                                        .AddPrerequisiteTargetingRuleAsync)),
+                                    Aliases = ["pr"],
+                                    Handler = CreateHandler<Commands.Flags.V2.FlagTargeting>(nameof(Commands.Flags.V2.FlagTargeting.AddPrerequisiteTargetingRuleAsync)),
                                     Options = new Option[]
                                     {
                                         new Option<int>(["--flag-id", "-i", "--setting-id"], "ID of the Feature Flag or Setting")
                                         {
                                             Name = "--flag-id"
                                         },
-                                        new Option<string>(["--environment-id", "-e"],
-                                            "ID of the Environment where the rule must be created"),
+                                        new Option<string>(["--environment-id", "-e"], "ID of the Environment where the rule must be created"),
                                         new Option<string>(["--comparator", "-c"], "The operator which defines the relation between the evaluated value of the prerequisite flag and the comparison value")
                                             .AddSuggestions(Constants.PrerequisiteComparatorTypes.Keys.ToArray()),
                                         new Option<int>(["--prerequisite-id", "-pi"], "ID of the prerequisite flag that the condition is based on"),
                                         new Option<string>(["--prerequisite-value", "-pv"], "The evaluated value of the prerequisite flag is compared to. It must respect the prerequisite flag's setting type"),
-                                        new Option<string>(["--served-value", "-sv"],
-                                            "The value associated with the targeting rule. Leave it empty if the targeting rule has percentage options. It must respect the setting type"),
+                                        new Option<string>(["--served-value", "-sv"], "The value associated with the targeting rule. Leave it empty if the targeting rule has percentage options. It must respect the setting type"),
                                         new PercentageOptionArgument()
                                     }
                                 },
+                            ]
+                        },
+                        new CommandDescriptor("rm", "Remove targeting rule",
+                            "configcat flag-v2 targeting rule rm -i <flag-id> -e <environment-id> -rp 1")
+                        {
+                            Handler = CreateHandler<Commands.Flags.V2.FlagTargeting>(nameof(Commands.Flags.V2.FlagTargeting.DeleteRuleAsync)),
+                            Options = new Option[]
+                            {
+                                new Option<int>(["--flag-id", "-i", "--setting-id"], "ID of the Feature Flag or Setting")
+                                {
+                                    Name = "--flag-id"
+                                },
+                                new Option<string>(["--environment-id", "-e"], "ID of the Environment where the rule must be removed"),
+                                new Option<int>(["--rule-position", "-rp"], "The position of the targeting rule to remove"),
+                            }
+                        },
+                        new CommandDescriptor("move", "Move targeting rule",
+                            "configcat flag-v2 targeting rule mv -i <flag-id> -e <environment-id> --from 1 --to 2")
+                        {
+                            Aliases = ["mv"],
+                            Handler = CreateHandler<Commands.Flags.V2.FlagTargeting>(nameof(Commands.Flags.V2.FlagTargeting.MoveTargetingRuleAsync)),
+                            Options = new Option[]
+                            {
+                                new Option<int>(["--flag-id", "-i", "--setting-id"], "ID of the Feature Flag or Setting")
+                                {
+                                    Name = "--flag-id"
+                                },
+                                new Option<string>(["--environment-id", "-e"], "ID of the Environment where the rule should be moved"),
+                                new Option<int?>(["--from"], "The position of the targeting rule to move"),
+                                new Option<int?>(["--to"], "The desired position of the targeting rule"),
+                            }
+                        },
+                        new CommandDescriptor("update-served-value", "Update a targeting rule's served value",
+                            "configcat flag-v2 targeting rule usv -i <flag-id> -e <environment-id> -rp 1 -sv true")
+                        {
+                            Aliases = ["usv"],
+                            Handler = CreateHandler<Commands.Flags.V2.FlagTargeting>(nameof(Commands.Flags.V2.FlagTargeting.UpdateRuleServedValueAsync)),
+                            Options = new Option[]
+                            {
+                                new Option<int>(["--flag-id", "-i", "--setting-id"], "ID of the Feature Flag or Setting")
+                                {
+                                    Name = "--flag-id"
+                                },
+                                new Option<string>(["--environment-id", "-e"], "ID of the Environment where the rule should be moved"),
+                                new Option<int>(["--rule-position", "-rp"], "The position of the targeting rule"),
+                                new Option<string>(["--served-value", "-sv"], "The value associated with the targeting rule. Leave it empty if the targeting rule has percentage options. It must respect the setting type"),
+                                new PercentageOptionArgument()
                             }
                         }
-            },
+                     ]
+                 },
+                 new CommandDescriptor("condition", "Manage conditions")
+                 {
+                     Aliases = ["c"],
+                     SubCommands = 
+                     [
+                     new CommandDescriptor("add", "Add new condition")
+                        {
+                            Aliases = ["a"],
+                            SubCommands = 
+                            [
+                                new CommandDescriptor("user", "Add new user based condition",
+                                    "configcat flag-v2 targeting condition add user -i <flag-id> -e <environment-id> -rp 1 -a Email -c contains -cv @example.com -f true")
+                                {
+                                    Aliases = ["u"],
+                                    Handler = CreateHandler<Commands.Flags.V2.FlagTargeting>(nameof(Commands.Flags.V2.FlagTargeting.AddUserConditionAsync)),
+                                    Options = new Option[]
+                                    {
+                                        new Option<int>(["--flag-id", "-i", "--setting-id"], "ID of the Feature Flag or Setting")
+                                        {
+                                            Name = "--flag-id"
+                                        },
+                                        new Option<string>(["--environment-id", "-e"], "ID of the Environment where the condition must be created"),
+                                        new Option<int>(["--rule-position", "-rp"], "The position of the targeting rule to which the condition is added"),
+                                        new Option<string>(["--attribute", "-a"], "The User Object attribute that the condition is based on"),
+                                        new Option<string>(["--comparator", "-c"], "The operator which defines the relation between the comparison attribute and the comparison value")
+                                            .AddSuggestions(Constants.UserComparatorTypes.Keys.ToArray()),
+                                        new Option<string[]>(["--comparison-value", "-cv"], "The value that the User Object attribute is compared to. Can be a double, string, or value-hint list in the format: `<value>:<hint>`"),
+                                    }
+                                },
+                                new CommandDescriptor("segment", "Add new segment based condition",
+                                    "configcat flag-v2 targeting condition add segment -i <flag-id> -e <environment-id> -rp 1 -c isIn -si <segment-id> -f true")
+                                {
+                                    Aliases = ["sg"],
+                                    Handler = CreateHandler<Commands.Flags.V2.FlagTargeting>(nameof(Commands.Flags.V2.FlagTargeting.AddSegmentConditionAsync)),
+                                    Options = new Option[]
+                                    {
+                                        new Option<int>(["--flag-id", "-i", "--setting-id"], "ID of the Feature Flag or Setting")
+                                        {
+                                            Name = "--flag-id"
+                                        },
+                                        new Option<string>(["--environment-id", "-e"], "ID of the Environment where the condition must be created"),
+                                        new Option<int>(["--rule-position", "-rp"], "The position of the targeting rule to which the condition is added"),
+                                        new Option<string>(["--comparator", "-c"], "The operator which defines the expected result of the evaluation of the segment")
+                                            .AddSuggestions(Constants.SegmentComparatorTypes.Keys.ToArray()),
+                                        new Option<string>(["--segment-id", "-si"], "ID of the segment that the condition is based on")
+                                    }
+                                },
+                                new CommandDescriptor("prerequisite", "Add new prerequisite flag based condition",
+                                    "configcat flag-v2 targeting condition add prerequisite -i <flag-id> -e <environment-id> -rp 1 -c equals -pi <prerequisite-id> -pv true")
+                                {
+                                    Aliases = ["pr"],
+                                    Handler = CreateHandler<Commands.Flags.V2.FlagTargeting>(nameof(Commands.Flags.V2.FlagTargeting.AddPrerequisiteConditionAsync)),
+                                    Options = new Option[]
+                                    {
+                                        new Option<int>(["--flag-id", "-i", "--setting-id"], "ID of the Feature Flag or Setting")
+                                        {
+                                            Name = "--flag-id"
+                                        },
+                                        new Option<string>(["--environment-id", "-e"], "ID of the Environment where the condition must be created"),
+                                        new Option<int>(["--rule-position", "-rp"], "The position of the targeting rule to which the condition is added"),
+                                        new Option<string>(["--comparator", "-c"], "The operator which defines the relation between the evaluated value of the prerequisite flag and the comparison value")
+                                            .AddSuggestions(Constants.PrerequisiteComparatorTypes.Keys.ToArray()),
+                                        new Option<int>(["--prerequisite-id", "-pi"], "ID of the prerequisite flag that the condition is based on"),
+                                        new Option<string>(["--prerequisite-value", "-pv"], "The evaluated value of the prerequisite flag is compared to. It must respect the prerequisite flag's setting type")
+                                    }
+                                },
+                            ]
+                        },
+                        new CommandDescriptor("rm", "Remove condition",
+                            "configcat flag-v2 targeting condition rm -i <flag-id> -e <environment-id> -rp 1")
+                        {
+                            Handler = CreateHandler<Commands.Flags.V2.FlagTargeting>(nameof(Commands.Flags.V2.FlagTargeting.DeleteConditionAsync)),
+                            Options = new Option[]
+                            {
+                                new Option<int>(["--flag-id", "-i", "--setting-id"], "ID of the Feature Flag or Setting")
+                                {
+                                    Name = "--flag-id"
+                                },
+                                new Option<string>(["--environment-id", "-e"], "ID of the Environment where the condition must be removed"),
+                                new Option<int>(["--rule-position", "-rp"], "The position of the targeting rule"),
+                                new Option<int>(["--condition-position", "-cp"], "The position of the condition to remove"),
+                            }
+                        },
+                     ]
+                 },
+                 new CommandDescriptor("percentage", "Manage percentage-only rules")
+                 {
+                     Aliases = new[] { "%" },
+                     SubCommands = new[]
+                     {
+                         new CommandDescriptor("update", "Update or add the last percentage-only targeting rule", "configcat flag-v2 targeting % update -i <flag-id> -e <environment-id> -po 30:true 70:false")
+                         {
+                             Aliases = new[] { "up" },
+                             Handler = CreateHandler<Commands.Flags.V2.FlagPercentage>(nameof(Commands.Flags.V2.FlagPercentage.UpdatePercentageRulesAsync)),
+                             Options = new Option[]
+                             {
+                                 new Option<int>(["--flag-id", "-i", "--setting-id"], "ID of the Feature Flag or Setting")
+                                 {
+                                     Name = "--flag-id"
+                                 },
+                                 new Option<string>(["--environment-id", "-e"], "ID of the Environment where the update must be applied"),
+                                 new PercentageOptionArgument()
+                             }
+                         },
+                         new CommandDescriptor("clear", "Delete the last percentage-only rule", "configcat flag-v2 targeting % clear -i <flag-id> -e <environment-id>")
+                         {
+                             Aliases = new[] { "clr" },
+                             Handler = CreateHandler<Commands.Flags.V2.FlagPercentage>(nameof(Commands.Flags.V2.FlagPercentage.DeletePercentageRulesAsync)),
+                             Options = new Option[]
+                             {
+                                 new Option<int>(["--flag-id", "-i", "--setting-id"], "ID of the Feature Flag or Setting")
+                                 {
+                                     Name = "--flag-id"
+                                 },
+                                 new Option<string>(["--environment-id", "-e"], "ID of the Environment from where the rule must be deleted"),
+                             }
+                         },
+                         new CommandDescriptor("attribute", "Set the percentage evaluation attribute", "configcat flag-v2 targeting % attribute -i <flag-id> -e <environment-id>")
+                         {
+                             Aliases = new[] { "at" },
+                             Handler = CreateHandler<Commands.Flags.V2.FlagPercentage>(nameof(Commands.Flags.V2.FlagPercentage.UpdatePercentageAttributeAsync)),
+                             Options = new Option[]
+                             {
+                                 new Option<int>(["--flag-id", "-i", "--setting-id"], "ID of the Feature Flag or Setting")
+                                 {
+                                     Name = "--flag-id"
+                                 },
+                                 new Option<string>(["--environment-id", "-e"], "ID of the Environment from where the rules must be deleted"),
+                                 new Option<string>(["--attribute-name", "-n"], "The User Object attribute which serves as the basis of percentage options evaluation")
+                             }
+                         },
+                     }
+                 }
+            ],
         };
     
     private static CommandDescriptor[] ManageFlagCommands =

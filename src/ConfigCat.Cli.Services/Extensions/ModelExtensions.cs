@@ -19,6 +19,9 @@ public static class ModelExtensions
         };
     }
 
+    public static bool IsEmpty(this ValueModel model) =>
+        model is null || (model.DoubleValue is null && model.BoolValue is null && model.IntValue is null && model.StringValue is null);
+
     public static string ToStringValue(this ComparisonValueModel model)
     {
         if (!string.IsNullOrWhiteSpace(model.StringValue))

@@ -45,6 +45,8 @@ internal class FlagValueV2(
                     EnvironmentId = environment.EnvironmentId,
                     EnvironmentName = environment.Name,
                     TargetingRules = value.TargetingRules,
+                    DefaultValue = value.DefaultValue,
+                    PercentageEvaluationAttribute = value.PercentageEvaluationAttribute,
                 });
             }
 
@@ -163,8 +165,14 @@ internal class FlagValueV2(
                             {
                                 output.WriteLine()
                                     .WriteDarkGray("|     ")
-                                    .WriteCyan($"{percentage.Percentage}%")
-                                    .WriteDarkGray(" -> ")
+                                    .WriteCyan($"{percentage.Percentage}%");
+                                if (!value.PercentageEvaluationAttribute.IsEmpty())
+                                {
+                                    output.WriteDarkGray(" of ")
+                                        .WriteCyan(value.PercentageEvaluationAttribute)
+                                        .WriteDarkGray(" attribute");
+                                }
+                                output.WriteDarkGray(" -> ")
                                     .WriteMagenta(percentage.Value.ToSingle(flag.SettingType).ToString());
                             }
                         }
@@ -174,16 +182,28 @@ internal class FlagValueV2(
                             {
                                 if (i == 0)
                                 {
-                                    output.WriteCyan($" {percentage.Percentage}%")
-                                        .WriteDarkGray(" -> ")
+                                    output.WriteCyan($" {percentage.Percentage}%");
+                                    if (!value.PercentageEvaluationAttribute.IsEmpty())
+                                    {
+                                        output.WriteDarkGray(" of ")
+                                            .WriteCyan(value.PercentageEvaluationAttribute)
+                                            .WriteDarkGray(" attribute");
+                                    }
+                                    output.WriteDarkGray(" -> ")
                                         .WriteMagenta(percentage.Value.ToSingle(flag.SettingType).ToString());
                                 }
                                 else
                                 {
                                     output.WriteLine()
                                         .WriteDarkGray("|    ")
-                                        .WriteCyan($"{percentage.Percentage}%")
-                                        .WriteDarkGray(" -> ")
+                                        .WriteCyan($"{percentage.Percentage}%");
+                                    if (!value.PercentageEvaluationAttribute.IsEmpty())
+                                    {
+                                        output.WriteDarkGray(" of ")
+                                            .WriteCyan(value.PercentageEvaluationAttribute)
+                                            .WriteDarkGray(" attribute");
+                                    }
+                                    output.WriteDarkGray(" -> ")
                                         .WriteMagenta(percentage.Value.ToSingle(flag.SettingType).ToString());
                                 }
                             }
@@ -237,13 +257,14 @@ internal class FlagValueV2(
 internal class FlagValueV2JsonOutput
 {
     public FlagModel Setting { get; set; }
-
     public IEnumerable<ValueV2InEnvironmentJsonOutput> Values { get; set; }
 }
 
-internal class ValueV2InEnvironmentJsonOutput : FlagValueV2Model
+internal class ValueV2InEnvironmentJsonOutput
 {
     public string EnvironmentId { get; set; }
-
     public string EnvironmentName { get; set; }
+    public ValueModel DefaultValue { get; set; }
+    public List<TargetingRuleModel> TargetingRules { get; set; }
+    public string PercentageEvaluationAttribute { get; set; }
 }

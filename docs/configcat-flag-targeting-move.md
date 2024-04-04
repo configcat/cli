@@ -15,7 +15,7 @@ configcat flag targeting move -i <flag-id> -e <environment-id> --from 0 --to 1
 | ------ | ----------- |
 | `--flag-id`, `-i`, `--setting-id` | ID of the Feature Flag or Setting |
 | `--environment-id`, `-e` | ID of the Environment where the move must be applied |
-| `--from` | The position of the targeting rule to delete |
+| `--from` | The position of the targeting rule to move |
 | `--to` | The desired position of the targeting rule |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |
 | `--non-interactive`, `-ni` | Turn off progress rendering and interactive features |
