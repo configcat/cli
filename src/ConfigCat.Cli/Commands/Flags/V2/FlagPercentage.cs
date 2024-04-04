@@ -114,7 +114,7 @@ internal class FlagPercentage(IPrompt prompt, IOutput output, IWorkspaceLoader w
         if (items is null) throw new ShowHelpException($"Percentage options are required");
         return items.Select(i =>
         {
-            if (!int.TryParse(i[0], out var percentage)) throw new ShowHelpException($"Percentage value '{i[0]}' is invalid");
+            if (!int.TryParse(i[0], out var percentage) || percentage < 0) throw new ShowHelpException($"Percentage value '{i[0]}' is invalid");
             return new PercentageOptionModel
             {
                 Percentage = percentage,
