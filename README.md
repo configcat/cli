@@ -114,7 +114,7 @@ Parameter | Description | Default value
 `-v`, `--version` | The desired version to install. | `latest`
 `-a`, `--arch` | The desired architecture to install. | `x64`
 
-Available **architecture** values for Linux: `x64`, `musl-x64`, `arm`, `arm64`.
+Available **architecture** values for Linux: `x64`, `musl-x64`, `musl-arm64`, `arm`, `arm64`.
 
 Available **architecture** values for macOS: `x64`, `arm64`.
 
