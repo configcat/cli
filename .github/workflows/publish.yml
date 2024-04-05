@@ -29,7 +29,7 @@ jobs:
         cp README.md publish/${{ matrix.arch }}/README.md
 
     - name: Archive executables
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: executables
         path: publish
@@ -56,7 +56,7 @@ jobs:
         cp README.md publish/${{ matrix.arch }}/README.md
 
     - name: Archive executables
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: executables
         path: publish
@@ -84,7 +84,7 @@ jobs:
       id: build
 
     - name: Archive snap
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: snap-pack
         path: configcat_*.snap
@@ -129,7 +129,7 @@ jobs:
       run: choco pack choco\configcat.nuspec
 
     - name: Archive choco package
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: choco-pack
         path: configcat.*.nupkg
@@ -243,7 +243,7 @@ jobs:
         configcat-cli_${{ env.VERSION }}_win-arm64.zip > configcat-cli_${{ env.VERSION }}_checksums.sha256
 
     - name: Archive tars for brew
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: brew-pack
         path: |
@@ -252,7 +252,7 @@ jobs:
           configcat-cli_${{ env.VERSION }}_osx-arm64.tar.gz
 
     - name: Archive zips for scoop
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: scoop-pack
         path: |
