@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using ConfigCat.Cli.Models.Api;
+using ConfigCat.Cli.Services.Exceptions;
 
 namespace System;
 
@@ -18,7 +20,7 @@ public static class SystemExtensions
 
     public static bool IsEmpty(this string value) =>
         string.IsNullOrWhiteSpace(value);
-    
+
     public static string NullIfEmpty(this string value) =>
         string.IsNullOrWhiteSpace(value) ? null : value;
 
@@ -50,6 +52,40 @@ public static class SystemExtensions
         }
     }
 
+    public static ValueModel ToFlagValue(this string value, string settingType)
+    {
+        switch (settingType)
+        {
+            case SettingTypes.Boolean:
+                if (bool.TryParse(value, out var boolParsed))
+                    return new ValueModel { BoolValue = boolParsed };
+                break;
+            case SettingTypes.Int:
+                if (int.TryParse(value, out var intParsed))
+                    return new ValueModel { IntValue = intParsed };
+                break;
+            case SettingTypes.Double:
+                if (double.TryParse(value, out var doubleParsed)) 
+                    return new ValueModel { DoubleValue = doubleParsed };
+                break;
+            case SettingTypes.String:
+                return new ValueModel { StringValue = value };
+        }
+        throw new ShowHelpException($"Value '{value}' doesn't conform the setting type '{settingType}'");
+    }
+
+    public static string ToValuePropertyName(this string settingType)
+    {
+        return settingType switch
+        {
+            SettingTypes.Boolean => "boolValue",
+            SettingTypes.String => "stringValue",
+            SettingTypes.Int => "intValue",
+            SettingTypes.Double => "doubleValue",
+            _ => ""
+        };
+    }
+
     public static string GetDefaultValueForType(this string type) =>
         type switch
         {
@@ -58,5 +94,46 @@ public static class SystemExtensions
             SettingTypes.Double => "3.14",
             SettingTypes.String => "initial value",
             _ => ""
+        };
+
+    public static string Cut(this string text, int length)
+        => text == null ? string.Empty : text.Length > length ? $"{text[..(length - 3)]}..." : text;
+
+    public static bool IsListComparator(this string comparator) =>
+        comparator switch
+        {
+            "sensitiveIsOneOf" or
+                "sensitiveIsNotOneOf" or
+                "semVerIsOneOf" or
+                "semVerIsNotOneOf" or
+                "containsAnyOf" or
+                "doesNotContainAnyOf" or
+                "sensitiveTextStartsWithAnyOf" or
+                "sensitiveTextNotStartsWithAnyOf" or
+                "sensitiveTextEndsWithAnyOf" or
+                "sensitiveTextNotEndsWithAnyOf" or
+                "sensitiveArrayContainsAnyOf" or
+                "sensitiveArrayDoesNotContainAnyOf" or
+                "isOneOf" or
+                "isNotOneOf" or
+                "textStartsWithAnyOf" or
+                "textNotStartsWithAnyOf" or
+                "textEndsWithAnyOf" or
+                "textNotEndsWithAnyOf" or
+                "arrayContainsAnyOf" or
+                "arrayDoesNotContainAny" => true,
+            _ => false
+        };
+    
+    public static bool IsNumberComparator(this string comparator) =>
+        comparator switch
+        {
+            "numberEquals" or
+                "numberDoesNotEqual" or
+                "numberLess" or
+                "numberLessOrEquals" or
+                "numberGreater" or
+                "numberGreaterOrEquals" => true,
+            _ => false
         };
 }

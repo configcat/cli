@@ -3,14 +3,9 @@ using System.Security.Cryptography;
 
 namespace ConfigCat.Cli.Tests.Fakes
 {
-    public class FakeRandomNumberGenerator : RandomNumberGenerator
+    public class FakeRandomNumberGenerator(int seed = 0) : RandomNumberGenerator
     {
-        private Random random;
-
-        public FakeRandomNumberGenerator(int seed = 0)
-        {
-            this.random = new Random(seed);
-        }
+        private Random random = new(seed);
 
         public override void GetBytes(byte[] data) => this.random.NextBytes(data);
     }

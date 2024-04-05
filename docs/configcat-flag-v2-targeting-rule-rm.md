@@ -1,0 +1,23 @@
+# configcat flag-v2 targeting rule rm
+Remove targeting rule
+## Usage
+```
+configcat flag-v2 targeting rule rm [options]
+```
+## Example
+```
+configcat flag-v2 targeting rule rm -i <flag-id> -e <environment-id> -rp 1
+```
+## Options
+| Option | Description |
+| ------ | ----------- |
+| `--flag-id`, `-i`, `--setting-id` | ID of the Feature Flag or Setting |
+| `--environment-id`, `-e` | ID of the Environment where the rule must be removed |
+| `--rule-position`, `-rp` | The position of the targeting rule to remove |
+| `--verbose`, `-v`, `/v` | Print detailed execution information |
+| `--non-interactive`, `-ni` | Turn off progress rendering and interactive features |
+| `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |
+## Parent Command
+| Command | Description |
+| ------ | ----------- |
+| [configcat flag-v2 targeting rule](configcat-flag-v2-targeting-rule.md) | Manage targeting rules |

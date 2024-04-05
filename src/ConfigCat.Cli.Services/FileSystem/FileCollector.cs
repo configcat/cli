@@ -13,18 +13,11 @@ public interface IFileCollector
     Task<IEnumerable<FileInfo>> CollectAsync(DirectoryInfo rootDirectory, CancellationToken token);
 }
 
-public class FileCollector : IFileCollector
+public class FileCollector(IOutput output) : IFileCollector
 {
-    private readonly IOutput output;
-
-    public FileCollector(IOutput output)
-    {
-        this.output = output;
-    }
-
     public async Task<IEnumerable<FileInfo>> CollectAsync(DirectoryInfo rootDirectory, CancellationToken token)
     {
-        using var spinner = this.output.CreateSpinner(token);
+        using var spinner = output.CreateSpinner(token);
 
         var files = rootDirectory.GetFiles("*", new EnumerationOptions
         {

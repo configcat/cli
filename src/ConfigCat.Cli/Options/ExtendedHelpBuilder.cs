@@ -6,21 +6,18 @@ using System.Linq;
 
 namespace ConfigCat.Cli.Options;
 
-public class ExtendedHelpBuilder : HelpBuilder
+public class ExtendedHelpBuilder(IConsole console, int maxWidth = int.MaxValue) : HelpBuilder(console, maxWidth)
 {
-    public ExtendedHelpBuilder(IConsole console, int maxWidth = int.MaxValue) : base(console, maxWidth)
-    { }
-
     public override void Write(ICommand command)
     {
         base.Write(command);
 
-        if (base.GetSubcommands(command).Any())
-        {
-            var parents = GetCommandList(command).Reverse().ToArray();
-            var parentsPart = parents.Any() ? $"{string.Join(' ', parents)} " : string.Empty;
-            base.Console.Out.WriteLine($"Use \"{parentsPart}[command] -?\" for more information about a command.");
-        }
+        if (!base.GetSubcommands(command).Any()) return;
+        var parents = GetCommandList(command).Reverse().ToArray();
+        var parentsPart = parents.Length != 0 ? $"{string.Join(' ', parents)} " : string.Empty;
+        base.Console.Out.WriteLine($"Use \"{parentsPart}[command] -?\" for more information about a command.");
+
+        return;
 
         IEnumerable<string> GetCommandList(ISymbol commandToCheck)
         {

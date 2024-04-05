@@ -14,16 +14,13 @@ public interface IOrganizationClient
     Task<IEnumerable<OrganizationModel>> GetOrganizationsAsync(CancellationToken token);
 }
 
-public class OrganizationClient : ApiClient, IOrganizationClient
+public class OrganizationClient(
+    IOutput output,
+    CliConfig config,
+    IBotPolicy<HttpResponseMessage> botPolicy,
+    HttpClient httpClient)
+    : ApiClient(output, config, botPolicy, httpClient), IOrganizationClient
 {
-    public OrganizationClient(IOutput output,
-        CliConfig config,
-        IBotPolicy<HttpResponseMessage> botPolicy,
-        HttpClient httpClient)
-        : base(output, config, botPolicy, httpClient)
-    {
-    }
-
     public Task<IEnumerable<OrganizationModel>> GetOrganizationsAsync(CancellationToken token) =>
         this.GetAsync<IEnumerable<OrganizationModel>>(HttpMethod.Get, "v1/organizations", token);
 }

@@ -2,15 +2,11 @@
 
 namespace ConfigCat.Cli.Options;
 
-internal class NonInteractiveOption : Option<bool>
+internal class NonInteractiveOption() : Option<bool>([
+    "--non-interactive",
+    "-ni"
+], "Turn off progress rendering and interactive features")
 {
-    public NonInteractiveOption() : base(new[]
-    {
-        "--non-interactive",
-        "-ni"
-    }, "Turn off progress rendering and interactive features")
-    { }
-
     public override bool Equals(object obj)
     {
         return obj is NonInteractiveOption;

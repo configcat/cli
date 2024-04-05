@@ -40,11 +40,11 @@ public abstract class ApiClient
                 .WhenResultIs(response => (int)response.StatusCode >= 500 ||
                                           response.StatusCode is System.Net.HttpStatusCode.RequestTimeout or System.Net.HttpStatusCode.TooManyRequests)
                 .WithMaxAttemptCount(3)
-                .WaitBetweenAttempts((attempt, exception, result) =>
+                .WaitBetweenAttempts((attempt, _, result) =>
                 {
                     var backoffTime = TimeSpan.FromSeconds(Math.Pow(2, attempt));
                     if (result is not { StatusCode: System.Net.HttpStatusCode.TooManyRequests }) return backoffTime;
-                    var retryAfter = result.Headers.RetryAfter.Delta;
+                    var retryAfter = result.Headers.RetryAfter?.Delta;
                     return retryAfter ?? backoffTime;
                 })
                 .OnRetry(this.LogRetry)
@@ -138,7 +138,7 @@ public abstract class ApiClient
         {
             var isRetrying = ctx.GenericData.ContainsKey(RetryingIdentifier);
             var currentRequest = isRetrying ? await request.CloneAsync() : request;
-            return await this.httpClient.SendAsync(await request.CloneAsync(), cancellationToken);
+            return await this.httpClient.SendAsync(currentRequest, cancellationToken);
         }, token);
     }
 

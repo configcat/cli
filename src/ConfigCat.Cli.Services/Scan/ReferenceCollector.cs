@@ -19,7 +19,7 @@ public interface IReferenceCollector
 
 public class ReferenceCollector : IReferenceCollector
 {
-    private static readonly string[] Prefixes = { "::", ".", "->" };
+    private static readonly string[] Prefixes = ["::", ".", "->"];
     private readonly IBotPolicy<FlagReferenceResult> botPolicy;
     private readonly IOutput output;
 
@@ -141,21 +141,12 @@ public class ReferenceCollector : IReferenceCollector
         }
     }
 
-    private class LineTracker
+    private class LineTracker(int contextLineCount)
     {
-        private readonly List<Trackable> trackedReferences;
-        private readonly Queue<Line> preContextLineBuffer;
-        private readonly int contextLineCount;
+        private readonly List<Trackable> trackedReferences = [];
+        private readonly Queue<Line> preContextLineBuffer = new(contextLineCount);
 
-        public List<Reference> FinishedReferences { get; }
-
-        public LineTracker(int contextLineCount)
-        {
-            this.preContextLineBuffer = new Queue<Line>(contextLineCount);
-            this.trackedReferences = new List<Trackable>();
-            this.FinishedReferences = new List<Reference>();
-            this.contextLineCount = contextLineCount;
-        }
+        public List<Reference> FinishedReferences { get; } = [];
 
         public void AddLine(string line, int lineNumber)
         {
@@ -174,7 +165,7 @@ public class ReferenceCollector : IReferenceCollector
                 MatchedSample = matchedSample
             };
             this.trackedReferences.Add(new Trackable
-                { RemainingContextLines = this.contextLineCount, FlagReference = reference });
+                { RemainingContextLines = contextLineCount, FlagReference = reference });
         }
 
         public void FinishAll()
@@ -203,10 +194,10 @@ public class ReferenceCollector : IReferenceCollector
 
         private void HandleBufferQueue(Line currentLine)
         {
-            if (this.contextLineCount <= 0)
+            if (contextLineCount <= 0)
                 return;
 
-            if (this.preContextLineBuffer.Count == this.contextLineCount)
+            if (this.preContextLineBuffer.Count == contextLineCount)
                 this.preContextLineBuffer.Dequeue();
 
             this.preContextLineBuffer.Enqueue(currentLine);

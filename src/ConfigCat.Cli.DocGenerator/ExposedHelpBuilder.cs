@@ -5,11 +5,8 @@ using System.CommandLine.IO;
 
 namespace ConfigCat.Cli.DocGenerator;
 
-internal class ExposedHelpBuilder : HelpBuilder
+internal class ExposedHelpBuilder() : HelpBuilder(new MockConsole())
 {
-    public ExposedHelpBuilder() : base(new MockConsole())
-    { }
-
     public string ExposeGetUsage(ICommand command)
     { 
         var description = GetUsage(command);

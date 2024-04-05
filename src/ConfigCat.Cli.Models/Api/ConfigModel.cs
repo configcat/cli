@@ -7,6 +7,8 @@ public class ConfigModel
     public string ConfigId { get; set; }
 
     public string Name { get; set; }
+    
+    public string EvaluationVersion { get; set; }
 
     public string Description { get; set; }
 }

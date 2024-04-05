@@ -2,10 +2,8 @@ FROM alpine:3.19
 
 RUN apk add --no-cache \
         git \
-        openssh-client \
         ca-certificates \
-        krb5-libs \
-        libintl \
+        libgcc \
         libssl3 \
         libstdc++ \
         zlib

@@ -22,15 +22,13 @@ public interface IPermissionGroupClient
     Task DeletePermissionGroupAsync(long permissionGroupId, CancellationToken token);
 }
 
-public class PermissionGroupClient : ApiClient, IPermissionGroupClient
+public class PermissionGroupClient(
+    IOutput output,
+    CliConfig config,
+    IBotPolicy<HttpResponseMessage> botPolicy,
+    HttpClient httpClient)
+    : ApiClient(output, config, botPolicy, httpClient), IPermissionGroupClient
 {
-    public PermissionGroupClient(IOutput output,
-        CliConfig config,
-        IBotPolicy<HttpResponseMessage> botPolicy,
-        HttpClient httpClient)
-        : base(output, config, botPolicy, httpClient)
-    { }
-
     public Task<IEnumerable<PermissionGroupModel>> GetPermissionGroupsAsync(string productId, CancellationToken token) =>
         this.GetAsync<IEnumerable<PermissionGroupModel>>(HttpMethod.Get, $"v1/products/{productId}/permissions", token);
 

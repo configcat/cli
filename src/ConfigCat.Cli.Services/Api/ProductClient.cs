@@ -22,15 +22,13 @@ public interface IProductClient
     Task DeleteProductAsync(string productId, CancellationToken token);
 }
 
-public class ProductClient : ApiClient, IProductClient
+public class ProductClient(
+    IOutput output,
+    CliConfig config,
+    IBotPolicy<HttpResponseMessage> botPolicy,
+    HttpClient httpClient)
+    : ApiClient(output, config, botPolicy, httpClient), IProductClient
 {
-    public ProductClient(IOutput output,
-        CliConfig config,
-        IBotPolicy<HttpResponseMessage> botPolicy,
-        HttpClient httpClient)
-        : base(output, config, botPolicy, httpClient)
-    { }
-
     public Task<IEnumerable<ProductModel>> GetProductsAsync(CancellationToken token) =>
         this.GetAsync<IEnumerable<ProductModel>>(HttpMethod.Get, "v1/products", token);
 

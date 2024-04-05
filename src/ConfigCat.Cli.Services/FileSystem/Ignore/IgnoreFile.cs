@@ -8,7 +8,7 @@ namespace ConfigCat.Cli.Services.FileSystem.Ignore;
 
 internal class IgnoreFile : IgnorePolicy
 {
-    public static readonly string[] IgnoreFileNames = new[] { ".gitignore", ".ccignore", ".ignore" };
+    public static readonly string[] IgnoreFileNames = [".gitignore", ".ccignore", ".ignore"];
 
     public FileInfo File { get; }
 

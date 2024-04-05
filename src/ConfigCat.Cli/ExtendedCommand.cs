@@ -2,12 +2,8 @@
 
 namespace ConfigCat.Cli;
 
-public class ExtendedCommand : Command
+public class ExtendedCommand(string name, string description = null, string example = null)
+    : Command(name, description)
 {
-    public string Example { get; set; }
-
-    public ExtendedCommand(string name, string description = null, string example = null) : base(name, description)
-    {
-        this.Example = example;
-    }
+    public string Example { get; set; } = example;
 }

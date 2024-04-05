@@ -14,20 +14,13 @@ public interface IConfigurationStorage
     Task WriteConfigAsync(CliConfig configuration, CancellationToken cancellationToken);
 }
 
-public class ConfigurationFileStorage : IConfigurationStorage
+public class ConfigurationFileStorage(IOutput output) : IConfigurationStorage
 {
-    private static readonly JsonSerializerOptions Options = new JsonSerializerOptions
+    private static readonly JsonSerializerOptions Options = new()
     {
         WriteIndented = true,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
-
-    private readonly IOutput output;
-
-    public ConfigurationFileStorage(IOutput output)
-    {
-        this.output = output;
-    }
 
     public async Task<CliConfig> ReadConfigOrDefaultAsync(CancellationToken cancellationToken)
     {
@@ -36,7 +29,7 @@ public class ConfigurationFileStorage : IConfigurationStorage
 
         var content = await File.ReadAllTextAsync(Constants.ConfigFilePath, cancellationToken);
         var config = JsonSerializer.Deserialize<CliConfig>(content, Options);
-        this.output.Verbose($"Config loaded from '{Constants.ConfigFilePath}'");
+        output.Verbose($"Config loaded from '{Constants.ConfigFilePath}'");
         return config;
     }
 
@@ -51,7 +44,7 @@ public class ConfigurationFileStorage : IConfigurationStorage
 
         var serialized = JsonSerializer.Serialize(configuration, Options);
 
-        this.output.Verbose($"Writing the configuration into '{Constants.ConfigFilePath}'");
+        output.Verbose($"Writing the configuration into '{Constants.ConfigFilePath}'");
         using var spinner = output.CreateSpinner(cancellationToken);
         await File.WriteAllTextAsync(Constants.ConfigFilePath, serialized, cancellationToken);
     }

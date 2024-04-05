@@ -12,24 +12,15 @@ public interface IConfigurationProvider
     Task<CliConfig> GetConfigAsync(CancellationToken cancellationToken);
 }
 
-public class ConfigurationProvider : IConfigurationProvider
+public class ConfigurationProvider(IOutput output, IConfigurationStorage configurationStorage) : IConfigurationProvider
 {
-    private readonly IOutput output;
-    private readonly IConfigurationStorage configurationStorage;
-
-    public ConfigurationProvider(IOutput output, IConfigurationStorage configurationStorage)
-    {
-        this.output = output;
-        this.configurationStorage = configurationStorage;
-    }
-
     public async Task<CliConfig> GetConfigAsync(CancellationToken cancellationToken)
     {
         var host = Environment.GetEnvironmentVariable(Constants.ApiHostEnvironmentVariableName);
         var user = Environment.GetEnvironmentVariable(Constants.ApiUserNameEnvironmentVariableName);
         var pass = Environment.GetEnvironmentVariable(Constants.ApiPasswordEnvironmentVariableName);
 
-        var config = await this.configurationStorage.ReadConfigOrDefaultAsync(cancellationToken);
+        var config = await configurationStorage.ReadConfigOrDefaultAsync(cancellationToken);
 
         if ((pass is null && config?.Auth?.Password is null) ||
             (user is null && config?.Auth?.UserName is null))
@@ -42,9 +33,9 @@ public class ConfigurationProvider : IConfigurationProvider
         var fromUser = user is not null ? $"(from env:{Constants.ApiUserNameEnvironmentVariableName})" : "(from config file)";
         var fromPass = pass is not null ? $"(from env:{Constants.ApiPasswordEnvironmentVariableName})" : "(from config file)";
 
-        this.output.Verbose($"Host: {host ?? config?.Auth?.ApiHost ?? Constants.DefaultApiHost} {fromHost}");
-        this.output.Verbose($"Username: {user ?? config.Auth.UserName} {fromUser}");
-        this.output.Verbose($"Password: <masked> {fromPass}");
+        output.Verbose($"Host: {host ?? config?.Auth?.ApiHost ?? Constants.DefaultApiHost} {fromHost}");
+        output.Verbose($"Username: {user ?? config.Auth.UserName} {fromUser}");
+        output.Verbose($"Password: <masked> {fromPass}");
 
         return new CliConfig
         {
@@ -53,6 +44,11 @@ public class ConfigurationProvider : IConfigurationProvider
                 ApiHost = host ?? config?.Auth?.ApiHost ?? Constants.DefaultApiHost,
                 Password = pass ?? config.Auth.Password,
                 UserName = user ?? config.Auth.UserName
+            },
+            Workspace = new Workspace
+            {
+                Config = config?.Workspace?.Config,
+                Product = config?.Workspace?.Product
             }
         };
     }

@@ -22,15 +22,13 @@ public interface ITagClient
     Task DeleteTagAsync(int tagId, CancellationToken token);
 }
 
-public class TagClient : ApiClient, ITagClient
+public class TagClient(
+    IOutput output,
+    CliConfig config,
+    IBotPolicy<HttpResponseMessage> botPolicy,
+    HttpClient httpClient)
+    : ApiClient(output, config, botPolicy, httpClient), ITagClient
 {
-    public TagClient(IOutput output,
-        CliConfig config,
-        IBotPolicy<HttpResponseMessage> botPolicy,
-        HttpClient httpClient)
-        : base(output, config, botPolicy, httpClient)
-    { }
-
     public Task<IEnumerable<TagModel>> GetTagsAsync(string productId, CancellationToken token) =>
         this.GetAsync<IEnumerable<TagModel>>(HttpMethod.Get, $"v1/products/{productId}/tags", token);
 

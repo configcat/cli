@@ -11,7 +11,7 @@ namespace ConfigCat.Cli.Services.Api;
 
 public interface IMemberClient
 {
-    Task<IEnumerable<MemberModel>> GetOrganizationMembersAsync(string organizationId, CancellationToken token);
+    Task<OrganizationMembersModel> GetOrganizationMembersAsync(string organizationId, CancellationToken token);
 
     Task<IEnumerable<ProductMemberModel>> GetProductMembersAsync(string productId, CancellationToken token);
 
@@ -24,17 +24,15 @@ public interface IMemberClient
     Task UpdateMemberAsync(string organizationId, string userId, UpdateMembersModel model, CancellationToken token);
 }
 
-public class MemberClient : ApiClient, IMemberClient
+public class MemberClient(
+    IOutput output,
+    CliConfig config,
+    IBotPolicy<HttpResponseMessage> botPolicy,
+    HttpClient httpClient)
+    : ApiClient(output, config, botPolicy, httpClient), IMemberClient
 {
-    public MemberClient(IOutput output,
-        CliConfig config,
-        IBotPolicy<HttpResponseMessage> botPolicy,
-        HttpClient httpClient)
-        : base(output, config, botPolicy, httpClient)
-    { }
-
-    public Task<IEnumerable<MemberModel>> GetOrganizationMembersAsync(string organizationId, CancellationToken token) =>
-        this.GetAsync<IEnumerable<MemberModel>>(HttpMethod.Get, $"v1/organizations/{organizationId}/members", token);
+    public Task<OrganizationMembersModel> GetOrganizationMembersAsync(string organizationId, CancellationToken token) =>
+        this.GetAsync<OrganizationMembersModel>(HttpMethod.Get, $"v2/organizations/{organizationId}/members", token);
 
     public Task<IEnumerable<ProductMemberModel>> GetProductMembersAsync(string productId, CancellationToken token) =>
         this.GetAsync<IEnumerable<ProductMemberModel>>(HttpMethod.Get, $"v1/products/{productId}/members", token);

@@ -13,46 +13,28 @@ using ConfigCat.Cli.Options;
 
 namespace ConfigCat.Cli.Commands.Flags;
 
-class Flag
+class Flag(
+    IFlagClient flagClient,
+    IConfigClient configClient,
+    IProductClient productClient,
+    IEnvironmentClient environmentClient,
+    IWorkspaceLoader workspaceLoader,
+    IPrompt prompt,
+    IOutput output)
 {
-    private readonly IFlagClient flagClient;
-    private readonly IConfigClient configClient;
-    private readonly IProductClient productClient;
-    private readonly IEnvironmentClient environmentClient;
-    private readonly IWorkspaceLoader workspaceLoader;
-    private readonly IPrompt prompt;
-    private readonly IOutput output;
-
-    public Flag(IFlagClient flagClient,
-        IConfigClient configClient,
-        IProductClient productClient,
-        IEnvironmentClient environmentClient,
-        IWorkspaceLoader workspaceLoader,
-        IPrompt prompt,
-        IOutput output)
-    {
-        this.flagClient = flagClient;
-        this.configClient = configClient;
-        this.productClient = productClient;
-        this.environmentClient = environmentClient;
-        this.workspaceLoader = workspaceLoader;
-        this.prompt = prompt;
-        this.output = output;
-    }
-
     public async Task<int> ListAllFlagsAsync(string configId, string tagName, int? tagId, bool json, CancellationToken token)
     {
         var flags = new List<FlagModel>();
         if (!configId.IsEmpty())
-            flags.AddRange(await this.flagClient.GetFlagsAsync(configId, token));
+            flags.AddRange(await flagClient.GetFlagsAsync(configId, token));
         else
         {
-            var products = await this.productClient.GetProductsAsync(token);
+            var products = await productClient.GetProductsAsync(token);
             foreach (var product in products)
             {
-                var configs = await this.configClient.GetConfigsAsync(product.ProductId, token);
+                var configs = await configClient.GetConfigsAsync(product.ProductId, token);
                 foreach (var config in configs)
-                    flags.AddRange(await this.flagClient.GetFlagsAsync(config.ConfigId, token));
+                    flags.AddRange(await flagClient.GetFlagsAsync(config.ConfigId, token));
             }
         }
 
@@ -73,7 +55,7 @@ class Flag
 
         if (json)
         {
-            this.output.RenderJson(flags);
+            output.RenderJson(flags);
             return ExitCodes.Ok;
         }
 
@@ -88,7 +70,7 @@ class Flag
             Owner = $"{f.OwnerUserFullName} [{f.OwnerUserEmail}]",
             Config = $"{f.ConfigName} [{f.ConfigId}]",
         });
-        this.output.RenderTable(itemsToRender);
+        output.RenderTable(itemsToRender);
 
         return ExitCodes.Ok;
     }
@@ -106,22 +88,22 @@ class Flag
         var shouldPrompt = configId.IsEmpty();
 
         if (configId.IsEmpty())
-            configId = (await this.workspaceLoader.LoadConfigAsync(token)).ConfigId;
+            configId = (await workspaceLoader.LoadConfigAsync(token)).ConfigId;
 
         if (name.IsEmpty())
-            name = await this.prompt.GetStringAsync("Name", token);
+            name = await prompt.GetStringAsync("Name", token);
 
         if (hint.IsEmpty())
-            hint = await this.prompt.GetStringAsync("Hint", token);
+            hint = await prompt.GetStringAsync("Hint", token);
 
         if (key.IsEmpty())
-            key = await this.prompt.GetStringAsync("Key", token);
+            key = await prompt.GetStringAsync("Key", token);
 
         if (type.IsEmpty())
-            type = await this.prompt.ChooseFromListAsync("Choose type", SettingTypes.Collection.ToList(), t => t, token);
+            type = await prompt.ChooseFromListAsync("Choose type", SettingTypes.Collection.ToList(), t => t, token);
 
         if (shouldPrompt && tagIds.IsEmpty())
-            tagIds = (await this.workspaceLoader.LoadTagsAsync(token, configId, optional: true)).Select(t => t.TagId).ToArray();
+            tagIds = (await workspaceLoader.LoadTagsAsync(token, configId, optional: true)).Select(t => t.TagId).ToArray();
 
         if (!SettingTypes.Collection.ToList()
                 .Contains(type, StringComparer.OrdinalIgnoreCase))
@@ -144,17 +126,17 @@ class Flag
         List<EnvironmentModel> environments = null;
         if (shouldPrompt && initValue.IsEmpty() && initValuesPerEnvironment.IsEmpty())
         {
-            config = await this.configClient.GetConfigAsync(configId, token);
-            environments = (await this.environmentClient.GetEnvironmentsAsync(config.Product.ProductId, token)).ToList();
+            config = await configClient.GetConfigAsync(configId, token);
+            environments = (await environmentClient.GetEnvironmentsAsync(config.Product.ProductId, token)).ToList();
             var defaultValue = type.GetDefaultValueForType();
             initValuesPerEnvironment = new InitialValueOption[environments.Count];
-            this.output.WriteDarkGray("Please set an initial value for each of your environments.")
+            output.WriteDarkGray("Please set an initial value for each of your environments.")
                 .WriteLine();
 
             var index = 0;
             foreach (var environment in environments)
             {
-                var fromPrompt = await this.prompt.GetStringAsync(environment.Name, token, defaultValue);
+                var fromPrompt = await prompt.GetStringAsync(environment.Name, token, defaultValue);
                 initValuesPerEnvironment[index++] = new InitialValueOption
                     { EnvironmentId = environment.EnvironmentId, Value = fromPrompt };
             }
@@ -162,8 +144,8 @@ class Flag
         
         if (parsedInitialValue is not null || !initValuesPerEnvironment.IsEmpty())
         {
-            config ??= await this.configClient.GetConfigAsync(configId, token);
-            environments ??= (await this.environmentClient.GetEnvironmentsAsync(config.Product.ProductId, token)).ToList();
+            config ??= await configClient.GetConfigAsync(configId, token);
+            environments ??= (await environmentClient.GetEnvironmentsAsync(config.Product.ProductId, token)).ToList();
             createModel.InitialValues = environments.Select(env =>
             {
                 var initial = new InitialValue { EnvironmentId = env.EnvironmentId };
@@ -182,46 +164,46 @@ class Flag
             }).Where(i => i is not null).ToList();
         }
         
-        var result = await this.flagClient.CreateFlagAsync(configId, createModel, token);
-        this.output.Write(result.SettingId.ToString());
+        var result = await flagClient.CreateFlagAsync(configId, createModel, token);
+        output.Write(result.SettingId.ToString());
 
         return ExitCodes.Ok;
     }
 
     public async Task<int> DeleteFlagAsync(int? flagId, CancellationToken token)
     {
-        flagId ??= (await this.workspaceLoader.LoadFlagAsync(token)).SettingId;
+        flagId ??= (await workspaceLoader.LoadFlagAsync(token)).SettingId;
 
-        await this.flagClient.DeleteFlagAsync(flagId.Value, token);
+        await flagClient.DeleteFlagAsync(flagId.Value, token);
         return ExitCodes.Ok;
     }
 
     public async Task<int> UpdateFlagAsync(int? flagId, UpdateFlagModel updateFlagModel, CancellationToken token)
     {
         var flag = flagId is null
-            ? await this.workspaceLoader.LoadFlagAsync(token)
-            : await this.flagClient.GetFlagAsync(flagId.Value, token);
+            ? await workspaceLoader.LoadFlagAsync(token)
+            : await flagClient.GetFlagAsync(flagId.Value, token);
 
         if (flagId is null)
         {
             if (updateFlagModel.Name.IsEmpty())
-                updateFlagModel.Name = await this.prompt.GetStringAsync("Name", token, flag.Name);
+                updateFlagModel.Name = await prompt.GetStringAsync("Name", token, flag.Name);
 
             if (updateFlagModel.Hint.IsEmpty())
-                updateFlagModel.Hint = await this.prompt.GetStringAsync("Hint", token, flag.Hint);
+                updateFlagModel.Hint = await prompt.GetStringAsync("Hint", token, flag.Hint);
 
             if (updateFlagModel.TagIds.IsEmpty())
-                updateFlagModel.TagIds = (await this.workspaceLoader.LoadTagsAsync(token, flag.ConfigId, flag.Tags, optional: true)).Select(t => t.TagId).ToArray();
+                updateFlagModel.TagIds = (await workspaceLoader.LoadTagsAsync(token, flag.ConfigId, flag.Tags, optional: true)).Select(t => t.TagId).ToArray();
         }
 
-        var originalTagIds = flag.Tags?.Select(t => t.TagId).ToList() ?? new List<int>();
+        var originalTagIds = flag.Tags?.Select(t => t.TagId).ToList() ?? [];
 
         if (updateFlagModel.Hint.IsEmptyOrEquals(flag.Hint) &&
             updateFlagModel.Name.IsEmptyOrEquals(flag.Name) &&
             (updateFlagModel.TagIds.IsEmpty() ||
              updateFlagModel.TagIds.SequenceEqual(originalTagIds)))
         {
-            this.output.WriteNoChange();
+            output.WriteNoChange();
             return ExitCodes.Ok;
         }
 
@@ -249,26 +231,26 @@ class Flag
         foreach (var tagIdToAdd in tagsToAdd)
             patchDocument.Add("/tags/-", tagIdToAdd);
 
-        await this.flagClient.UpdateFlagAsync(flag.SettingId, patchDocument.Operations, token);
+        await flagClient.UpdateFlagAsync(flag.SettingId, patchDocument.Operations, token);
         return ExitCodes.Ok;
     }
 
     public async Task<int> AttachTagsAsync(int? flagId, int[] tagIds, CancellationToken token)
     {
         var flag = flagId is null
-            ? await this.workspaceLoader.LoadFlagAsync(token)
-            : await this.flagClient.GetFlagAsync(flagId.Value, token);
+            ? await workspaceLoader.LoadFlagAsync(token)
+            : await flagClient.GetFlagAsync(flagId.Value, token);
 
         var flagTagIds = flag.Tags.Select(t => t.TagId).ToList();
 
         if (flagId is null && tagIds.IsEmpty())
-            tagIds = (await this.workspaceLoader.LoadTagsAsync(token, flag.ConfigId, flag.Tags)).Select(t => t.TagId).ToArray();
+            tagIds = (await workspaceLoader.LoadTagsAsync(token, flag.ConfigId, flag.Tags)).Select(t => t.TagId).ToArray();
 
         if (tagIds.IsEmpty() ||
             tagIds.SequenceEqual(flagTagIds) ||
             !tagIds.Except(flagTagIds).Any())
         {
-            this.output.WriteNoChange();
+            output.WriteNoChange();
             return ExitCodes.Ok;
         }
 
@@ -276,23 +258,23 @@ class Flag
         foreach (var tagId in tagIds)
             patchDocument.Add("/tags/-", tagId);
 
-        await this.flagClient.UpdateFlagAsync(flag.SettingId, patchDocument.Operations, token);
+        await flagClient.UpdateFlagAsync(flag.SettingId, patchDocument.Operations, token);
         return ExitCodes.Ok;
     }
 
     public async Task<int> DetachTagsAsync(int? flagId, int[] tagIds, CancellationToken token)
     {
         var flag = flagId is null
-            ? await this.workspaceLoader.LoadFlagAsync(token)
-            : await this.flagClient.GetFlagAsync(flagId.Value, token);
+            ? await workspaceLoader.LoadFlagAsync(token)
+            : await flagClient.GetFlagAsync(flagId.Value, token);
 
         if (flagId is null && tagIds.IsEmpty())
-            tagIds = (await this.prompt.ChooseMultipleFromListAsync("Choose tags to detach", flag.Tags, t => t.Name, token)).Select(t => t.TagId).ToArray();
+            tagIds = (await prompt.ChooseMultipleFromListAsync("Choose tags to detach", flag.Tags, t => t.Name, token)).Select(t => t.TagId).ToArray();
 
         var relevantTags = flag.Tags.Where(t => tagIds.Contains(t.TagId)).ToList();
         if (relevantTags.Count == 0)
         {
-            this.output.WriteNoChange();
+            output.WriteNoChange();
             return ExitCodes.Ok;
         }
 
@@ -308,7 +290,7 @@ class Flag
         foreach (var tagIndex in tagIndexes)
             patchDocument.Remove($"/tags/{tagIndex}");
 
-        await this.flagClient.UpdateFlagAsync(flag.SettingId, patchDocument.Operations, token);
+        await flagClient.UpdateFlagAsync(flag.SettingId, patchDocument.Operations, token);
         return ExitCodes.Ok;
     }
 }

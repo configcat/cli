@@ -12,51 +12,31 @@ using System.Threading.Tasks;
 
 namespace ConfigCat.Cli.Commands.Flags;
 
-internal class FlagValue
+internal class FlagValue(
+    IFlagValueClient flagValueClient,
+    IFlagClient flagClient,
+    IConfigClient configClient,
+    IEnvironmentClient environmentClient,
+    ISegmentClient segmentClient,
+    IWorkspaceLoader workspaceLoader,
+    IPrompt prompt,
+    IOutput output)
 {
-    private readonly IFlagValueClient flagValueClient;
-    private readonly IFlagClient flagClient;
-    private readonly IConfigClient configClient;
-    private readonly IEnvironmentClient environmentClient;
-    private readonly ISegmentClient segmentClient;
-    private readonly IWorkspaceLoader workspaceLoader;
-    private readonly IPrompt prompt;
-    private readonly IOutput output;
-
-    public FlagValue(IFlagValueClient flagValueClient,
-        IFlagClient flagClient,
-        IConfigClient configClient,
-        IEnvironmentClient environmentClient,
-        ISegmentClient segmentClient,
-        IWorkspaceLoader workspaceLoader,
-        IPrompt prompt,
-        IOutput output)
-    {
-        this.flagValueClient = flagValueClient;
-        this.flagClient = flagClient;
-        this.configClient = configClient;
-        this.environmentClient = environmentClient;
-        this.segmentClient = segmentClient;
-        this.workspaceLoader = workspaceLoader;
-        this.prompt = prompt;
-        this.output = output;
-    }
-
     public async Task<int> ShowValueAsync(int? flagId, bool json, CancellationToken token)
     {
         var flag = flagId is null
-            ? await this.workspaceLoader.LoadFlagAsync(token)
-            : await this.flagClient.GetFlagAsync(flagId.Value, token);
+            ? await workspaceLoader.LoadFlagAsync(token)
+            : await flagClient.GetFlagAsync(flagId.Value, token);
 
-        var config = await this.configClient.GetConfigAsync(flag.ConfigId, token);
-        var environments = await this.environmentClient.GetEnvironmentsAsync(config.Product.ProductId, token);
+        var config = await configClient.GetConfigAsync(flag.ConfigId, token);
+        var environments = await environmentClient.GetEnvironmentsAsync(config.Product.ProductId, token);
 
         if (json)
         {
             var valuesInJson = new List<ValueInEnvironmentJsonOutput>();
             foreach (var environment in environments)
             {
-                var value = await this.flagValueClient.GetValueAsync(flag.SettingId, environment.EnvironmentId, token);
+                var value = await flagValueClient.GetValueAsync(flag.SettingId, environment.EnvironmentId, token);
                 valuesInJson.Add(new ValueInEnvironmentJsonOutput
                 {
                     EnvironmentId = environment.EnvironmentId,
@@ -67,7 +47,7 @@ internal class FlagValue
                 });
             }
 
-            this.output.RenderJson(new FlagValueJsonOutput
+            output.RenderJson(new FlagValueJsonOutput
             {
                 Setting = flag,
                 Values = valuesInJson
@@ -78,18 +58,18 @@ internal class FlagValue
 
         var separatorLength = flag.Name.Length + flag.Key.Length + flag.SettingId.ToString().Length + 9;
 
-        this.output.WriteDarkGray(new string('-', separatorLength));
-        this.output.WriteLine().Write(" ");
-        this.output.WriteColor($" {flag.Name} ", ConsoleColor.White, ConsoleColor.DarkGreen);
-        this.output.Write($" ({flag.Key}) ");
-        this.output.WriteDarkGray($"[{flag.SettingId}]").WriteLine();
-        this.output.WriteDarkGray(new string('-', separatorLength)).WriteLine();
+        output.WriteDarkGray(new string('-', separatorLength));
+        output.WriteLine().Write(" ");
+        output.WriteColor($" {flag.Name} ", ConsoleColor.White, ConsoleColor.DarkGreen);
+        output.Write($" ({flag.Key}) ");
+        output.WriteDarkGray($"[{flag.SettingId}]").WriteLine();
+        output.WriteDarkGray(new string('-', separatorLength)).WriteLine();
 
         foreach (var environment in environments)
         {
-            var value = await this.flagValueClient.GetValueAsync(flag.SettingId, environment.EnvironmentId, token);
+            var value = await flagValueClient.GetValueAsync(flag.SettingId, environment.EnvironmentId, token);
 
-            this.output.WriteDarkGray($"| ")
+            output.WriteDarkGray($"| ")
                 .Write(environment.Name)
                 .WriteDarkGray($" [{environment.EnvironmentId}]");
 
@@ -97,16 +77,16 @@ internal class FlagValue
             {
                 foreach (var rule in value.TargetingRules.Where(rule => !rule.SegmentId.IsEmpty()))
                 {
-                    rule.Segment = await this.segmentClient.GetSegmentAsync(rule.SegmentId, token);
+                    rule.Segment = await segmentClient.GetSegmentAsync(rule.SegmentId, token);
                 }
 
-                this.output.WriteLine().WriteDarkGray($"|");
+                output.WriteLine().WriteDarkGray($"|");
                 foreach (var targeting in value.TargetingRules)
                 {
                     if (targeting.Segment is not null)
                     {
                         var comparatorName = Constants.SegmentComparatorTypes.GetValueOrDefault(targeting.SegmentComparator) ?? targeting.SegmentComparator.ToUpperInvariant();
-                        this.output.WriteLine()
+                        output.WriteLine()
                             .WriteDarkGray($"| ")
                             .Write($"{value.TargetingRules.IndexOf(targeting) + 1}.")
                             .WriteDarkGray($" When ")
@@ -118,7 +98,7 @@ internal class FlagValue
                     else
                     {
                         var comparatorName = Constants.ComparatorTypes.GetValueOrDefault(targeting.Comparator) ?? targeting.Comparator.ToUpperInvariant();
-                        this.output.WriteLine()
+                        output.WriteLine()
                             .WriteDarkGray($"| ")
                             .Write($"{value.TargetingRules.IndexOf(targeting) + 1}.")
                             .WriteDarkGray($" When ")
@@ -133,23 +113,23 @@ internal class FlagValue
 
             if (value.PercentageRules.Count > 0)
             {
-                this.output.WriteLine().WriteDarkGray($"|");
+                output.WriteLine().WriteDarkGray($"|");
                 foreach (var percentage in value.PercentageRules)
                 {
-                    this.output.WriteLine()
+                    output.WriteLine()
                         .WriteDarkGray("| ")
                         .WriteCyan($"{percentage.Percentage}%")
                         .WriteDarkGray(" -> ")
                         .WriteMagenta(percentage.Value.ToString());
                 }
-                this.output.WriteLine().WriteDarkGray($"|");
+                output.WriteLine().WriteDarkGray($"|");
             }
             else
             {
-                this.output.WriteLine().WriteDarkGray($"|");
+                output.WriteLine().WriteDarkGray($"|");
             }
 
-            this.output.WriteLine()
+            output.WriteLine()
                 .WriteDarkGray($"| Default: ")
                 .WriteMagenta(value.Value.ToString())
                 .WriteLine()
@@ -163,16 +143,16 @@ internal class FlagValue
     public async Task<int> UpdateFlagValueAsync(int? flagId, string environmentId, string flagValue, CancellationToken token)
     {
         var flag = flagId is null
-            ? await this.workspaceLoader.LoadFlagAsync(token)
-            : await this.flagClient.GetFlagAsync(flagId.Value, token);
+            ? await workspaceLoader.LoadFlagAsync(token)
+            : await flagClient.GetFlagAsync(flagId.Value, token);
 
         if (environmentId.IsEmpty())
-            environmentId = (await this.workspaceLoader.LoadEnvironmentAsync(token, flag.ConfigId)).EnvironmentId;
+            environmentId = (await workspaceLoader.LoadEnvironmentAsync(token, flag.ConfigId)).EnvironmentId;
 
-        var value = await this.flagValueClient.GetValueAsync(flag.SettingId, environmentId, token);
+        var value = await flagValueClient.GetValueAsync(flag.SettingId, environmentId, token);
 
         if (flagValue.IsEmpty())
-            flagValue = await this.prompt.GetStringAsync($"Value", token, value.Value.ToString());
+            flagValue = await prompt.GetStringAsync($"Value", token, value.Value.ToString());
 
         if (!flagValue.TryParseFlagValue(value.Setting.SettingType, out var parsed))
             throw new ShowHelpException($"Flag value '{flagValue}' must respect the type '{value.Setting.SettingType}'.");
@@ -180,7 +160,7 @@ internal class FlagValue
         var jsonPatchDocument = new JsonPatchDocument();
         jsonPatchDocument.Replace($"/value", parsed);
 
-        await this.flagValueClient.UpdateValueAsync(flag.SettingId, environmentId, jsonPatchDocument.Operations, token);
+        await flagValueClient.UpdateValueAsync(flag.SettingId, environmentId, jsonPatchDocument.Operations, token);
         return ExitCodes.Ok;
     }
 }

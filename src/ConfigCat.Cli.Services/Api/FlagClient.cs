@@ -25,15 +25,13 @@ public interface IFlagClient
     Task DeleteFlagAsync(int flagId, CancellationToken token);
 }
 
-public class FlagClient : ApiClient, IFlagClient
+public class FlagClient(
+    IOutput output,
+    CliConfig config,
+    IBotPolicy<HttpResponseMessage> botPolicy,
+    HttpClient httpClient)
+    : ApiClient(output, config, botPolicy, httpClient), IFlagClient
 {
-    public FlagClient(IOutput output,
-        CliConfig config,
-        IBotPolicy<HttpResponseMessage> botPolicy,
-        HttpClient httpClient)
-        : base(output, config, botPolicy, httpClient)
-    { }
-
     public Task<IEnumerable<FlagModel>> GetFlagsAsync(string configId, CancellationToken token) =>
         this.GetAsync<IEnumerable<FlagModel>>(HttpMethod.Get, $"v1/configs/{configId}/settings", token);
 

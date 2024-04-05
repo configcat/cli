@@ -12,19 +12,10 @@ using ConfigCat.Cli.Services.Rendering;
 
 namespace ConfigCat.Cli.Commands.ConfigJson;
 
-internal class ConfigJsonGet
+internal class ConfigJsonGet(IOutput output, HttpClient httpClient)
 {
     public const string ConfigV5 = "v5";
     public const string ConfigV6 = "v6";
-
-    private readonly IOutput output;
-    private readonly HttpClient httpClient;
-
-    public ConfigJsonGet(IOutput output, HttpClient httpClient)
-    {
-        this.output = output;
-        this.httpClient = httpClient;
-    }
 
     public async Task<int> ExecuteAsync(
         string sdkKey,
@@ -48,17 +39,17 @@ internal class ConfigJsonGet
 
         var configJsonUrl = new Uri(new Uri(baseUrl), "configuration-files/" + sdkKey + "/" + configFileName);
 
-        if (this.output.IsOutputRedirected)
+        if (output.IsOutputRedirected)
         {
             Console.OutputEncoding = Encoding.UTF8;
         }
         else
         {
-            this.output.WriteColor($"Downloading {configJsonUrl}...", ConsoleColor.Cyan);
-            this.output.WriteLine();
+            output.WriteColor($"Downloading {configJsonUrl}...", ConsoleColor.Cyan);
+            output.WriteLine();
         }
 
-        var configJson = await this.httpClient.GetStringAsync(configJsonUrl, token);
+        var configJson = await httpClient.GetStringAsync(configJsonUrl, token);
 
         if (pretty)
         {
@@ -69,13 +60,13 @@ internal class ConfigJsonGet
             }
         }
 
-        if (!this.output.IsOutputRedirected)
+        if (!output.IsOutputRedirected)
         {
-            this.output.WriteColor("Config JSON content:", ConsoleColor.Cyan);
-            this.output.WriteLine();
+            output.WriteColor("Config JSON content:", ConsoleColor.Cyan);
+            output.WriteLine();
         }
 
-        this.output.WriteLine(configJson);
+        output.WriteLine(configJson);
 
         return ExitCodes.Ok;
     }

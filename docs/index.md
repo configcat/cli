@@ -64,6 +64,38 @@ This is the complete list of the available commands provided by the CLI.
 | [configcat flag percentage](configcat-flag-percentage.md) | Manage percentage rules |
 | [configcat flag percentage update](configcat-flag-percentage-update.md) | Update percentage rules |
 | [configcat flag percentage clear](configcat-flag-percentage-clear.md) | Delete all percentage rules |
+### configcat flag-v2
+| Command | Description |
+| ------ | ----------- |
+| [configcat flag-v2](configcat-flag-v2.md) | Manage V2 Feature Flags & Settings |
+| [configcat flag-v2 ls](configcat-flag-v2-ls.md) | List all Feature Flags & Settings that belongs to the configured user |
+| [configcat flag-v2 create](configcat-flag-v2-create.md) | Create a new Feature Flag or Setting in a specified Config identified by the `--config-id` option |
+| [configcat flag-v2 rm](configcat-flag-v2-rm.md) | Remove a Feature Flag or Setting identified by the `--flag-id` option |
+| [configcat flag-v2 update](configcat-flag-v2-update.md) | Update a Feature Flag or Setting identified by the `--flag-id` option |
+| [configcat flag-v2 attach](configcat-flag-v2-attach.md) | Attach Tag(s) to a Feature Flag or Setting |
+| [configcat flag-v2 detach](configcat-flag-v2-detach.md) | Detach Tag(s) from a Feature Flag or Setting |
+| [configcat flag-v2 value](configcat-flag-v2-value.md) | Manage V2 Feature Flag & Setting default values in different Environments |
+| [configcat flag-v2 value show](configcat-flag-v2-value-show.md) | Show Feature Flag or Setting values, targeting, and percentage rules for each environment |
+| [configcat flag-v2 value update](configcat-flag-v2-value-update.md) | Update the value of a Feature Flag or Setting |
+| [configcat flag-v2 targeting](configcat-flag-v2-targeting.md) | Manage V2 Feature Flag & Setting targeting options |
+| [configcat flag-v2 targeting rule](configcat-flag-v2-targeting-rule.md) | Manage targeting rules |
+| [configcat flag-v2 targeting rule create](configcat-flag-v2-targeting-rule-create.md) | Create new targeting rule |
+| [configcat flag-v2 targeting rule create user](configcat-flag-v2-targeting-rule-create-user.md) | Create user based targeting rule |
+| [configcat flag-v2 targeting rule create segment](configcat-flag-v2-targeting-rule-create-segment.md) | Create segment based targeting rule |
+| [configcat flag-v2 targeting rule create prerequisite](configcat-flag-v2-targeting-rule-create-prerequisite.md) | Create prerequisite flag based targeting rule |
+| [configcat flag-v2 targeting rule rm](configcat-flag-v2-targeting-rule-rm.md) | Remove targeting rule |
+| [configcat flag-v2 targeting rule move](configcat-flag-v2-targeting-rule-move.md) | Move targeting rule |
+| [configcat flag-v2 targeting rule update-served-value](configcat-flag-v2-targeting-rule-update-served-value.md) | Update a targeting rule's served value |
+| [configcat flag-v2 targeting condition](configcat-flag-v2-targeting-condition.md) | Manage conditions |
+| [configcat flag-v2 targeting condition add](configcat-flag-v2-targeting-condition-add.md) | Add new condition |
+| [configcat flag-v2 targeting condition add user](configcat-flag-v2-targeting-condition-add-user.md) | Add new user based condition |
+| [configcat flag-v2 targeting condition add segment](configcat-flag-v2-targeting-condition-add-segment.md) | Add new segment based condition |
+| [configcat flag-v2 targeting condition add prerequisite](configcat-flag-v2-targeting-condition-add-prerequisite.md) | Add new prerequisite flag based condition |
+| [configcat flag-v2 targeting condition rm](configcat-flag-v2-targeting-condition-rm.md) | Remove condition |
+| [configcat flag-v2 targeting percentage](configcat-flag-v2-targeting-percentage.md) | Manage percentage-only rules |
+| [configcat flag-v2 targeting percentage update](configcat-flag-v2-targeting-percentage-update.md) | Update or add the last percentage-only targeting rule |
+| [configcat flag-v2 targeting percentage clear](configcat-flag-v2-targeting-percentage-clear.md) | Delete the last percentage-only rule |
+| [configcat flag-v2 targeting percentage attribute](configcat-flag-v2-targeting-percentage-attribute.md) | Set the percentage evaluation attribute |
 ### configcat segment
 | Command | Description |
 | ------ | ----------- |
@@ -115,3 +147,10 @@ This is the complete list of the available commands provided by the CLI.
 | [configcat config-json](configcat-config-json.md) | Config JSON-related utilities |
 | [configcat config-json convert](configcat-config-json-convert.md) | Convert between config JSON versions |
 | [configcat config-json get](configcat-config-json-get.md) | Download a config JSON from the CDN servers. |
+### configcat workspace
+| Command | Description |
+| ------ | ----------- |
+| [configcat workspace](configcat-workspace.md) | Manage the CLI workspace. When set, the CLI's interactive mode filters Product and Config selectors by the values set in the workspace |
+| [configcat workspace set](configcat-workspace-set.md) | Set the workspace |
+| [configcat workspace clr](configcat-workspace-clr.md) | Clear the workspace |
+| [configcat workspace show](configcat-workspace-show.md) | Show the values saved in the workspace |

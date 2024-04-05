@@ -173,7 +173,7 @@ Describe "Permission Group Tests" {
         Invoke-ConfigCat "permission-group", "rm", "-i", $permissionGroupId
         Invoke-ConfigCat "permission-group", "ls", "-p", $productId | Should -Not -Match ([regex]::Escape($newGroupName))
     }
-    
+
     It "Create with defaults" {
         $group2Name = "permgroup2_$([guid]::NewGuid().ToString())"
         $permissionGroup2Id = Invoke-ConfigCat "permission-group", "create", "-p", $productId, "-n", $group2Name, "--can-view-sdk-key", "--can-view-product-statistics", "--can-view-product-audit-log", "--default-when-not-set", "false"
@@ -201,7 +201,7 @@ Describe "Permission Group Tests" {
         $printed1 | Should -Match ([regex]::Escape("[ ] Delete Segments"))
         $printed1 | Should -Match "Read/Write access in all environments"
         $printed1 | Should -Match "Read/Write access in new environments"
-    
+
         Invoke-ConfigCat "permission-group", "env", "-i", $permissionGroup2Id, "--access-type", "custom", "--new-environment-access-type", "readonly", "--default-access-type-when-not-set", "full"
         $printed3 = Invoke-ConfigCat "permission-group", "show", "-i", $permissionGroup2Id
         $printed3 | Should -Match ([regex]::Escape("[ ] Manage Members and Permission Groups"))
@@ -227,7 +227,7 @@ Describe "Permission Group Tests" {
         $printed3 | Should -Match "Environment specific access in all environments"
         $printed3 | Should -Match "Read-only access in new environments"
         $printed3 | Should -Match "Read/Write access in ${environmentName}"
-    
+
         Invoke-ConfigCat "permission-group", "rm", "-i", $permissionGroup2Id
     }
 }
@@ -249,7 +249,7 @@ Describe "Tag / Flag Tests" {
     BeforeAll {
         $tag1Id = Invoke-ConfigCat "tag", "create", "-p", $productId, "-n", "tag1", "-c", "panther"
         Invoke-ConfigCat "tag", "ls", "-p", $productId | Should -Match ([regex]::Escape("tag1"))
-        
+
         $tag2Id = Invoke-ConfigCat "tag", "create", "-p", $productId, "-n", "tag2", "-c", "whale"
         Invoke-ConfigCat "tag", "ls", "-p", $productId | Should -Match ([regex]::Escape("tag2"))
 
@@ -278,7 +278,7 @@ Describe "Tag / Flag Tests" {
         $showWithInitResult = Invoke-ConfigCat "flag", "value", "show", "-i", $flagWithInitId
         $showWithInitResult | Should -Match ([regex]::Escape("Default: True"))
     }
-    
+
     It "Create with initial values" {
         $flagWithEnvInitId = Invoke-ConfigCat "flag", "create", "-c", $configId, "-n", "Bool-With-Env-Init-Flag", "-k", "bool_with_env_init_flag", "-H", "hint", "-t", "boolean", "-ive", "${environmentId}:true"
         $showWithEnvInitResult = Invoke-ConfigCat "flag", "value", "show", "-i", $flagWithEnvInitId
@@ -293,7 +293,7 @@ Describe "Tag / Flag Tests" {
         $tagResult | Should -Match ([regex]::Escape($newTagName))
         $tagResult | Should -Match ([regex]::Escape($newTagColor))
     }
-    
+
     It "Update Flag" {
         Invoke-ConfigCat "flag", "update", "-i", $flagId, "-n", "Bool-Flag-Updated", "-H", "hint-updated", "-g", $tag2Id
         $updateResult = Invoke-ConfigCat "flag", "ls", "-c", $configId
@@ -434,6 +434,146 @@ Describe "Flag value / Rule Tests" {
     }
 }
 
+Describe "Flag value / Rule Tests V2" {
+    BeforeAll {
+        $configV2Name = "CLI-IntegTest-Config-V2"
+        $configV2Id = Invoke-ConfigCat "config", "create", "-p", $productId, "-n", $configV2Name, "-e", "v2"
+        Invoke-ConfigCat "config", "ls", "-p", $productId | Should -Match ([regex]::Escape($configV2Name))
+    }
+    
+    AfterAll {
+        Invoke-ConfigCat "config", "rm", "-i", $configV2Id
+        Invoke-ConfigCat "config", "ls", "-p", $productId | Should -Not -Match ([regex]::Escape($configV2Id))
+    }
+    
+    BeforeEach {
+        $flagV2Id = Invoke-ConfigCat "flag-v2", "create", "-c", $configV2Id, "-n", "Bool-Flag", "-k", "bool_flag", "-H", "hint", "-t", "boolean"
+        $flagV2Id2 = Invoke-ConfigCat "flag-v2", "create", "-c", $configV2Id, "-n", "Bool-Flag", "-k", "bool_flag2", "-H", "hint", "-t", "boolean"
+    }
+
+    AfterEach {
+        Invoke-ConfigCat "flag-v2", "rm", "-i", $flagV2Id
+        Invoke-ConfigCat "flag-v2", "rm", "-i", $flagV2Id2
+    }
+
+    It "Update Value" {
+        Invoke-ConfigCat "flag-v2", "value", "update", "-i", $flagV2Id, "-e", $environmentId, "-f", "true"
+        $result = Invoke-ConfigCat "flag-v2", "value", "show", "-i", $flagV2Id
+        $result | Should -Match ([regex]::Escape("Default: True"))
+    }
+
+    It "Create user targeting rule" {
+        Invoke-ConfigCat "flag-v2", "targeting", "rule", "cr", "u", "-i", $flagV2Id, "-e", $environmentId, "-a", "ID", "-c", "isOneOf", "-cv", "id1:user1", "id2:user2", "-sv", "true"
+        Invoke-ConfigCat "flag-v2", "targeting", "rule", "cr", "u", "-i", $flagV2Id, "-e", $environmentId, "-a", "EMAIL", "-c", "textEquals", "-cv", "example.com", "-sv", "true"
+        Invoke-ConfigCat "flag-v2", "targeting", "rule", "cr", "u", "-i", $flagV2Id, "-e", $environmentId, "-a", "VERSION", "-c", "isNotOneOf", "-cv", "1.2.6:", "1.2.8:", "-sv", "true"
+        $result = Invoke-ConfigCat "flag-v2", "value", "show", "-i", $flagV2Id
+        $result | Should -Match ([regex]::Escape("1. If ID IS ONE OF [2 items]"))
+        $result | Should -Match ([regex]::Escape("2. If EMAIL EQUALS example.com"))
+        $result | Should -Match ([regex]::Escape("3. If VERSION IS NOT ONE OF [2 items]"))
+    }
+    
+    It "Create segment targeting rule" {
+        Invoke-ConfigCat "flag-v2", "targeting", "rule", "cr", "sg", "-i", $flagV2Id, "-e", $environmentId, "-si", $segmentId, "-c", "isNotIn", "-sv", "true"
+        $result = Invoke-ConfigCat "flag-v2", "value", "show", "-i", $flagV2Id
+        $result | Should -Match ([regex]::Escape("1. If IS NOT IN SEGMENT CLI-IntegTest-Segment"))
+        $result | Should -Match ([regex]::Escape("Then: True"))
+    }
+    
+    It "Create prerequisite targeting rule" {
+        Invoke-ConfigCat "flag-v2", "targeting", "rule", "cr", "pr", "-i", $flagV2Id, "-e", $environmentId, "-c", "equals", "-pi", $flagV2Id2, "-pv", "true", "-sv", "true"
+        $result = Invoke-ConfigCat "flag-v2", "value", "show", "-i", $flagV2Id
+        $result | Should -Match ([regex]::Escape("1. If bool_flag2 EQUALS True"))
+        $result | Should -Match ([regex]::Escape("Then: True"))
+    }
+
+    It "Remove targeting rule" {
+        Invoke-ConfigCat "flag-v2", "targeting", "rule", "cr", "u", "-i", $flagV2Id, "-e", $environmentId, "-a", "ID", "-c", "isOneOf", "-cv", "id1:user1", "id2:user2", "-sv", "true"
+        $result = Invoke-ConfigCat "flag-v2", "value", "show", "-i", $flagV2Id
+        $result | Should -Match ([regex]::Escape("1. If ID IS ONE OF [2 items]"))
+        Invoke-ConfigCat "flag-v2", "targeting", "rule", "rm", "-i", $flagV2Id, "-e", $environmentId, "-rp", "1", "-v"
+        $result = Invoke-ConfigCat "flag-v2", "value", "show", "-i", $flagV2Id
+        $result | Should -Not -Match ([regex]::Escape("1. If ID IS ONE OF [2 items]"))
+    }
+    
+    It "Move targeting rule" {
+        Invoke-ConfigCat "flag-v2", "targeting", "rule", "cr", "u", "-i", $flagV2Id, "-e", $environmentId, "-a", "ID", "-c", "isOneOf", "-cv", "id1:user1", "id2:user2", "-sv", "true"
+        Invoke-ConfigCat "flag-v2", "targeting", "rule", "cr", "u", "-i", $flagV2Id, "-e", $environmentId, "-a", "EMAIL", "-c", "textEquals", "-cv", "example.com", "-sv", "true"
+        Invoke-ConfigCat "flag-v2", "targeting", "rule", "cr", "u", "-i", $flagV2Id, "-e", $environmentId, "-a", "VERSION", "-c", "isNotOneOf", "-cv", "1.2.6:", "1.2.8:", "-sv", "true"
+        $result = Invoke-ConfigCat "flag-v2", "value", "show", "-i", $flagV2Id
+        $result | Should -Match ([regex]::Escape("1. If ID IS ONE OF [2 items]"))
+        $result | Should -Match ([regex]::Escape("2. If EMAIL EQUALS example.com"))
+        $result | Should -Match ([regex]::Escape("3. If VERSION IS NOT ONE OF [2 items]"))
+        Invoke-ConfigCat "flag-v2", "targeting", "rule", "mv", "-i", $flagV2Id, "-e", $environmentId, "--from", "1", "--to", "3"
+        $result = Invoke-ConfigCat "flag-v2", "value", "show", "-i", $flagV2Id
+        $result | Should -Match ([regex]::Escape("1. If EMAIL EQUALS example.com"))
+        $result | Should -Match ([regex]::Escape("2. If VERSION IS NOT ONE OF [2 items]"))
+        $result | Should -Match ([regex]::Escape("3. If ID IS ONE OF [2 items]"))
+    }
+
+    It "Update targeting rule's served value" {
+        Invoke-ConfigCat "flag-v2", "targeting", "rule", "cr", "u", "-i", $flagV2Id, "-e", $environmentId, "-a", "ID", "-c", "isOneOf", "-cv", "id1:user1", "id2:user2", "-sv", "true"
+        $result = Invoke-ConfigCat "flag-v2", "value", "show", "-i", $flagV2Id
+        $result | Should -Match ([regex]::Escape("1. If ID IS ONE OF [2 items]"))
+        $result | Should -Match ([regex]::Escape("Then: True"))
+        Invoke-ConfigCat "flag-v2", "targeting", "rule", "usv", "-i", $flagV2Id, "-e", $environmentId, "-rp", "1", "-po", "30:true", "70:false"
+        $result = Invoke-ConfigCat "flag-v2", "value", "show", "-i", $flagV2Id
+        $result | Should -Match ([regex]::Escape("1. If ID IS ONE OF [2 items]"))
+        $result | Should -Match ([regex]::Escape("30% -> True"))
+        $result | Should -Match ([regex]::Escape("70% -> False"))
+    }
+
+    It "Add/remove conditions" {
+        Invoke-ConfigCat "flag-v2", "targeting", "rule", "cr", "u", "-i", $flagV2Id, "-e", $environmentId, "-a", "ID", "-c", "isOneOf", "-cv", "id1:user1", "id2:user2", "-sv", "true"
+        Invoke-ConfigCat "flag-v2", "targeting", "c", "a", "u", "-i", $flagV2Id, "-e", $environmentId, "-rp", "1", "-a", "EMAIL", "-c", "textEquals", "-cv", "test@example.com", "-sv", "true"
+        Invoke-ConfigCat "flag-v2", "targeting", "c", "a", "sg", "-i", $flagV2Id, "-e", $environmentId, "-rp", "1", "-si", $segmentId, "-c", "isIn"
+        Invoke-ConfigCat "flag-v2", "targeting", "c", "a", "pr", "-i", $flagV2Id, "-e", $environmentId, "-rp", "1", "-c", "equals", "-pi", $flagV2Id2, "-pv", "true"
+        $result = Invoke-ConfigCat "flag-v2", "value", "show", "-i", $flagV2Id
+        $result | Should -Match ([regex]::Escape("1. If ID IS ONE OF [2 items]"))
+        $result | Should -Match ([regex]::Escape("&& EMAIL EQUALS test@example.com"))
+        $result | Should -Match ([regex]::Escape("&& IS IN SEGMENT $segmentName"))
+        $result | Should -Match ([regex]::Escape("&& bool_flag2 EQUALS True"))
+        Invoke-ConfigCat "flag-v2", "targeting", "c", "rm", "-i", $flagV2Id, "-e", $environmentId, "-rp", "1", "-cp", "4"
+        $result = Invoke-ConfigCat "flag-v2", "value", "show", "-i", $flagV2Id
+        $result | Should -Match ([regex]::Escape("1. If ID IS ONE OF [2 items]"))
+        $result | Should -Match ([regex]::Escape("&& EMAIL EQUALS test@example.com"))
+        $result | Should -Match ([regex]::Escape("&& IS IN SEGMENT $segmentName"))
+        $result | Should -Not -Match ([regex]::Escape("&& bool_flag2 EQUALS True"))
+        Invoke-ConfigCat "flag-v2", "targeting", "c", "rm", "-i", $flagV2Id, "-e", $environmentId, "-rp", "1", "-cp", "3"
+        $result = Invoke-ConfigCat "flag-v2", "value", "show", "-i", $flagV2Id
+        $result | Should -Match ([regex]::Escape("1. If ID IS ONE OF [2 items]"))
+        $result | Should -Match ([regex]::Escape("&& EMAIL EQUALS test@example.com"))
+        $result | Should -Not -Match ([regex]::Escape("&& IS IN SEGMENT $segmentName"))
+        Invoke-ConfigCat "flag-v2", "targeting", "c", "rm", "-i", $flagV2Id, "-e", $environmentId, "-rp", "1", "-cp", "2"
+        $result = Invoke-ConfigCat "flag-v2", "value", "show", "-i", $flagV2Id
+        $result | Should -Match ([regex]::Escape("1. If ID IS ONE OF [2 items]"))
+        $result | Should -Not -Match ([regex]::Escape("&& EMAIL EQUALS test@example.com"))
+    }
+
+    It "Update percentage options" {
+        Invoke-ConfigCat "flag-v2", "targeting", "%", "up", "-i", $flagV2Id, "-e", $environmentId, "-po", "40:true", "60:false"
+        $result = Invoke-ConfigCat "flag-v2", "value", "show", "-i", $flagV2Id
+        $result | Should -Match ([regex]::Escape("40% -> True"))
+        $result | Should -Match ([regex]::Escape("60% -> False"))
+        Invoke-ConfigCat "flag-v2", "targeting", "%", "clr", "-i", $flagV2Id, "-e", $environmentId
+        $result = Invoke-ConfigCat "flag-v2", "value", "show", "-i", $flagV2Id
+        $result | Should -Not -Match ([regex]::Escape("40% -> True"))
+        $result | Should -Not -Match ([regex]::Escape("60% -> False"))
+    }
+
+    It "Update percentage attribute" {
+        Invoke-ConfigCat "flag-v2", "targeting", "%", "at", "-i", $flagV2Id, "-e", $environmentId, "-n", "Custom1"
+        Invoke-ConfigCat "flag-v2", "targeting", "%", "up", "-i", $flagV2Id, "-e", $environmentId, "-po", "40:true", "60:false"
+        $result = Invoke-ConfigCat "flag-v2", "value", "show", "-i", $flagV2Id
+        $result | Should -Match ([regex]::Escape("40% of Custom1 attribute -> True"))
+        $result | Should -Match ([regex]::Escape("60% of Custom1 attribute -> False"))
+        Invoke-ConfigCat "flag-v2", "targeting", "c", "a", "sg", "-i", $flagV2Id, "-e", $environmentId, "-rp", "1", "-si", $segmentId, "-c", "isIn"
+        $result = Invoke-ConfigCat "flag-v2", "value", "show", "-i", $flagV2Id
+        $result | Should -Match ([regex]::Escape("1. IF IS IN SEGMENT $segmentName"))
+        $result | Should -Match ([regex]::Escape("40% of Custom1 attribute -> True"))
+        $result | Should -Match ([regex]::Escape("60% of Custom1 attribute -> False"))
+    }
+}
+
 Describe "Scan Tests" {
     BeforeAll {
         $flagIdToScan1 = Invoke-ConfigCat "flag", "create", "-c", $configId, "-n", "Flag-To-Scan", "-k", "flag_to_scan", "-H", "hint", "-t", "boolean"
@@ -453,14 +593,14 @@ Describe "Scan Tests" {
         $result | Should -Match ([regex]::Escape("'flag_to_scan_2'"))
         $result | Should -Match ([regex]::Escape("deleted feature flag/setting reference(s) found in"))
     }
-    
+
     It "Scan exclude" {
         $result = Invoke-ConfigCat "scan", $scanPath, "-c", $configId, "-r", "cli", "-ex", "flag_to_scan", "flag_to_scan_2"
         $result | Should -Not -Match ([regex]::Escape("'flag_to_scan'"))
         $result | Should -Not -Match ([regex]::Escape("'flag_to_scan_2'"))
         $result | Should -Match ([regex]::Escape("deleted feature flag/setting reference(s) found in"))
     }
-    
+
     It "Scan exclude comma" {
         $result = Invoke-ConfigCat "scan", $scanPath, "-c", $configId, "-r", "cli", "-ex", "flag_to_scan, flag_to_scan_2"
         $result | Should -Not -Match ([regex]::Escape("'flag_to_scan'"))

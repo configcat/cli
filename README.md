@@ -8,11 +8,6 @@ The ConfigCat Command Line Interface allows you to interact with the <a target="
 
 See the <a target="_blank" href="https://configcat.github.io/cli/">command reference documentation</a> for more information about each available command.
 
-## About ConfigCat
-ConfigCat is a feature flag and configuration management service that lets you separate releases from deployments. You can turn your features ON/OFF using <a href="https://app.configcat.com" target="_blank">ConfigCat Dashboard</a> even after they are deployed. ConfigCat lets you target specific groups of users based on region, email or any other custom user attribute.
-
-ConfigCat is a <a href="https://configcat.com" target="_blank">hosted feature flag service</a>. Manage feature toggles across frontend, backend, mobile, desktop apps. <a href="https://configcat.com" target="_blank">Alternative to LaunchDarkly</a>. Management app + feature flag SDKs.
-
 ## Getting Started
 The following instructions will guide you through the first steps to start using this tool.
 
@@ -167,7 +162,11 @@ Name | Description |
 
 > When any of these environment variables are set, the CLI will use them over the local values set by the `configcat setup` command.
 
-## Useful Links
+## About ConfigCat
+ConfigCat is a feature flag and configuration management service that lets you separate releases from deployments. You can turn your features ON/OFF using <a href="https://app.configcat.com" target="_blank">ConfigCat Dashboard</a> even after they are deployed. ConfigCat lets you target specific groups of users based on region, email or any other custom user attribute.
+
+ConfigCat is a <a href="https://configcat.com" target="_blank">hosted feature flag service</a>. Manage feature toggles across frontend, backend, mobile, desktop apps. <a href="https://configcat.com" target="_blank">Alternative to LaunchDarkly</a>. Management app + feature flag SDKs.
+
 - [Documentation](https://configcat.com/docs/advanced/cli)
 - [ConfigCat](https://configcat.com)
 - [Blog](https://configcat.com/blog)

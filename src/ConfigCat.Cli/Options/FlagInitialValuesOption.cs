@@ -6,7 +6,7 @@ namespace ConfigCat.Cli.Options;
 
 internal sealed class FlagInitialValuesOption : Option<InitialValueOption[]>
 {
-    public FlagInitialValuesOption() : base(new[] { "--init-values-per-environment", "-ive" }, argumentResult =>
+    public FlagInitialValuesOption() : base(["--init-values-per-environment", "-ive"], argumentResult =>
     {
         var length = argumentResult.Tokens.Count;
         if (length == 0)
