@@ -25,7 +25,7 @@ jobs:
           VERSION: 0.0.1
 
       - name: Archive executables
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: executables
           path: publish
