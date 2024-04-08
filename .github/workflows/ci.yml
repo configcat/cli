@@ -43,7 +43,7 @@ jobs:
         cp README.md publish/${{ matrix.arch }}/README.md
 
     - name: Archive executables
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: executables
         path: publish
@@ -69,7 +69,7 @@ jobs:
         cp README.md publish/${{ matrix.arch }}/README.md
 
     - name: Archive executables
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: executables
         path: publish
