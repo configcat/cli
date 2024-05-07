@@ -17,7 +17,7 @@ class FlagPercentage(
     IWorkspaceLoader workspaceLoader,
     IOutput output)
 {
-    public async Task<int> UpdatePercentageRulesAsync(int? flagId, string environmentId, UpdatePercentageModel[] rules, CancellationToken token)
+    public async Task<int> UpdatePercentageRulesAsync(int? flagId, string environmentId, string reason, UpdatePercentageModel[] rules, CancellationToken token)
     {
         if (rules.Length == 0)
         {
@@ -52,12 +52,12 @@ class FlagPercentage(
             throw new ShowHelpException($"Boolean percentage rules cannot have the same value.");
 
         value.PercentageRules = result;
-        await flagValueClient.ReplaceValueAsync(flag.SettingId, environmentId, value, token);
+        await flagValueClient.ReplaceValueAsync(flag.SettingId, environmentId, reason, value, token);
 
         return ExitCodes.Ok;
     }
 
-    public async Task<int> DeletePercentageRulesAsync(int? flagId, string environmentId, CancellationToken token)
+    public async Task<int> DeletePercentageRulesAsync(int? flagId, string environmentId, string reason, CancellationToken token)
     {
         var flag = flagId is null
             ? await workspaceLoader.LoadFlagAsync(token)
@@ -68,7 +68,7 @@ class FlagPercentage(
 
         var value = await flagValueClient.GetValueAsync(flag.SettingId, environmentId, token);
         value.PercentageRules = [];
-        await flagValueClient.ReplaceValueAsync(flag.SettingId, environmentId, value, token);
+        await flagValueClient.ReplaceValueAsync(flag.SettingId, environmentId, reason, value, token);
 
         return ExitCodes.Ok;
     }

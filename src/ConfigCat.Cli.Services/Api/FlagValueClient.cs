@@ -1,4 +1,5 @@
-﻿using ConfigCat.Cli.Models.Api;
+﻿using System;
+using ConfigCat.Cli.Models.Api;
 using ConfigCat.Cli.Models.Configuration;
 using ConfigCat.Cli.Services.Json;
 using ConfigCat.Cli.Services.Rendering;
@@ -14,9 +15,9 @@ public interface IFlagValueClient
 {
     Task<FlagValueModel> GetValueAsync(int settingId, string environmentId, CancellationToken token);
 
-    Task ReplaceValueAsync(int settingId, string environmentId, FlagValueModel model, CancellationToken token);
+    Task ReplaceValueAsync(int settingId, string environmentId, string reason, FlagValueModel model, CancellationToken token);
 
-    Task UpdateValueAsync(int settingId, string environmentId, List<JsonPatchOperation> operations, CancellationToken token);
+    Task UpdateValueAsync(int settingId, string environmentId, string reason, List<JsonPatchOperation> operations, CancellationToken token);
 }
 
 public class FlagValueClient(
@@ -29,18 +30,18 @@ public class FlagValueClient(
     public Task<FlagValueModel> GetValueAsync(int settingId, string environmentId, CancellationToken token) =>
         this.GetAsync<FlagValueModel>(HttpMethod.Get, $"v1/environments/{environmentId}/settings/{settingId}/value", token);
 
-    public async Task ReplaceValueAsync(int settingId, string environmentId, FlagValueModel model, CancellationToken token)
+    public async Task ReplaceValueAsync(int settingId, string environmentId, string reason, FlagValueModel model, CancellationToken token)
     {
         this.Output.Write($"Updating Flag Value... ");
-        await this.SendAsync(HttpMethod.Put, $"v1/environments/{environmentId}/settings/{settingId}/value", model, token);
+        await this.SendAsync(HttpMethod.Put, $"v1/environments/{environmentId}/settings/{settingId}/value{(string.IsNullOrWhiteSpace(reason)? string.Empty : $"?reason={Uri.EscapeDataString(reason)}")}", model, token);
         this.Output.WriteSuccess();
         this.Output.WriteLine();
     }
 
-    public async Task UpdateValueAsync(int settingId, string environmentId, List<JsonPatchOperation> operations, CancellationToken token)
+    public async Task UpdateValueAsync(int settingId, string environmentId, string reason, List<JsonPatchOperation> operations, CancellationToken token)
     {
         this.Output.Write($"Updating Flag Value... ");
-        await this.SendAsync(HttpMethod.Patch, $"v1/environments/{environmentId}/settings/{settingId}/value", operations, token);
+        await this.SendAsync(HttpMethod.Patch, $"v1/environments/{environmentId}/settings/{settingId}/value{(string.IsNullOrWhiteSpace(reason)? string.Empty : $"?reason={Uri.EscapeDataString(reason)}")}", operations, token);
         this.Output.WriteSuccess();
         this.Output.WriteLine();
     }

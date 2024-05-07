@@ -19,6 +19,7 @@ internal class FlagPercentage(IPrompt prompt, IOutput output, IWorkspaceLoader w
 {
     public async Task<int> UpdatePercentageRulesAsync(int? flagId, 
         string environmentId, 
+        string reason,
         UpdatePercentageModel[] percentageOptions, 
         CancellationToken token)
     {
@@ -47,12 +48,12 @@ internal class FlagPercentage(IPrompt prompt, IOutput output, IWorkspaceLoader w
             throw new ShowHelpException($"Boolean type can only have 2 percentage rules");
 
         percentageRule.PercentageOptions = result;
-        await flagValueClient.ReplaceValueAsync(flag.SettingId, environmentId, value, token);
+        await flagValueClient.ReplaceValueAsync(flag.SettingId, environmentId, reason, value, token);
 
         return ExitCodes.Ok;
     }
 
-    public async Task<int> DeletePercentageRulesAsync(int? flagId, string environmentId, CancellationToken token)
+    public async Task<int> DeletePercentageRulesAsync(int? flagId, string environmentId, string reason, CancellationToken token)
     {
         var flag = flagId switch
         {
@@ -74,12 +75,12 @@ internal class FlagPercentage(IPrompt prompt, IOutput output, IWorkspaceLoader w
         }
         
         value.TargetingRules.Remove(percentageRule);
-        await flagValueClient.ReplaceValueAsync(flag.SettingId, environmentId, value, token);
+        await flagValueClient.ReplaceValueAsync(flag.SettingId, environmentId, reason, value, token);
 
         return ExitCodes.Ok;
     }
     
-    public async Task<int> UpdatePercentageAttributeAsync(int? flagId, string environmentId, string attributeName, CancellationToken token)
+    public async Task<int> UpdatePercentageAttributeAsync(int? flagId, string environmentId, string attributeName, string reason, CancellationToken token)
     {
         var flag = flagId switch
         {
@@ -95,7 +96,7 @@ internal class FlagPercentage(IPrompt prompt, IOutput output, IWorkspaceLoader w
         
         var jsonPatchDocument = new JsonPatchDocument();
         jsonPatchDocument.Replace($"/percentageEvaluationAttribute", attributeName);
-        await flagValueClient.UpdateValueAsync(flag.SettingId, environmentId, jsonPatchDocument.Operations, token);
+        await flagValueClient.UpdateValueAsync(flag.SettingId, environmentId, reason, jsonPatchDocument.Operations, token);
 
         return ExitCodes.Ok;
     }

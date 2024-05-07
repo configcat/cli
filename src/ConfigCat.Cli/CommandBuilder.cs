@@ -19,6 +19,9 @@ public static class CommandBuilder
     public static readonly Option VerboseOption = new VerboseOption();
     public static readonly Option NonInteractiveOption = new NonInteractiveOption();
 
+    public static readonly Option<string> ReasonOption = new(["--reason", "-r"],
+            "The reason note for the Audit Log if the Product's 'Config changes require a reason' preference is turned on");
+
     public static Command BuildRootCommand(IDependencyRegistrator dependencyRegistrator = null, bool asRootCommand = true)
     {
         var root = BuildDescriptors();
@@ -570,6 +573,7 @@ public static class CommandBuilder
                         },
                         new Option<string>(["--environment-id", "-e"], "ID of the Environment where the update must be applied"),
                         new Option<string>(["--flag-value", "-f"], "The value to serve, it must respect the setting type"),
+                        ReasonOption,
                     }
                 }
             }
@@ -600,6 +604,7 @@ public static class CommandBuilder
                         new Option<string>(["--segment-id", "-si"], "ID of the Segment used in the rule"),
                         new Option<string>(["--segment-comparator", "-sc"], "The segment comparison operator")
                             .AddSuggestions(Constants.SegmentComparatorTypes.Keys.ToArray()),
+                        ReasonOption,
                     }
                 },
                 new CommandDescriptor("update", "Update targeting rule", "configcat flag targeting update -i <flag-id> -e <environment-id> -p 1 -a Email -c contains -t @example.com -f true")
@@ -622,6 +627,7 @@ public static class CommandBuilder
                         new Option<string>(["--segment-id", "-si"], "ID of the Segment used in the rule"),
                         new Option<string>(["--segment-comparator", "-sc"], "The segment comparison operator")
                             .AddSuggestions(Constants.SegmentComparatorTypes.Keys.ToArray()),
+                        ReasonOption,
                     }
                 },
                 new CommandDescriptor("rm", "Delete targeting rule", "configcat flag targeting rm -i <flag-id> -e <environment-id> -p 1")
@@ -635,6 +641,7 @@ public static class CommandBuilder
                         },
                         new Option<string>(["--environment-id", "-e"], "ID of the Environment from where the rule must be deleted"),
                         new Option<int?>(["--position", "-p"], "The position of the targeting rule to delete"),
+                        ReasonOption,
                     }
                 },
                 new CommandDescriptor("move", "Move a targeting rule into a different position", "configcat flag targeting move -i <flag-id> -e <environment-id> --from 0 --to 1")
@@ -650,6 +657,7 @@ public static class CommandBuilder
                         new Option<string>(["--environment-id", "-e"], "ID of the Environment where the move must be applied"),
                         new Option<int?>(["--from"], "The position of the targeting rule to move"),
                         new Option<int?>(["--to"], "The desired position of the targeting rule"),
+                        ReasonOption,
                     }
                 },
             }
@@ -676,6 +684,7 @@ public static class CommandBuilder
                             Name = "--flag-id"
                         },
                         new Option<string>(["--environment-id", "-e"], "ID of the Environment where the update must be applied"),
+                        ReasonOption,
                     }
                 },
                 new CommandDescriptor("clear", "Delete all percentage rules", "configcat flag % clear -i <flag-id> -e <environment-id>")
@@ -689,6 +698,7 @@ public static class CommandBuilder
                             Name = "--flag-id"
                         },
                         new Option<string>(["--environment-id", "-e"], "ID of the Environment from where the rules must be deleted"),
+                        ReasonOption,
                     }
                 },
             }
@@ -736,6 +746,7 @@ public static class CommandBuilder
                         },
                         new Option<string>(["--environment-id", "-e"], "ID of the Environment where the update must be applied"),
                         new Option<string>(["--flag-value", "-f"], "The value to serve, it must respect the setting type"),
+                        ReasonOption,
                     }
                 }
             }
@@ -774,7 +785,8 @@ public static class CommandBuilder
                                             .AddSuggestions(Constants.UserComparatorTypes.Keys.ToArray()),
                                         new Option<string[]>(["--comparison-value", "-cv"], "The value that the User Object attribute is compared to. Can be a double, string, or value-hint list in the format: `<value>:<hint>`"),
                                         new Option<string>(["--served-value", "-sv"], "The value associated with the targeting rule. Leave it empty if the targeting rule has percentage options. It must respect the setting type"),
-                                        new PercentageOptionArgument()
+                                        new PercentageOptionArgument(),
+                                        ReasonOption,
                                     }
                                 },
                                 new CommandDescriptor("segment", "Create segment based targeting rule",
@@ -793,7 +805,8 @@ public static class CommandBuilder
                                             .AddSuggestions(Constants.SegmentComparatorTypes.Keys.ToArray()),
                                         new Option<string>(["--segment-id", "-si"], "ID of the segment that the condition is based on"),
                                         new Option<string>(["--served-value", "-sv"], "The value associated with the targeting rule. Leave it empty if the targeting rule has percentage options. It must respect the setting type"),
-                                        new PercentageOptionArgument()
+                                        new PercentageOptionArgument(),
+                                        ReasonOption,
                                     }
                                 },
                                 new CommandDescriptor("prerequisite", "Create prerequisite flag based targeting rule",
@@ -813,7 +826,8 @@ public static class CommandBuilder
                                         new Option<int>(["--prerequisite-id", "-pi"], "ID of the prerequisite flag that the condition is based on"),
                                         new Option<string>(["--prerequisite-value", "-pv"], "The evaluated value of the prerequisite flag is compared to. It must respect the prerequisite flag's setting type"),
                                         new Option<string>(["--served-value", "-sv"], "The value associated with the targeting rule. Leave it empty if the targeting rule has percentage options. It must respect the setting type"),
-                                        new PercentageOptionArgument()
+                                        new PercentageOptionArgument(),
+                                        ReasonOption,
                                     }
                                 },
                             ]
@@ -830,6 +844,7 @@ public static class CommandBuilder
                                 },
                                 new Option<string>(["--environment-id", "-e"], "ID of the Environment where the rule must be removed"),
                                 new Option<int>(["--rule-position", "-rp"], "The position of the targeting rule to remove"),
+                                ReasonOption,
                             }
                         },
                         new CommandDescriptor("move", "Move targeting rule",
@@ -846,6 +861,7 @@ public static class CommandBuilder
                                 new Option<string>(["--environment-id", "-e"], "ID of the Environment where the rule should be moved"),
                                 new Option<int?>(["--from"], "The position of the targeting rule to move"),
                                 new Option<int?>(["--to"], "The desired position of the targeting rule"),
+                                ReasonOption,
                             }
                         },
                         new CommandDescriptor("update-served-value", "Update a targeting rule's served value",
@@ -862,7 +878,8 @@ public static class CommandBuilder
                                 new Option<string>(["--environment-id", "-e"], "ID of the Environment where the rule should be moved"),
                                 new Option<int>(["--rule-position", "-rp"], "The position of the targeting rule"),
                                 new Option<string>(["--served-value", "-sv"], "The value associated with the targeting rule. Leave it empty if the targeting rule has percentage options. It must respect the setting type"),
-                                new PercentageOptionArgument()
+                                new PercentageOptionArgument(),
+                                ReasonOption,
                             }
                         }
                      ]
@@ -894,6 +911,7 @@ public static class CommandBuilder
                                         new Option<string>(["--comparator", "-c"], "The operator which defines the relation between the comparison attribute and the comparison value")
                                             .AddSuggestions(Constants.UserComparatorTypes.Keys.ToArray()),
                                         new Option<string[]>(["--comparison-value", "-cv"], "The value that the User Object attribute is compared to. Can be a double, string, or value-hint list in the format: `<value>:<hint>`"),
+                                        ReasonOption,
                                     }
                                 },
                                 new CommandDescriptor("segment", "Add new segment based condition",
@@ -911,7 +929,8 @@ public static class CommandBuilder
                                         new Option<int>(["--rule-position", "-rp"], "The position of the targeting rule to which the condition is added"),
                                         new Option<string>(["--comparator", "-c"], "The operator which defines the expected result of the evaluation of the segment")
                                             .AddSuggestions(Constants.SegmentComparatorTypes.Keys.ToArray()),
-                                        new Option<string>(["--segment-id", "-si"], "ID of the segment that the condition is based on")
+                                        new Option<string>(["--segment-id", "-si"], "ID of the segment that the condition is based on"),
+                                        ReasonOption,
                                     }
                                 },
                                 new CommandDescriptor("prerequisite", "Add new prerequisite flag based condition",
@@ -930,7 +949,8 @@ public static class CommandBuilder
                                         new Option<string>(["--comparator", "-c"], "The operator which defines the relation between the evaluated value of the prerequisite flag and the comparison value")
                                             .AddSuggestions(Constants.PrerequisiteComparatorTypes.Keys.ToArray()),
                                         new Option<int>(["--prerequisite-id", "-pi"], "ID of the prerequisite flag that the condition is based on"),
-                                        new Option<string>(["--prerequisite-value", "-pv"], "The evaluated value of the prerequisite flag is compared to. It must respect the prerequisite flag's setting type")
+                                        new Option<string>(["--prerequisite-value", "-pv"], "The evaluated value of the prerequisite flag is compared to. It must respect the prerequisite flag's setting type"),
+                                        ReasonOption,
                                     }
                                 },
                             ]
@@ -948,6 +968,7 @@ public static class CommandBuilder
                                 new Option<string>(["--environment-id", "-e"], "ID of the Environment where the condition must be removed"),
                                 new Option<int>(["--rule-position", "-rp"], "The position of the targeting rule"),
                                 new Option<int>(["--condition-position", "-cp"], "The position of the condition to remove"),
+                                ReasonOption,
                             }
                         },
                      ]
@@ -968,7 +989,8 @@ public static class CommandBuilder
                                      Name = "--flag-id"
                                  },
                                  new Option<string>(["--environment-id", "-e"], "ID of the Environment where the update must be applied"),
-                                 new PercentageOptionArgument()
+                                 new PercentageOptionArgument(),
+                                 ReasonOption,
                              }
                          },
                          new CommandDescriptor("clear", "Delete the last percentage-only rule", "configcat flag-v2 targeting % clear -i <flag-id> -e <environment-id>")
@@ -982,6 +1004,7 @@ public static class CommandBuilder
                                      Name = "--flag-id"
                                  },
                                  new Option<string>(["--environment-id", "-e"], "ID of the Environment from where the rule must be deleted"),
+                                 ReasonOption,
                              }
                          },
                          new CommandDescriptor("attribute", "Set the percentage evaluation attribute", "configcat flag-v2 targeting % attribute -i <flag-id> -e <environment-id>")
@@ -995,7 +1018,8 @@ public static class CommandBuilder
                                      Name = "--flag-id"
                                  },
                                  new Option<string>(["--environment-id", "-e"], "ID of the Environment from where the rules must be deleted"),
-                                 new Option<string>(["--attribute-name", "-n"], "The User Object attribute which serves as the basis of percentage options evaluation")
+                                 new Option<string>(["--attribute-name", "-n"], "The User Object attribute which serves as the basis of percentage options evaluation"),
+                                 ReasonOption,
                              }
                          },
                      }

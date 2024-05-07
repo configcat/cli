@@ -140,7 +140,7 @@ internal class FlagValue(
         return ExitCodes.Ok;
     }
 
-    public async Task<int> UpdateFlagValueAsync(int? flagId, string environmentId, string flagValue, CancellationToken token)
+    public async Task<int> UpdateFlagValueAsync(int? flagId, string environmentId, string flagValue, string reason, CancellationToken token)
     {
         var flag = flagId is null
             ? await workspaceLoader.LoadFlagAsync(token)
@@ -160,7 +160,7 @@ internal class FlagValue(
         var jsonPatchDocument = new JsonPatchDocument();
         jsonPatchDocument.Replace($"/value", parsed);
 
-        await flagValueClient.UpdateValueAsync(flag.SettingId, environmentId, jsonPatchDocument.Operations, token);
+        await flagValueClient.UpdateValueAsync(flag.SettingId, environmentId, reason, jsonPatchDocument.Operations, token);
         return ExitCodes.Ok;
     }
 }

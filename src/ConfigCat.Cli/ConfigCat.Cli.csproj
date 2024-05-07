@@ -11,6 +11,7 @@
     <AssemblyName>configcat</AssemblyName>
     <AssemblyTitle>ConfigCat CLI</AssemblyTitle>
     <InvariantGlobalization>true</InvariantGlobalization>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <Version>0.0.0</Version>
   </PropertyGroup>
 

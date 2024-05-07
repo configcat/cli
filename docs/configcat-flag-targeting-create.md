@@ -21,6 +21,7 @@ configcat flag targeting create -i <flag-id> -e <environment-id> -a Email -c con
 | `--flag-value`, `-f` | The value to serve when the comparison matches, it must respect the setting type |
 | `--segment-id`, `-si` | ID of the Segment used in the rule |
 | `--segment-comparator`, `-sc` | The segment comparison operator<br/><br/>*Possible values*: `isIn`, `isNotIn` |
+| `--reason`, `-r` | The reason note for the Audit Log if the Product's 'Config changes require a reason' preference is turned on |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |
 | `--non-interactive`, `-ni` | Turn off progress rendering and interactive features |
 | `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |
