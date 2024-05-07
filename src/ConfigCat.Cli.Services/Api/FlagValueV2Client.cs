@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -32,7 +33,7 @@ public class FlagValueV2Client(
     public async Task ReplaceValueAsync(int settingId, string environmentId, string reason, FlagValueV2Model model, CancellationToken token)
     {
         this.Output.Write($"Updating Flag Value... ");
-        await this.SendAsync(HttpMethod.Put, $"v2/environments/{environmentId}/settings/{settingId}/value{(string.IsNullOrWhiteSpace(reason)? "" : $"?reason={reason}")}", model, token);
+        await this.SendAsync(HttpMethod.Put, $"v2/environments/{environmentId}/settings/{settingId}/value{(string.IsNullOrWhiteSpace(reason)? string.Empty : $"?reason={Uri.EscapeDataString(reason)}")}", model, token);
         this.Output.WriteSuccess();
         this.Output.WriteLine();
     }
@@ -40,7 +41,7 @@ public class FlagValueV2Client(
     public async Task UpdateValueAsync(int settingId, string environmentId, string reason, List<JsonPatchOperation> operations, CancellationToken token)
     {
         this.Output.Write($"Updating Flag Value... ");
-        await this.SendAsync(HttpMethod.Patch, $"v2/environments/{environmentId}/settings/{settingId}/value{(string.IsNullOrWhiteSpace(reason)? "" : $"?reason={reason}")}", operations, token);
+        await this.SendAsync(HttpMethod.Patch, $"v2/environments/{environmentId}/settings/{settingId}/value{(string.IsNullOrWhiteSpace(reason)? string.Empty : $"?reason={Uri.EscapeDataString(reason)}")}", operations, token);
         this.Output.WriteSuccess();
         this.Output.WriteLine();
     }
