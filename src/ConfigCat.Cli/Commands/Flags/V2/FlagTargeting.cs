@@ -22,6 +22,7 @@ internal class FlagTargeting(IPrompt prompt, IFlagClient flagClient,
         string comparator,
         string[] comparisonValue,
         string servedValue,
+        string reason,
         UpdatePercentageModel[] percentageOptions,
         CancellationToken token)
     {
@@ -54,7 +55,7 @@ internal class FlagTargeting(IPrompt prompt, IFlagClient flagClient,
 
         var jsonPatchDocument = new JsonPatchDocument();
         jsonPatchDocument.Add($"/targetingRules/-", rule);
-        await flagValueClient.UpdateValueAsync(flag.SettingId, environmentId, jsonPatchDocument.Operations, token);
+        await flagValueClient.UpdateValueAsync(flag.SettingId, environmentId, reason, jsonPatchDocument.Operations, token);
         
         return ExitCodes.Ok;
     }
@@ -65,6 +66,7 @@ internal class FlagTargeting(IPrompt prompt, IFlagClient flagClient,
         string attribute,
         string comparator,
         string[] comparisonValue,
+        string reason,
         CancellationToken token)
     {
         var flag = flagId switch
@@ -95,7 +97,7 @@ internal class FlagTargeting(IPrompt prompt, IFlagClient flagClient,
         
         var jsonPatchDocument = new JsonPatchDocument();
         jsonPatchDocument.Add($"/targetingRules/{rulePosition-1}/conditions/-", new ConditionModel { UserCondition = condition });
-        await flagValueClient.UpdateValueAsync(flag.SettingId, environmentId, jsonPatchDocument.Operations, token);
+        await flagValueClient.UpdateValueAsync(flag.SettingId, environmentId, reason, jsonPatchDocument.Operations, token);
         
         return ExitCodes.Ok;
     }
@@ -105,6 +107,7 @@ internal class FlagTargeting(IPrompt prompt, IFlagClient flagClient,
         string comparator,
         string segmentId,
         string servedValue,
+        string reason,
         UpdatePercentageModel[] percentageOptions,
         CancellationToken token)
     {
@@ -139,7 +142,7 @@ internal class FlagTargeting(IPrompt prompt, IFlagClient flagClient,
         
         var jsonPatchDocument = new JsonPatchDocument();
         jsonPatchDocument.Add($"/targetingRules/-", rule);
-        await flagValueClient.UpdateValueAsync(flag.SettingId, environmentId, jsonPatchDocument.Operations, token);
+        await flagValueClient.UpdateValueAsync(flag.SettingId, environmentId, reason, jsonPatchDocument.Operations, token);
         
         return ExitCodes.Ok;
     }
@@ -149,6 +152,7 @@ internal class FlagTargeting(IPrompt prompt, IFlagClient flagClient,
         int? rulePosition,
         string comparator,
         string segmentId,
+        string reason,
         CancellationToken token)
     {
         var flag = flagId switch
@@ -181,7 +185,7 @@ internal class FlagTargeting(IPrompt prompt, IFlagClient flagClient,
         
         var jsonPatchDocument = new JsonPatchDocument();
         jsonPatchDocument.Add($"/targetingRules/{rulePosition-1}/conditions/-", new ConditionModel { SegmentCondition = condition });
-        await flagValueClient.UpdateValueAsync(flag.SettingId, environmentId, jsonPatchDocument.Operations, token);
+        await flagValueClient.UpdateValueAsync(flag.SettingId, environmentId, reason, jsonPatchDocument.Operations, token);
         
         return ExitCodes.Ok;
     }
@@ -191,7 +195,8 @@ internal class FlagTargeting(IPrompt prompt, IFlagClient flagClient,
         string comparator,
         int? prerequisiteId,
         string prerequisiteValue,
-        string servedValue,
+        string servedValue, 
+        string reason,
         UpdatePercentageModel[] percentageOptions,
         CancellationToken token)
     {
@@ -244,7 +249,7 @@ internal class FlagTargeting(IPrompt prompt, IFlagClient flagClient,
         
         var jsonPatchDocument = new JsonPatchDocument();
         jsonPatchDocument.Add($"/targetingRules/-", rule);
-        await flagValueClient.UpdateValueAsync(flag.SettingId, environmentId, jsonPatchDocument.Operations, token);
+        await flagValueClient.UpdateValueAsync(flag.SettingId, environmentId, reason, jsonPatchDocument.Operations, token);
         
         return ExitCodes.Ok;
     }
@@ -255,6 +260,7 @@ internal class FlagTargeting(IPrompt prompt, IFlagClient flagClient,
         string comparator,
         int? prerequisiteId,
         string prerequisiteValue,
+        string reason,
         CancellationToken token)
     {
         var flag = flagId switch
@@ -305,7 +311,7 @@ internal class FlagTargeting(IPrompt prompt, IFlagClient flagClient,
         
         var jsonPatchDocument = new JsonPatchDocument();
         jsonPatchDocument.Add($"/targetingRules/{rulePosition-1}/conditions/-", new ConditionModel { PrerequisiteFlagCondition = condition });
-        await flagValueClient.UpdateValueAsync(flag.SettingId, environmentId, jsonPatchDocument.Operations, token);
+        await flagValueClient.UpdateValueAsync(flag.SettingId, environmentId, reason, jsonPatchDocument.Operations, token);
         
         return ExitCodes.Ok;
     }
@@ -313,6 +319,7 @@ internal class FlagTargeting(IPrompt prompt, IFlagClient flagClient,
     public async Task<int> DeleteRuleAsync(int? flagId,
         string environmentId,
         int? rulePosition,
+        string reason,
         CancellationToken token)
     {
         var flag = flagId switch
@@ -328,7 +335,7 @@ internal class FlagTargeting(IPrompt prompt, IFlagClient flagClient,
         
         var jsonPatchDocument = new JsonPatchDocument();
         jsonPatchDocument.Remove($"/targetingRules/{rulePosition-1}");
-        await flagValueClient.UpdateValueAsync(flag.SettingId, environmentId, jsonPatchDocument.Operations, token);
+        await flagValueClient.UpdateValueAsync(flag.SettingId, environmentId, reason, jsonPatchDocument.Operations, token);
         
         return ExitCodes.Ok;
     }
@@ -337,6 +344,7 @@ internal class FlagTargeting(IPrompt prompt, IFlagClient flagClient,
         string environmentId,
         int? rulePosition,
         int? conditionPosition,
+        string reason,
         CancellationToken token)
     {
         var flag = flagId switch
@@ -353,12 +361,12 @@ internal class FlagTargeting(IPrompt prompt, IFlagClient flagClient,
         
         var jsonPatchDocument = new JsonPatchDocument();
         jsonPatchDocument.Remove($"/targetingRules/{rulePosition-1}/conditions/{conditionPosition-1}");
-        await flagValueClient.UpdateValueAsync(flag.SettingId, environmentId, jsonPatchDocument.Operations, token);
+        await flagValueClient.UpdateValueAsync(flag.SettingId, environmentId, reason, jsonPatchDocument.Operations, token);
         
         return ExitCodes.Ok;
     }
     
-    public async Task<int> MoveTargetingRuleAsync(int? flagId, string environmentId, int? from, int? to, CancellationToken token)
+    public async Task<int> MoveTargetingRuleAsync(int? flagId, string environmentId, int? from, int? to, string reason, CancellationToken token)
     {
         var flag = flagId switch
         {
@@ -375,7 +383,7 @@ internal class FlagTargeting(IPrompt prompt, IFlagClient flagClient,
         var jsonPatchDocument = new JsonPatchDocument();
         jsonPatchDocument.Move($"/targetingRules/{from-1}", $"/targetingRules/{to-1}");
 
-        await flagValueClient.UpdateValueAsync(flag.SettingId, environmentId, jsonPatchDocument.Operations, token);
+        await flagValueClient.UpdateValueAsync(flag.SettingId, environmentId, reason, jsonPatchDocument.Operations, token);
         return ExitCodes.Ok;
     }
     
@@ -383,6 +391,7 @@ internal class FlagTargeting(IPrompt prompt, IFlagClient flagClient,
         string environmentId,
         int? rulePosition,
         string servedValue,
+        string reason,
         UpdatePercentageModel[] percentageOptions,
         CancellationToken token)
     {
@@ -405,7 +414,7 @@ internal class FlagTargeting(IPrompt prompt, IFlagClient flagClient,
         
         var jsonPatchDocument = new JsonPatchDocument();
         jsonPatchDocument.Replace($"/targetingRules/{rulePosition-1}", rule);
-        await flagValueClient.UpdateValueAsync(flag.SettingId, environmentId, jsonPatchDocument.Operations, token);
+        await flagValueClient.UpdateValueAsync(flag.SettingId, environmentId, reason, jsonPatchDocument.Operations, token);
         
         return ExitCodes.Ok;
     }

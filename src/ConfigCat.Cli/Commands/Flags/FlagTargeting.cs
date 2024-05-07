@@ -28,6 +28,7 @@ internal class FlagTargeting(
         string flagValue, 
         string segmentId, 
         string segmentComparator, 
+        string reason,
         CancellationToken token)
     {
         var flag = flagId switch
@@ -65,7 +66,7 @@ internal class FlagTargeting(
             Value = parsed,
         });
 
-        await flagValueClient.UpdateValueAsync(flag.SettingId, environmentId, jsonPatchDocument.Operations, token);
+        await flagValueClient.UpdateValueAsync(flag.SettingId, environmentId, reason, jsonPatchDocument.Operations, token);
         return ExitCodes.Ok;
     }
 
@@ -78,6 +79,7 @@ internal class FlagTargeting(
         string flagValue, 
         string segmentId, 
         string segmentComparator, 
+        string reason,
         CancellationToken token)
     {
         var flag = flagId switch
@@ -117,11 +119,11 @@ internal class FlagTargeting(
             Value = parsed,
         });
 
-        await flagValueClient.UpdateValueAsync(flag.SettingId, environmentId, jsonPatchDocument.Operations, token);
+        await flagValueClient.UpdateValueAsync(flag.SettingId, environmentId, reason, jsonPatchDocument.Operations, token);
         return ExitCodes.Ok;
     }
 
-    public async Task<int> DeleteTargetingRuleAsync(int? flagId, string environmentId, int? position, CancellationToken token)
+    public async Task<int> DeleteTargetingRuleAsync(int? flagId, string environmentId, int? position, string reason, CancellationToken token)
     {
         var flag = flagId switch
         {
@@ -137,11 +139,11 @@ internal class FlagTargeting(
         var jsonPatchDocument = new JsonPatchDocument();
         jsonPatchDocument.Remove($"/{FlagValueModel.TargetingRuleJsonName}/{realPosition}");
 
-        await flagValueClient.UpdateValueAsync(flag.SettingId, environmentId, jsonPatchDocument.Operations, token);
+        await flagValueClient.UpdateValueAsync(flag.SettingId, environmentId, reason, jsonPatchDocument.Operations, token);
         return ExitCodes.Ok;
     }
 
-    public async Task<int> MoveTargetingRuleAsync(int? flagId, string environmentId, int? from, int? to, CancellationToken token)
+    public async Task<int> MoveTargetingRuleAsync(int? flagId, string environmentId, int? from, int? to, string reason, CancellationToken token)
     {
         var flag = flagId switch
         {
@@ -158,7 +160,7 @@ internal class FlagTargeting(
         var jsonPatchDocument = new JsonPatchDocument();
         jsonPatchDocument.Move($"/{FlagValueModel.TargetingRuleJsonName}/{realFrom}", $"/{FlagValueModel.TargetingRuleJsonName}/{realTo}");
 
-        await flagValueClient.UpdateValueAsync(flag.SettingId, environmentId, jsonPatchDocument.Operations, token);
+        await flagValueClient.UpdateValueAsync(flag.SettingId, environmentId, reason, jsonPatchDocument.Operations, token);
         return ExitCodes.Ok;
     }
 

@@ -18,6 +18,7 @@ configcat flag-v2 targeting condition add segment -i <flag-id> -e <environment-i
 | `--rule-position`, `-rp` | The position of the targeting rule to which the condition is added |
 | `--comparator`, `-c` | The operator which defines the expected result of the evaluation of the segment<br/><br/>*Possible values*: `isIn`, `isNotIn` |
 | `--segment-id`, `-si` | ID of the segment that the condition is based on |
+| `--reason`, `-r` | The reason note for the Audit Log if the Product's 'Config changes require a reason' preference is turned on |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |
 | `--non-interactive`, `-ni` | Turn off progress rendering and interactive features |
 | `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |

@@ -14,9 +14,9 @@ public interface IFlagValueV2Client
 {
     Task<FlagValueV2Model> GetValueAsync(int settingId, string environmentId, CancellationToken token);
 
-    Task ReplaceValueAsync(int settingId, string environmentId, FlagValueV2Model model, CancellationToken token);
+    Task ReplaceValueAsync(int settingId, string environmentId, string reason, FlagValueV2Model model, CancellationToken token);
 
-    Task UpdateValueAsync(int settingId, string environmentId, List<JsonPatchOperation> operations, CancellationToken token);
+    Task UpdateValueAsync(int settingId, string environmentId, string reason, List<JsonPatchOperation> operations, CancellationToken token);
 }
 
 public class FlagValueV2Client(
@@ -29,18 +29,18 @@ public class FlagValueV2Client(
     public Task<FlagValueV2Model> GetValueAsync(int settingId, string environmentId, CancellationToken token) =>
         this.GetAsync<FlagValueV2Model>(HttpMethod.Get, $"v2/environments/{environmentId}/settings/{settingId}/value", token);
 
-    public async Task ReplaceValueAsync(int settingId, string environmentId, FlagValueV2Model model, CancellationToken token)
+    public async Task ReplaceValueAsync(int settingId, string environmentId, string reason, FlagValueV2Model model, CancellationToken token)
     {
         this.Output.Write($"Updating Flag Value... ");
-        await this.SendAsync(HttpMethod.Put, $"v2/environments/{environmentId}/settings/{settingId}/value", model, token);
+        await this.SendAsync(HttpMethod.Put, $"v2/environments/{environmentId}/settings/{settingId}/value{(string.IsNullOrWhiteSpace(reason)? "" : $"?reason={reason}")}", model, token);
         this.Output.WriteSuccess();
         this.Output.WriteLine();
     }
 
-    public async Task UpdateValueAsync(int settingId, string environmentId, List<JsonPatchOperation> operations, CancellationToken token)
+    public async Task UpdateValueAsync(int settingId, string environmentId, string reason, List<JsonPatchOperation> operations, CancellationToken token)
     {
         this.Output.Write($"Updating Flag Value... ");
-        await this.SendAsync(HttpMethod.Patch, $"v2/environments/{environmentId}/settings/{settingId}/value", operations, token);
+        await this.SendAsync(HttpMethod.Patch, $"v2/environments/{environmentId}/settings/{settingId}/value{(string.IsNullOrWhiteSpace(reason)? "" : $"?reason={reason}")}", operations, token);
         this.Output.WriteSuccess();
         this.Output.WriteLine();
     }

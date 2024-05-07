@@ -19,6 +19,7 @@ configcat flag-v2 targeting rule create segment -i <flag-id> -e <environment-id>
 | `--segment-id`, `-si` | ID of the segment that the condition is based on |
 | `--served-value`, `-sv` | The value associated with the targeting rule. Leave it empty if the targeting rule has percentage options. It must respect the setting type |
 | `-po`, `--percentage-options` | Format: `<percentage>:<value>`, e.g., `30:true 70:false` |
+| `--reason`, `-r` | The reason note for the Audit Log if the Product's 'Config changes require a reason' preference is turned on |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |
 | `--non-interactive`, `-ni` | Turn off progress rendering and interactive features |
 | `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |
