@@ -76,6 +76,7 @@ class Flags(NoValue):
 
 class Flags
   RTEST_FLAG    = "test_flag"
+  RSTEST_FLAG   = :test_flag
 end
 
 

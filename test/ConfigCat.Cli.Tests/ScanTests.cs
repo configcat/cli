@@ -62,6 +62,7 @@ public class ScanTests
         Assert.Contains("PTestFlag", aliases);
 
         Assert.Contains("RTEST_FLAG", aliases);
+        Assert.Contains("RSTEST_FLAG", aliases);
 
         Assert.Contains("PHETestFlag", aliases);
         Assert.Contains("PHCTestFlag", aliases);
