@@ -15,6 +15,7 @@ public interface IFileScanner
 {
     Task<IEnumerable<FlagReferenceResult>> ScanAsync(IEnumerable<FlagModel> flags,
         IEnumerable<FileInfo> filesToScan,
+        string[] matchPatterns,
         int contextLines,
         CancellationToken token);
 }
@@ -40,16 +41,16 @@ public class FileScanner : IFileScanner
 
     public async Task<IEnumerable<FlagReferenceResult>> ScanAsync(IEnumerable<FlagModel> flags,
         IEnumerable<FileInfo> filesToScan,
+        string[] matchPatterns,
         int contextLines,
         CancellationToken token)
     {
         using var spinner = this.output.CreateSpinner(token);
-
         return await this.botPolicy.ExecuteAsync(async (ctx, cancellation) =>
         {
             this.output.Verbose($"Searching for flag ALIASES...", ConsoleColor.Magenta);
             var aliasTasks = filesToScan.TakeWhile(file => !cancellation.IsCancellationRequested)
-                .Select(file => this.aliasCollector.CollectAsync(flags, file, token));
+                .Select(file => this.aliasCollector.CollectAsync(flags, file, matchPatterns, token));
 
             var aliasResults = (await Task.WhenAll(aliasTasks)).Where(r => r is not null).ToArray();
 

@@ -19,6 +19,7 @@ public interface IAliasCollector
 {
     Task<AliasScanResult> CollectAsync(IEnumerable<FlagModel> flags,
         FileInfo fileToScan,
+        string[] matchPatterns,
         CancellationToken token);
 }
 
@@ -36,7 +37,8 @@ public class AliasCollector : IAliasCollector
         this.botPolicy.Configure(p => p.Timeout(t => t.After(TimeSpan.FromSeconds(10))));
     }
 
-    public async Task<AliasScanResult> CollectAsync(IEnumerable<FlagModel> flags, FileInfo fileToScan, CancellationToken token)
+    public async Task<AliasScanResult> CollectAsync(IEnumerable<FlagModel> flags, FileInfo fileToScan,
+        string[] matchPatterns, CancellationToken token)
     {
         try
         {
@@ -63,7 +65,7 @@ public class AliasCollector : IAliasCollector
 
                     var match = Regex.Match(line, @"[`{'""]?([a-zA-Z_$0-9]*)[[`}'\""]?\s*(?>\:?\s*(?>[sS]tring)?\s*=?>?\s*(?>new|await)?)\s*\S*[@$]?[`'""](" + keys + ")[`'\"]",
                         RegexOptions.Compiled);
-
+                    
                     while (match.Success && !cancellation.IsCancellationRequested)
                     {
                         var key = match.Groups[2].Value;
@@ -77,6 +79,28 @@ public class AliasCollector : IAliasCollector
                             result.FlagAliases.AddOrUpdate(flag, [found], (k, v) => { v.Add(found); return v; });
 
                         match = match.NextMatch();
+                    }
+
+                    if (matchPatterns.Length != 0)
+                    {
+                        foreach (var matchPattern in matchPatterns)
+                        {
+                            var regMatch = Regex.Match(line, matchPattern.Replace("CC_KEY", $"[`'\"]?({keys})[`'\"]?"), RegexOptions.Compiled);
+                            while (regMatch.Success && !cancellation.IsCancellationRequested)
+                            {
+                                var key = regMatch.Groups[2].Value;
+                                var found = regMatch.Groups[1].Value;
+                                var flag = flags.FirstOrDefault(f => f.Key == key);
+
+                                if (flag != null)
+                                    result.FoundFlags.Add(flag);
+
+                                if (flag != null && !found.IsEmpty() && Similarity(flag.Key, found) > 0.3)
+                                    result.FlagAliases.AddOrUpdate(flag, [found], (k, v) => { v.Add(found); return v; });
+
+                                regMatch = regMatch.NextMatch();
+                            }
+                        }
                     }
                 });
 

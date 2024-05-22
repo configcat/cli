@@ -47,6 +47,9 @@ internal class FlagPercentage(IPrompt prompt, IOutput output, IWorkspaceLoader w
         if (value.Setting.SettingType == SettingTypes.Boolean && result.Count != 2)
             throw new ShowHelpException($"Boolean type can only have 2 percentage rules");
 
+        if (await workspaceLoader.NeedsReasonAsync(environmentId, token) && reason.IsEmpty())
+            reason = await prompt.GetStringAsync("Mandatory reason", token);
+        
         percentageRule.PercentageOptions = result;
         await flagValueClient.ReplaceValueAsync(flag.SettingId, environmentId, reason, value, token);
 
@@ -74,6 +77,9 @@ internal class FlagPercentage(IPrompt prompt, IOutput output, IWorkspaceLoader w
             return ExitCodes.Ok;
         }
         
+        if (await workspaceLoader.NeedsReasonAsync(environmentId, token) && reason.IsEmpty())
+            reason = await prompt.GetStringAsync("Mandatory reason", token);
+        
         value.TargetingRules.Remove(percentageRule);
         await flagValueClient.ReplaceValueAsync(flag.SettingId, environmentId, reason, value, token);
 
@@ -93,6 +99,9 @@ internal class FlagPercentage(IPrompt prompt, IOutput output, IWorkspaceLoader w
 
         if (attributeName.IsEmpty())
             attributeName = await prompt.GetStringAsync("Percentage attribute", token, "Identifier");
+        
+        if (await workspaceLoader.NeedsReasonAsync(environmentId, token) && reason.IsEmpty())
+            reason = await prompt.GetStringAsync("Mandatory reason", token);
         
         var jsonPatchDocument = new JsonPatchDocument();
         jsonPatchDocument.Replace($"/percentageEvaluationAttribute", attributeName);

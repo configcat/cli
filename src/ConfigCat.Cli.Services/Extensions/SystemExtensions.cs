@@ -136,4 +136,10 @@ public static class SystemExtensions
                 "numberGreaterOrEquals" => true,
             _ => false
         };
+    
+    public static string TrimToFitColumn(this string text)
+        => text == null ? "\"\"" : $"\"{text.TrimToLength(30)}\"";
+    
+    public static string TrimToLength(this string text, int length)
+        => text.Length > length ? $"{text[0..(length - 2)]}..." : text;
 }

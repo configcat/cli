@@ -245,6 +245,68 @@ Describe "Member tests" {
     }
 }
 
+Describe "Webhook tests" {
+    BeforeAll {
+        $webhookId = Invoke-ConfigCat "webhook", "create", "-c", $configId, "-e", $environmentId, "-u", "https://example.com/hook", "-m", "get"
+        $tableResult = Invoke-ConfigCat "webhook", "ls", "-p", $productId
+        $tableResult | Should -Match ([regex]::Escape($webhookId))
+        $tableResult | Should -Match ([regex]::Escape("https://example.com/hook"))
+        $tableResult | Should -Match ([regex]::Escape("GET"))
+    }
+
+    AfterAll {
+        Invoke-ConfigCat "webhook", "rm", "-i", $webhookId
+    }
+
+    It "Update webhook" {
+        Invoke-ConfigCat "webhook", "up", "-i", $webhookId, "-u", "https://example.com/hook2", "-m", "post", "-co", "example body"
+        $hookResult = Invoke-ConfigCat "webhook", "sh", "-i", $webhookId
+        $hookResult | Should -Match ([regex]::Escape("https://example.com/hook2"))
+        $hookResult | Should -Match ([regex]::Escape("POST"))
+        $hookResult | Should -Match ([regex]::Escape("example body"))
+    }
+
+    It "Add header" {
+        Invoke-ConfigCat "webhook", "headers", "add", "-i", $webhookId, "-k", "Header1", "-val", "header-val"
+        $hookResult = Invoke-ConfigCat "webhook", "sh", "-i", $webhookId
+        $hookResult | Should -Match ([regex]::Escape("Header1"))
+        $hookResult | Should -Match ([regex]::Escape("header-val"))
+
+        Invoke-ConfigCat "webhook", "headers", "rm", "-i", $webhookId, "-k", "Header1"
+        $hookResult = Invoke-ConfigCat "webhook", "sh", "-i", $webhookId
+        $hookResult | Should -Not -Match ([regex]::Escape("Header1"))
+        $hookResult | Should -Not -Match ([regex]::Escape("header-val"))
+    }
+
+    It "Add secure header" {
+        Invoke-ConfigCat "webhook", "headers", "add", "-i", $webhookId, "-k", "Header2", "-val", "secure-header-val", "--secure"
+        $hookResult = Invoke-ConfigCat "webhook", "sh", "-i", $webhookId
+        $hookResult | Should -Match ([regex]::Escape("Header2"))
+        $hookResult | Should -Not -Match ([regex]::Escape("secure-header-val"))
+        $hookResult | Should -Match ([regex]::Escape("<secure>"))
+    }
+}
+
+Describe "Product preferences tests" {
+    AfterAll {
+        Invoke-ConfigCat "product", "preferences", "update", "env", "-i", $productId, "-ei", "${environmentId}:false"
+    }
+    
+    It "Update preferences" {
+        Invoke-ConfigCat "product", "preferences", "update", "-i", $productId, "-rr", "true", "-kg", "pascalCase", "-vi", "true"
+        $prefResult = Invoke-ConfigCat "product", "preferences", "sh", "-i", $productId
+        $prefResult | Should -Match ([regex]::Escape("Reason required: True"))
+        $prefResult | Should -Match ([regex]::Escape("Key generation mode: pascalCase"))
+        $prefResult | Should -Match ([regex]::Escape("Show variation ID: True"))
+
+        Invoke-ConfigCat "product", "preferences", "update", "-i", $productId, "-rr", "false"
+        Invoke-ConfigCat "product", "preferences", "update", "env", "-i", $productId, "-ei", "${environmentId}:true"
+        $prefResult = Invoke-ConfigCat "product", "preferences", "sh", "-i", $productId
+        $prefResult | Should -Match ([regex]::Escape("Reason required: False"))
+        $prefResult | Should -Match ([regex]::Escape("$newEnvironmentName  True"))
+    }
+}
+
 Describe "Tag / Flag Tests" {
     BeforeAll {
         $tag1Id = Invoke-ConfigCat "tag", "create", "-p", $productId, "-n", "tag1", "-c", "panther"
@@ -606,5 +668,10 @@ Describe "Scan Tests" {
         $result | Should -Not -Match ([regex]::Escape("'flag_to_scan'"))
         $result | Should -Not -Match ([regex]::Escape("'flag_to_scan_2'"))
         $result | Should -Match ([regex]::Escape("deleted feature flag/setting reference(s) found in"))
+    }
+    
+    It "Scan custom pattern" {
+        $result = Invoke-ConfigCat "scan", $scanPath, "-c", $configId, "-r", "cli", "-ap", "(\w+) = flags!(CC_KEY)", "--print"
+        $result | Should -Match ([regex]::Escape("custom_alias"))
     }
 }

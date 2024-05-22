@@ -19,6 +19,75 @@ internal class Member(
     IPrompt prompt,
     IOutput output)
 {
+    public async Task<int> ListOrganizationInvitationsAsync(string organizationId, bool json, CancellationToken token)
+    {
+        if (organizationId.IsEmpty())
+            organizationId = (await workspaceLoader.LoadOrganizationAsync(token)).OrganizationId;
+        
+        var invitations = (await memberClient.GetOrganizationInvitationsAsync(organizationId, token)).ToList();
+
+        if (json)
+        {
+            output.RenderJson(invitations);
+            return ExitCodes.Ok;
+        }
+        
+        var products = await productClient.GetProductsAsync(token);
+
+        List<PermissionGroupModel> permissionGroups = [];
+        foreach (var product in products)
+        {
+            var groups = await permissionGroupClient.GetPermissionGroupsAsync(product.ProductId, token);
+            permissionGroups.AddRange(groups);
+        }
+
+        var result = invitations.Select(m =>
+        {
+            var group = permissionGroups.FirstOrDefault(g => g.PermissionGroupId == m.PermissionGroupId);
+            return new
+            {
+                Id = m.InvitationId,
+                m.Email,
+                m.Expired,
+                m.CreatedAt,
+                PermissionGroup = group is not null ? $"{group.Name} ({group.Product.Name})" : "-" 
+            };
+        });
+        output.RenderTable(result);
+        return ExitCodes.Ok;
+    }
+    
+    public async Task<int> ListProductInvitationsAsync(string productId, bool json, CancellationToken token)
+    {
+        if (productId.IsEmpty())
+            productId = (await workspaceLoader.LoadProductAsync(token)).ProductId;
+        
+        var invitations = (await memberClient.GetProductInvitationsAsync(productId, token)).ToList();
+
+        if (json)
+        {
+            output.RenderJson(invitations);
+            return ExitCodes.Ok;
+        }
+        
+        var permissionGroups = await permissionGroupClient.GetPermissionGroupsAsync(productId, token);
+
+        var result = invitations.Select(m =>
+        {
+            var group = permissionGroups.FirstOrDefault(g => g.PermissionGroupId == m.PermissionGroupId);
+            return new
+            {
+                Id = m.InvitationId,
+                m.Email,
+                m.Expired,
+                m.CreatedAt,
+                PermissionGroup = group is not null ? $"{group.Name}" : "-"
+            };
+        });
+        output.RenderTable(result);
+        return ExitCodes.Ok;
+    }
+    
     public async Task<int> ListOrganizationMembersAsync(string organizationId, bool json, CancellationToken token)
     {
         OrganizationMembersModel members;
@@ -41,13 +110,22 @@ internal class Member(
             m.Email,
             m.FullName,
             m.UserId,
-            Permission = "Organization Admin"
-        }).Concat(members.Members.Select(m => new
+            Permission = "Organization Admin",
+            m.TwoFactorEnabled,
+        }).Concat(members.BillingManagers.Select(m => new
         {
             m.Email,
             m.FullName,
             m.UserId,
-            Permission = string.Join(", ", m.Permissions.Select(p => $"{p.PermissionGroup.Name} ({p.Product.Name})"))
+            Permission = "Billing Manager",
+            m.TwoFactorEnabled,
+        })).Concat(members.Members.Select(m => new
+        {
+            m.Email,
+            m.FullName,
+            m.UserId,
+            Permission = string.Join(", ", m.Permissions.Select(p => $"{p.PermissionGroup.Name} ({p.Product.Name})")),
+            m.TwoFactorEnabled,
         }));
         output.RenderTable(result);
         return ExitCodes.Ok;

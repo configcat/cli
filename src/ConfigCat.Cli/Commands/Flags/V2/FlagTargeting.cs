@@ -53,6 +53,9 @@ internal class FlagTargeting(IPrompt prompt, IFlagClient flagClient,
         var rule = new TargetingRuleModel { Conditions = [new ConditionModel { UserCondition = condition }] };
         await SetRuleThenPart(servedValue, percentageOptions, rule, flag, token);
 
+        if (await workspaceLoader.NeedsReasonAsync(environmentId, token) && reason.IsEmpty())
+            reason = await prompt.GetStringAsync("Mandatory reason", token);
+        
         var jsonPatchDocument = new JsonPatchDocument();
         jsonPatchDocument.Add($"/targetingRules/-", rule);
         await flagValueClient.UpdateValueAsync(flag.SettingId, environmentId, reason, jsonPatchDocument.Operations, token);
@@ -94,6 +97,9 @@ internal class FlagTargeting(IPrompt prompt, IFlagClient flagClient,
             Comparator = comparator, ComparisonAttribute = attribute,
             ComparisonValue = await ParseComparisonValue(comparator, comparisonValue, token)
         };
+        
+        if (await workspaceLoader.NeedsReasonAsync(environmentId, token) && reason.IsEmpty())
+            reason = await prompt.GetStringAsync("Mandatory reason", token);
         
         var jsonPatchDocument = new JsonPatchDocument();
         jsonPatchDocument.Add($"/targetingRules/{rulePosition-1}/conditions/-", new ConditionModel { UserCondition = condition });
@@ -140,6 +146,9 @@ internal class FlagTargeting(IPrompt prompt, IFlagClient flagClient,
         var rule = new TargetingRuleModel { Conditions = [new ConditionModel { SegmentCondition = condition }] };
         await SetRuleThenPart(servedValue, percentageOptions, rule, flag, token);
         
+        if (await workspaceLoader.NeedsReasonAsync(environmentId, token) && reason.IsEmpty())
+            reason = await prompt.GetStringAsync("Mandatory reason", token);
+        
         var jsonPatchDocument = new JsonPatchDocument();
         jsonPatchDocument.Add($"/targetingRules/-", rule);
         await flagValueClient.UpdateValueAsync(flag.SettingId, environmentId, reason, jsonPatchDocument.Operations, token);
@@ -182,6 +191,9 @@ internal class FlagTargeting(IPrompt prompt, IFlagClient flagClient,
             var segment = await workspaceLoader.LoadSegmentAsync(token);
             condition.SegmentId = segment.SegmentId;
         }
+        
+        if (await workspaceLoader.NeedsReasonAsync(environmentId, token) && reason.IsEmpty())
+            reason = await prompt.GetStringAsync("Mandatory reason", token);
         
         var jsonPatchDocument = new JsonPatchDocument();
         jsonPatchDocument.Add($"/targetingRules/{rulePosition-1}/conditions/-", new ConditionModel { SegmentCondition = condition });
@@ -247,6 +259,9 @@ internal class FlagTargeting(IPrompt prompt, IFlagClient flagClient,
         var rule = new TargetingRuleModel { Conditions = [new ConditionModel { PrerequisiteFlagCondition = condition }] };
         await SetRuleThenPart(servedValue, percentageOptions, rule, flag, token);
         
+        if (await workspaceLoader.NeedsReasonAsync(environmentId, token) && reason.IsEmpty())
+            reason = await prompt.GetStringAsync("Mandatory reason", token);
+        
         var jsonPatchDocument = new JsonPatchDocument();
         jsonPatchDocument.Add($"/targetingRules/-", rule);
         await flagValueClient.UpdateValueAsync(flag.SettingId, environmentId, reason, jsonPatchDocument.Operations, token);
@@ -309,6 +324,9 @@ internal class FlagTargeting(IPrompt prompt, IFlagClient flagClient,
             condition.PrerequisiteComparisonValue = val.ToFlagValue(prerequisiteFlag.SettingType);
         }
         
+        if (await workspaceLoader.NeedsReasonAsync(environmentId, token) && reason.IsEmpty())
+            reason = await prompt.GetStringAsync("Mandatory reason", token);
+        
         var jsonPatchDocument = new JsonPatchDocument();
         jsonPatchDocument.Add($"/targetingRules/{rulePosition-1}/conditions/-", new ConditionModel { PrerequisiteFlagCondition = condition });
         await flagValueClient.UpdateValueAsync(flag.SettingId, environmentId, reason, jsonPatchDocument.Operations, token);
@@ -332,6 +350,9 @@ internal class FlagTargeting(IPrompt prompt, IFlagClient flagClient,
             environmentId = (await workspaceLoader.LoadEnvironmentAsync(token, flag.ConfigId)).EnvironmentId;
         
         rulePosition ??= await PromptPosition("Targeting rule's position to remove", token);
+        
+        if (await workspaceLoader.NeedsReasonAsync(environmentId, token) && reason.IsEmpty())
+            reason = await prompt.GetStringAsync("Mandatory reason", token);
         
         var jsonPatchDocument = new JsonPatchDocument();
         jsonPatchDocument.Remove($"/targetingRules/{rulePosition-1}");
@@ -359,6 +380,9 @@ internal class FlagTargeting(IPrompt prompt, IFlagClient flagClient,
         rulePosition ??= await PromptPosition("Targeting rule's position", token);
         conditionPosition ??= await PromptPosition("Condition's position to remove", token);
         
+        if (await workspaceLoader.NeedsReasonAsync(environmentId, token) && reason.IsEmpty())
+            reason = await prompt.GetStringAsync("Mandatory reason", token);
+        
         var jsonPatchDocument = new JsonPatchDocument();
         jsonPatchDocument.Remove($"/targetingRules/{rulePosition-1}/conditions/{conditionPosition-1}");
         await flagValueClient.UpdateValueAsync(flag.SettingId, environmentId, reason, jsonPatchDocument.Operations, token);
@@ -380,6 +404,9 @@ internal class FlagTargeting(IPrompt prompt, IFlagClient flagClient,
         from ??= await PromptPosition("Move from position", token);
         to ??= await PromptPosition("Move to position", token);
 
+        if (await workspaceLoader.NeedsReasonAsync(environmentId, token) && reason.IsEmpty())
+            reason = await prompt.GetStringAsync("Mandatory reason", token);
+        
         var jsonPatchDocument = new JsonPatchDocument();
         jsonPatchDocument.Move($"/targetingRules/{from-1}", $"/targetingRules/{to-1}");
 
@@ -411,6 +438,9 @@ internal class FlagTargeting(IPrompt prompt, IFlagClient flagClient,
         if (rule is null) throw new ShowHelpException($"Targeting rule in position '{rulePosition}' not found");
         
         await SetRuleThenPart(servedValue, percentageOptions, rule, flag, token);
+        
+        if (await workspaceLoader.NeedsReasonAsync(environmentId, token) && reason.IsEmpty())
+            reason = await prompt.GetStringAsync("Mandatory reason", token);
         
         var jsonPatchDocument = new JsonPatchDocument();
         jsonPatchDocument.Replace($"/targetingRules/{rulePosition-1}", rule);
