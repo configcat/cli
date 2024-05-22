@@ -55,7 +55,11 @@ public class FileScanner : IFileScanner
             var aliasResults = (await Task.WhenAll(aliasTasks)).Where(r => r is not null).ToArray();
 
             foreach (var (key, value) in aliasResults.SelectMany(a => a.FlagAliases))
-                key.Aliases = value.Distinct().ToList();
+            {
+                key.Aliases ??= [];
+                key.Aliases.AddRange(value);
+                key.Aliases = key.Aliases.Distinct().ToList();
+            }
 
             var foundFlags = aliasResults.SelectMany(a => a.FoundFlags).Distinct().ToArray();
 

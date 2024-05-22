@@ -97,7 +97,7 @@ public class AliasCollector : IAliasCollector
                                 if (flag != null)
                                     result.FoundFlags.Add(flag);
 
-                                if (flag != null && !found.IsEmpty() && Similarity(flag.Key, found) > 0.3)
+                                if (flag != null && !found.IsEmpty())
                                     result.FlagAliases.AddOrUpdate(flag, [found], (k, v) => { v.Add(found); return v; });
 
                                 regMatch = regMatch.NextMatch();
