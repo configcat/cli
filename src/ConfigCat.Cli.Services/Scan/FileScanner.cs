@@ -49,6 +49,8 @@ public class FileScanner : IFileScanner
         return await this.botPolicy.ExecuteAsync(async (ctx, cancellation) =>
         {
             this.output.Verbose($"Searching for flag ALIASES...", ConsoleColor.Magenta);
+            if (matchPatterns.Length > 0)
+                this.output.Verbose($"Using the following custom alias patterns: {string.Join(", ", matchPatterns.Select(p => $"'{p}'"))}");
             var aliasTasks = filesToScan.TakeWhile(file => !cancellation.IsCancellationRequested)
                 .Select(file => this.aliasCollector.CollectAsync(flags, file, matchPatterns, token));
 
