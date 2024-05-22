@@ -251,7 +251,7 @@ Describe "Webhook tests" {
         $tableResult = Invoke-ConfigCat "webhook", "ls", "-p", $productId
         $tableResult | Should -Match ([regex]::Escape($webhookId))
         $tableResult | Should -Match ([regex]::Escape("https://example.com/hook"))
-        $tableResult | Should -Match ([regex]::Escape("GET"))
+        $tableResult | Should -Match ([regex]::Escape("get"))
     }
 
     AfterAll {
@@ -259,11 +259,11 @@ Describe "Webhook tests" {
     }
 
     It "Update webhook" {
-        Invoke-ConfigCat "webhook", "up", "-i", $webhookId, "-u", "https://example.com/hook2", "-m", "post", "-co", "example body"
+        Invoke-ConfigCat "webhook", "up", "-i", $webhookId, "-u", "https://example.com/hook2", "-m", "post", "-co", "example-body"
         $hookResult = Invoke-ConfigCat "webhook", "sh", "-i", $webhookId
         $hookResult | Should -Match ([regex]::Escape("https://example.com/hook2"))
-        $hookResult | Should -Match ([regex]::Escape("POST"))
-        $hookResult | Should -Match ([regex]::Escape("example body"))
+        $hookResult | Should -Match ([regex]::Escape("post"))
+        $hookResult | Should -Match ([regex]::Escape("example-body"))
     }
 
     It "Add header" {
@@ -671,7 +671,7 @@ Describe "Scan Tests" {
     }
     
     It "Scan custom pattern" {
-        $result = Invoke-ConfigCat "scan", $scanPath, "-c", $configId, "-r", "cli", "-ap", "(\w+) = flags!(CC_KEY)", "--print"
+        $result = Invoke-ConfigCat "scan", $scanPath, "-c", $configId, "-r", "cli", "-ap", "'(\w+) = flags!(CC_KEY)'", "--print"
         $result | Should -Match ([regex]::Escape("custom_alias"))
     }
 }
