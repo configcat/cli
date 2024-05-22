@@ -10,14 +10,13 @@ using System;
 using System.Text.RegularExpressions;
 using System.Linq;
 using ConfigCat.Cli.Models.Scan;
-using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
 
 namespace ConfigCat.Cli.Services.Scan;
 
 public interface IAliasCollector
 {
-    Task<AliasScanResult> CollectAsync(IEnumerable<FlagModel> flags,
+    Task<AliasScanResult> CollectAsync(FlagModel[] flags,
         FileInfo fileToScan,
         string[] matchPatterns,
         CancellationToken token);
@@ -37,7 +36,7 @@ public class AliasCollector : IAliasCollector
         this.botPolicy.Configure(p => p.Timeout(t => t.After(TimeSpan.FromSeconds(10))));
     }
 
-    public async Task<AliasScanResult> CollectAsync(IEnumerable<FlagModel> flags, FileInfo fileToScan,
+    public async Task<AliasScanResult> CollectAsync(FlagModel[] flags, FileInfo fileToScan,
         string[] matchPatterns, CancellationToken token)
     {
         try
@@ -85,6 +84,9 @@ public class AliasCollector : IAliasCollector
                     {
                         foreach (var matchPattern in matchPatterns)
                         {
+                            if (!matchPattern.Contains("CC_KEY"))
+                                continue;
+                            
                             var regMatch = Regex.Match(line, matchPattern.Replace("CC_KEY", $"[`'\"]?({keys})[`'\"]?"), RegexOptions.Compiled);
                             while (regMatch.Success && !cancellation.IsCancellationRequested)
                             {

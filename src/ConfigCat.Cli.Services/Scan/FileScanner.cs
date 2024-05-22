@@ -13,8 +13,8 @@ namespace ConfigCat.Cli.Services.Scan;
 
 public interface IFileScanner
 {
-    Task<IEnumerable<FlagReferenceResult>> ScanAsync(IEnumerable<FlagModel> flags,
-        IEnumerable<FileInfo> filesToScan,
+    Task<IEnumerable<FlagReferenceResult>> ScanAsync(FlagModel[] flags,
+        FileInfo[] filesToScan,
         string[] matchPatterns,
         int contextLines,
         CancellationToken token);
@@ -39,8 +39,8 @@ public class FileScanner : IFileScanner
         this.botPolicy.Configure(p => p.Timeout(t => t.After(TimeSpan.FromSeconds(600))));
     }
 
-    public async Task<IEnumerable<FlagReferenceResult>> ScanAsync(IEnumerable<FlagModel> flags,
-        IEnumerable<FileInfo> filesToScan,
+    public async Task<IEnumerable<FlagReferenceResult>> ScanAsync(FlagModel[] flags,
+        FileInfo[] filesToScan,
         string[] matchPatterns,
         int contextLines,
         CancellationToken token)
