@@ -184,7 +184,7 @@ public class Webhook(
         {
             Op = "add",
             Path = "/webHookHeaders/-",
-            Value = new
+            Value = new WebhookHeaderModel
             {
                 Key = key,
                 Value = value,
