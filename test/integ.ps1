@@ -267,8 +267,7 @@ Describe "Webhook tests" {
     }
 
     It "Add header" {
-        $addH = Invoke-ConfigCat "webhook", "headers", "add", "-i", $webhookId, "-k", "Header1", "-val", "header-val"
-        Write-Host $addH
+        Invoke-ConfigCat "webhook", "headers", "add", "-i", $webhookId, "-k", "Header1", "-val", "header-val"
         $addHeaderResult = Invoke-ConfigCat "webhook", "sh", "-i", $webhookId
         $addHeaderResult | Should -Match ([regex]::Escape("Header1"))
         $addHeaderResult | Should -Match ([regex]::Escape("header-val"))
@@ -280,8 +279,7 @@ Describe "Webhook tests" {
     }
 
     It "Add secure header" {
-        $addSH = Invoke-ConfigCat "webhook", "headers", "add", "-i", $webhookId, "-k", "Header2", "-val", "secure-header-val", "--secure"
-        Write-Host $addSH
+        Invoke-ConfigCat "webhook", "headers", "add", "-i", $webhookId, "-k", "Header2", "-val", "secure-header-val", "--secure"
         $addSecureHeaderResult = Invoke-ConfigCat "webhook", "sh", "-i", $webhookId
         $addSecureHeaderResult | Should -Match ([regex]::Escape("Header2"))
         $addSecureHeaderResult | Should -Not -Match ([regex]::Escape("secure-header-val"))
