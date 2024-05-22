@@ -23,3 +23,4 @@ configcat product [command]
 | [configcat product create](configcat-product-create.md) | Create a new Product in a specified Organization identified by the `--organization-id` option |
 | [configcat product rm](configcat-product-rm.md) | Remove a Product identified by the `--product-id` option |
 | [configcat product update](configcat-product-update.md) | Update a Product identified by the `--product-id` option |
+| [configcat product preferences](configcat-product-preferences.md) | Manage Product preferences |
