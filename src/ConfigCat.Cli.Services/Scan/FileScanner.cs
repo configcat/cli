@@ -13,8 +13,9 @@ namespace ConfigCat.Cli.Services.Scan;
 
 public interface IFileScanner
 {
-    Task<IEnumerable<FlagReferenceResult>> ScanAsync(IEnumerable<FlagModel> flags,
-        IEnumerable<FileInfo> filesToScan,
+    Task<IEnumerable<FlagReferenceResult>> ScanAsync(FlagModel[] flags,
+        FileInfo[] filesToScan,
+        string[] matchPatterns,
         int contextLines,
         CancellationToken token);
 }
@@ -38,23 +39,29 @@ public class FileScanner : IFileScanner
         this.botPolicy.Configure(p => p.Timeout(t => t.After(TimeSpan.FromSeconds(600))));
     }
 
-    public async Task<IEnumerable<FlagReferenceResult>> ScanAsync(IEnumerable<FlagModel> flags,
-        IEnumerable<FileInfo> filesToScan,
+    public async Task<IEnumerable<FlagReferenceResult>> ScanAsync(FlagModel[] flags,
+        FileInfo[] filesToScan,
+        string[] matchPatterns,
         int contextLines,
         CancellationToken token)
     {
         using var spinner = this.output.CreateSpinner(token);
-
         return await this.botPolicy.ExecuteAsync(async (ctx, cancellation) =>
         {
             this.output.Verbose($"Searching for flag ALIASES...", ConsoleColor.Magenta);
+            if (matchPatterns.Length > 0)
+                this.output.Verbose($"Using the following custom alias patterns: {string.Join(", ", matchPatterns.Select(p => $"'{p}'"))}");
             var aliasTasks = filesToScan.TakeWhile(file => !cancellation.IsCancellationRequested)
-                .Select(file => this.aliasCollector.CollectAsync(flags, file, token));
+                .Select(file => this.aliasCollector.CollectAsync(flags, file, matchPatterns, token));
 
             var aliasResults = (await Task.WhenAll(aliasTasks)).Where(r => r is not null).ToArray();
 
             foreach (var (key, value) in aliasResults.SelectMany(a => a.FlagAliases))
-                key.Aliases = value.Distinct().ToList();
+            {
+                key.Aliases ??= [];
+                key.Aliases.AddRange(value);
+                key.Aliases = key.Aliases.Distinct().ToList();
+            }
 
             var foundFlags = aliasResults.SelectMany(a => a.FoundFlags).Distinct().ToArray();
 

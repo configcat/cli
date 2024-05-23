@@ -10,7 +10,6 @@ using System.Linq;
 using ConfigCat.Cli.Commands.PermissionGroups;
 using ConfigCat.Cli.Commands.ConfigJson;
 using ConfigCat.Cli.Commands.Flags.V2;
-using Workspace = ConfigCat.Cli.Models.Configuration.Workspace;
 
 namespace ConfigCat.Cli;
 
@@ -43,6 +42,7 @@ public static class CommandBuilder
                 BuildListAllCommand(),
                 BuildProductCommand(),
                 BuildConfigCommand(),
+                BuildWebhookCommand(),
                 BuildEnvironmentCommand(),
                 BuildFlagCommand(),
                 BuildFlagV2Command(),
@@ -124,6 +124,48 @@ public static class CommandBuilder
                         new Option<string>(["--description", "-d"], "The updated description"),
                     }
                 },
+                new CommandDescriptor("preferences", "Manage Product preferences")
+                {
+                    Aliases = ["pr"],
+                    SubCommands = [
+                        new CommandDescriptor("show", "Show a Product's preferences", "configcat product preferences show -i <product-id>")
+                        {
+                            Aliases = ["sh", "print"],
+                            Handler = CreateHandler<Product>(nameof(Product.ShowProductPreferencesAsync)),
+                            Options = [
+                                
+                                new Option<string>(["--product-id", "-i"], "ID of the Product"),
+                                new Option<bool>(["--json"], "Format the output in JSON"),
+                            ]
+                        },
+                        new CommandDescriptor("update", "Update a Product's preferences", "configcat product preferences update -i <product-id> --reason-required true")
+                        {
+                            Aliases = ["up"],
+                            Handler = CreateHandler<Product>(nameof(Product.UpdateProductPreferencesAsync)),
+                            Options = [
+                                
+                                new Option<string>(["--product-id", "-i"], "ID of the Product"),
+                                new Option<bool?>(["--reason-required", "-rr"], "Indicates that a mandatory note is required for saving and publishing"),
+                                new Option<string>(["--key-gen-mode", "-kg"], "Determines the Feature Flag key generation mode")
+                                    .AddSuggestions(KeyGenerationModes.Collection),
+                                new Option<bool?>(["--show-variation-id", "-vi"], "Indicates whether a variation ID's must be shown on the ConfigCat Dashboard"),
+                                new Option<bool?>(["--mandatory-setting-hint", "-msh"], "Indicates whether Feature flags and Settings must have a hint"),
+                            ],
+                            SubCommands = [
+                                new CommandDescriptor("env", "Update per-environment required reason", "configcat product preferences update env -i <product-id> -ei <environment-id>:true")
+                                {
+                                    Aliases = ["e"],
+                                    Handler = CreateHandler<Product>(nameof(Product.UpdateEnvSpecProductPreferencesAsync)),
+                                    Options = [
+                                
+                                        new Option<string>(["--product-id", "-i"], "ID of the Product"),
+                                        new ReasonRequiredEnvironmentOption(),
+                                    ],
+                                }
+                            ]
+                        }
+                    ]
+                }
             },
         };
 
@@ -133,6 +175,24 @@ public static class CommandBuilder
             Aliases = new[] { "m" },
             SubCommands = new[]
             {
+                new CommandDescriptor("lsio", "List all pending Invitations that belongs to an Organization", "configcat member lsio -o <organization-id>")
+                {
+                    Handler = CreateHandler<Member>(nameof(Member.ListOrganizationInvitationsAsync)),
+                    Options = new Option[]
+                    {
+                        new Option<string>(["--organization-id", "-o"], "Show only an Organization's Members"),
+                        new Option<bool>(["--json"], "Format the output in JSON"),
+                    }
+                },
+                new CommandDescriptor("lsip", "List all pending Invitations that belongs to a Product", "configcat member lsip -p <product-id>")
+                {
+                    Handler = CreateHandler<Member>(nameof(Member.ListProductInvitationsAsync)),
+                    Options = new Option[]
+                    {
+                        new Option<string>(["--product-id", "-p"], "Show only a Product's Members"),
+                        new Option<bool>(["--json"], "Format the output in JSON"),
+                    }
+                },
                 new CommandDescriptor("lso", "List all Members that belongs to an Organization", "configcat member lso -o <organization-id>")
                 {
                     Handler = CreateHandler<Member>(nameof(Member.ListOrganizationMembersAsync)),
@@ -249,6 +309,93 @@ public static class CommandBuilder
                         new Option<string>(["--description", "-d"], "The updated description"),
                     }
                 },
+            },
+        };
+    
+    private static CommandDescriptor BuildWebhookCommand() =>
+        new("webhook", "Manage Webhooks")
+        {
+            Aliases = new[] { "wh" },
+            SubCommands = new[]
+            {
+                new CommandDescriptor("ls", "List all Webhooks that belongs to the configured user", "configcat webhook ls")
+                {
+                    Options = new Option[]
+                    {
+                        new Option<string>(["--product-id", "-p"], "Show only a Product's Webhooks"),
+                        new Option<bool>(["--json"], "Format the output in JSON"),
+                    },
+                    Handler = CreateHandler<Webhook>(nameof(Webhook.ListAllWebhooksAsync))
+                },
+                new CommandDescriptor("show", "Print a Webhook identified by the `--webhook-id` option", "configcat webhook sh -i <webhook-id>")
+                {
+                    Aliases = ["sh", "print"],
+                    Handler = CreateHandler<Webhook>(nameof(Webhook.ShowWebhookAsync)),
+                    Options = new[]
+                    {
+                        new Option<int?>(["--webhook-id", "-i"], "ID of the Webhook"),
+                    }
+                },
+                new CommandDescriptor("create", "Create a new Webhook", "configcat webhook create -c <config-id> -e <environment-id> -u \"https://example.com/hook\" -m get")
+                {
+                    Aliases = new[] { "cr" },
+                    Handler = CreateHandler<Webhook>(nameof(Webhook.CreateWebhookAsync)),
+                    Options = new[]
+                    {
+                        new Option<string>(["--config-id", "-c"], "ID of the Config"),
+                        new Option<string>(["--environment-id", "-e"], "ID of the Environment"),
+                        new Option<string>(["--url", "-u"], "The Webhook's URL"),
+                        new Option<string>(["--http-method", "-m"], "The Webhook's HTTP method")
+                            .AddSuggestions(HttpMethods.Collection),
+                        new Option<string>(["--content", "-co"], "The Webhook's HTTP body"),
+                    }
+                },
+                new CommandDescriptor("rm", "Remove a Webhook identified by the `--webhook-id` option", "configcat webhook rm -i <webhook-id>")
+                {
+                    Handler = CreateHandler<Webhook>(nameof(Webhook.DeleteWebhookAsync)),
+                    Options = new[]
+                    {
+                        new Option<int?>(["--webhook-id", "-i"], "ID of the Webhook to delete"),
+                    }
+                },
+                new CommandDescriptor("update", "Update a Webhook identified by the `--webhook-id` option", "configcat webhook update -i <webhook-id> -u \"https://example.com/hook\" -m get")
+                {
+                    Aliases = new[] { "up" },
+                    Handler = CreateHandler<Webhook>(nameof(Webhook.UpdateWebhookAsync)),
+                    Options = new Option[]
+                    {
+                        new Option<int?>(["--webhook-id", "-i"], "ID of the Webhook to update"),
+                        new Option<string>(["--url", "-u"], "The Webhook's URL"),
+                        new Option<string>(["--http-method", "-m"], "The Webhook's HTTP method")
+                            .AddSuggestions(HttpMethods.Collection),
+                        new Option<string>(["--content", "-co"], "The Webhook's HTTP body"),
+                    }
+                },
+                new CommandDescriptor("headers", "Manage Webhook headers")
+                {
+                    Aliases = ["he"],
+                    SubCommands = [
+                        new CommandDescriptor("add", "Add new header", "configcat webhook headers add -i <webhook-id> -k Authorization -val \"Bearer ...\" --secure")
+                        {
+                            Aliases = ["a"],
+                            Handler = CreateHandler<Webhook>(nameof(Webhook.AddWebhookHeaderAsync)),
+                            Options = [
+                                new Option<int?>(["--webhook-id", "-i"], "ID of the Webhook to update"),
+                                new Option<string>(["--key", "-k"], "The Webhook header's key"),
+                                new Option<string>(["--value", "-val"], "The Webhook header's value"),
+                                new Option<bool>(["--secure", "-s"], "If it's true, the Webhook header's value will kept as a secret"),
+                            ]
+                        },
+                        new CommandDescriptor("rm", "Remove header", "configcat webhook headers rm -i <webhook-id> -k Authorization")
+                        {
+                            Handler = CreateHandler<Webhook>(nameof(Webhook.RemoveHeaderAsync)),
+                            Options = [
+                                new Option<int?>(["--webhook-id", "-i"], "ID of the Webhook to update"),
+                                new Option<string>(["--key", "-k"], "The Webhook header's key"),
+                            ]
+                        }
+                    ]
+                }
             },
         };
 
@@ -1155,6 +1302,7 @@ public static class CommandBuilder
                 new Option<string>(["--commit-url-template", "-ct"], "Template url used to generate VCS commit links. Available template parameters: `commitHash`. Example: https://github.com/my/repo/commit/{commitHash}"),
                 new Option<string>(["--runner", "-ru"], "Overrides the default `ConfigCat CLI {version}` executor label on the ConfigCat dashboard"),
                 new Option<string[]>(["--exclude-flag-keys", "-ex"], "Exclude the given Feature Flag keys from scanning. E.g.: `-ex flag1 flag2` or `-ex 'flag1,flag2'`"),
+                new Option<string[]>(["--alias-patterns", "-ap"], "List of custom regex patterns used to search for additional aliases"),
 
             }
         };

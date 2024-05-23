@@ -22,6 +22,8 @@ public interface IWorkspaceLoader
 
     Task<SegmentModel> LoadSegmentAsync(CancellationToken token);
 
+    Task<WebhookModel> LoadWebhookAsync(CancellationToken token);
+
     Task<EnvironmentModel> LoadEnvironmentAsync(CancellationToken token, string configId = null);
 
     Task<TagModel> LoadTagAsync(CancellationToken token);
@@ -29,6 +31,8 @@ public interface IWorkspaceLoader
     Task<FlagModel> LoadFlagAsync(CancellationToken token);
 
     Task<PermissionGroupModel> LoadPermissionGroupAsync(CancellationToken token);
+
+    Task<bool> NeedsReasonAsync(string environmentId, CancellationToken token);
 
     Task<List<TagModel>> LoadTagsAsync(CancellationToken token, string configId = null, List<TagModel> defaultTags = null, bool optional = false);
 }
@@ -41,6 +45,7 @@ public class WorkspaceLoader(
     ISegmentClient segmentClient,
     ITagClient tagClient,
     IFlagClient flagClient,
+    IWebhookClient webhookClient,
     IPermissionGroupClient permissionGroupClient,
     IPrompt prompt,
     IOutput output,
@@ -127,6 +132,14 @@ public class WorkspaceLoader(
         return selected;
     }
 
+    public async Task<bool> NeedsReasonAsync(string environmentId, CancellationToken token)
+    {
+        var environment = await environmentClient.GetEnvironmentAsync(environmentId, token);
+        var preferences = await productClient.GetProductPreferencesAsync(environment.Product.ProductId, token);
+        return preferences.ReasonRequired ||
+            preferences.ReasonRequiredEnvironments.Any(e => e.EnvironmentId == environmentId && e.ReasonRequired);
+    }
+
     public async Task<SegmentModel> LoadSegmentAsync(CancellationToken token)
     {
         var products = await PreloadProducts(token);
@@ -142,6 +155,25 @@ public class WorkspaceLoader(
             throw CreateHelpException("--segment-id");
 
         return await segmentClient.GetSegmentAsync(selected.SegmentId, token);
+    }
+    
+    public async Task<WebhookModel> LoadWebhookAsync(CancellationToken token)
+    {
+        var products = await PreloadProducts(token);
+        var webhooks = new List<WebhookModel>();
+        foreach (var product in products)
+            webhooks.AddRange(await webhookClient.GetWebhooksAsync(product.ProductId, token));
+
+        if (webhooks.Count == 0)
+            throw CreateInformalException("webhook", "webhook create");
+
+        var selected = await prompt.ChooseFromListAsync("Choose webhook", 
+            webhooks.ToList(), 
+            w => $"{w.HttpMethod.ToUpper()} {w.Url.TrimToLength(30)} ({w.Config.Name} / {w.Environment.Name})", token);
+        if (selected == null)
+            throw CreateHelpException("--webhook-id");
+
+        return await webhookClient.GetWebhookAsync(selected.WebhookId, token);
     }
 
     public async Task<EnvironmentModel> LoadEnvironmentAsync(CancellationToken token, string configId = null)

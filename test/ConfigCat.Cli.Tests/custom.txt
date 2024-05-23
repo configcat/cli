@@ -1,0 +1,15 @@
+﻿CUS_TEST_FLAG = :test_flag
+
+CUS_ANOTHER_FLAG = :another_flag
+
+Somewhere else refer to CUS_TEST_FLAG
+
+CUS2_TEST_FLAG = client_wrapper.get_flag(:test_flag)
+
+Somewhere else refer to CUS_TEST_FLAG
+
+let is_test_flag_on := FLAGS('test_flag')
+
+Reference to is_test_flag_on
+
+Reference to CUS2_TEST_FLAG

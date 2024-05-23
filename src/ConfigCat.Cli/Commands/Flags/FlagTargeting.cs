@@ -55,6 +55,9 @@ internal class FlagTargeting(
         if (!addTargetingRuleModel.FlagValue.TryParseFlagValue(flag.SettingType, out var parsed))
             throw new ShowHelpException($"Flag value '{addTargetingRuleModel.FlagValue}' must respect the type '{flag.SettingType}'.");
 
+        if (await workspaceLoader.NeedsReasonAsync(environmentId, token) && reason.IsEmpty())
+            reason = await prompt.GetStringAsync("Mandatory reason", token);
+        
         var jsonPatchDocument = new JsonPatchDocument();
         jsonPatchDocument.Add($"/{FlagValueModel.TargetingRuleJsonName}/-", new TargetingModel
         {
@@ -108,6 +111,9 @@ internal class FlagTargeting(
         if (!addTargetingRuleModel.FlagValue.TryParseFlagValue(flag.SettingType, out var parsed))
             throw new ShowHelpException($"Flag value '{addTargetingRuleModel.FlagValue}' must respect the type '{flag.SettingType}'.");
 
+        if (await workspaceLoader.NeedsReasonAsync(environmentId, token) && reason.IsEmpty())
+            reason = await prompt.GetStringAsync("Mandatory reason", token);
+        
         var jsonPatchDocument = new JsonPatchDocument();
         jsonPatchDocument.Replace($"/{FlagValueModel.TargetingRuleJsonName}/{realPosition}", new TargetingModel
         {
@@ -136,6 +142,9 @@ internal class FlagTargeting(
 
         var (_, realPosition) = await this.GetRuleAsync("Choose rule to delete", flag.SettingId, environmentId, position, token);
 
+        if (await workspaceLoader.NeedsReasonAsync(environmentId, token) && reason.IsEmpty())
+            reason = await prompt.GetStringAsync("Mandatory reason", token);
+        
         var jsonPatchDocument = new JsonPatchDocument();
         jsonPatchDocument.Remove($"/{FlagValueModel.TargetingRuleJsonName}/{realPosition}");
 
@@ -157,6 +166,9 @@ internal class FlagTargeting(
         var (_, realFrom) = await this.GetRuleAsync("Choose rule to re-position", flag.SettingId, environmentId, from, token);
         var (_, realTo) = await this.GetRuleAsync("Choose the position to move", flag.SettingId, environmentId, to, token);
 
+        if (await workspaceLoader.NeedsReasonAsync(environmentId, token) && reason.IsEmpty())
+            reason = await prompt.GetStringAsync("Mandatory reason", token);
+        
         var jsonPatchDocument = new JsonPatchDocument();
         jsonPatchDocument.Move($"/{FlagValueModel.TargetingRuleJsonName}/{realFrom}", $"/{FlagValueModel.TargetingRuleJsonName}/{realTo}");
 

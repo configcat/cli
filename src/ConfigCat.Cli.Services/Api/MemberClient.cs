@@ -11,6 +11,10 @@ namespace ConfigCat.Cli.Services.Api;
 
 public interface IMemberClient
 {
+    Task<IEnumerable<InvitationModel>> GetOrganizationInvitationsAsync(string organizationId, CancellationToken token);
+    
+    Task<IEnumerable<InvitationModel>> GetProductInvitationsAsync(string productId, CancellationToken token);
+    
     Task<OrganizationMembersModel> GetOrganizationMembersAsync(string organizationId, CancellationToken token);
 
     Task<IEnumerable<ProductMemberModel>> GetProductMembersAsync(string productId, CancellationToken token);
@@ -31,6 +35,12 @@ public class MemberClient(
     HttpClient httpClient)
     : ApiClient(output, config, botPolicy, httpClient), IMemberClient
 {
+    public Task<IEnumerable<InvitationModel>> GetOrganizationInvitationsAsync(string organizationId, CancellationToken token) =>
+        this.GetAsync<IEnumerable<InvitationModel>>(HttpMethod.Get, $"v1/organizations/{organizationId}/invitations", token);
+
+    public Task<IEnumerable<InvitationModel>> GetProductInvitationsAsync(string productId, CancellationToken token) =>
+        this.GetAsync<IEnumerable<InvitationModel>>(HttpMethod.Get, $"v1/products/{productId}/invitations", token);
+
     public Task<OrganizationMembersModel> GetOrganizationMembersAsync(string organizationId, CancellationToken token) =>
         this.GetAsync<OrganizationMembersModel>(HttpMethod.Get, $"v2/organizations/{organizationId}/members", token);
 

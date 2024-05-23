@@ -14,10 +14,14 @@ public interface IProductClient
     Task<IEnumerable<ProductModel>> GetProductsAsync(CancellationToken token);
 
     Task<ProductModel> GetProductAsync(string productId, CancellationToken token);
+    
+    Task<ProductPreferencesModel> GetProductPreferencesAsync(string productId, CancellationToken token);
 
     Task<ProductModel> CreateProductAsync(string organizationId, string name, string description, CancellationToken token);
 
     Task UpdateProductAsync(string productId, string name, string description, CancellationToken token);
+    
+    Task UpdateProductPreferencesAsync(string productId, ProductPreferencesModel model, CancellationToken token);
 
     Task DeleteProductAsync(string productId, CancellationToken token);
 }
@@ -35,8 +39,19 @@ public class ProductClient(
     public Task<ProductModel> GetProductAsync(string productId, CancellationToken token) =>
         this.GetAsync<ProductModel>(HttpMethod.Get, $"v1/products/{productId}", token);
 
+    public Task<ProductPreferencesModel> GetProductPreferencesAsync(string productId, CancellationToken token) =>
+        this.GetAsync<ProductPreferencesModel>(HttpMethod.Get, $"v1/products/{productId}/preferences", token);
+
     public Task<ProductModel> CreateProductAsync(string organizationId, string name, string description, CancellationToken token) =>
         this.SendAsync<ProductModel>(HttpMethod.Post, $"v1/organizations/{organizationId}/products", new { Name = name, Description = description }, token);
+
+    public async Task UpdateProductPreferencesAsync(string productId, ProductPreferencesModel model, CancellationToken token)
+    {
+        this.Output.Write($"Updating Product preferences... ");
+        await this.SendAsync(HttpMethod.Post, $"v1/products/{productId}/preferences", model, token);
+        this.Output.WriteSuccess();
+        this.Output.WriteLine();
+    }
 
     public async Task DeleteProductAsync(string productId, CancellationToken token)
     {

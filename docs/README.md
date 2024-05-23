@@ -27,6 +27,10 @@ This is the complete list of the available commands provided by the CLI.
 | [configcat product create](configcat-product-create.md) | Create a new Product in a specified Organization identified by the `--organization-id` option |
 | [configcat product rm](configcat-product-rm.md) | Remove a Product identified by the `--product-id` option |
 | [configcat product update](configcat-product-update.md) | Update a Product identified by the `--product-id` option |
+| [configcat product preferences](configcat-product-preferences.md) | Manage Product preferences |
+| [configcat product preferences show](configcat-product-preferences-show.md) | Show a Product's preferences |
+| [configcat product preferences update](configcat-product-preferences-update.md) | Update a Product's preferences |
+| [configcat product preferences update env](configcat-product-preferences-update-env.md) | Update per-environment required reason |
 ### configcat config
 | Command | Description |
 | ------ | ----------- |
@@ -35,6 +39,18 @@ This is the complete list of the available commands provided by the CLI.
 | [configcat config create](configcat-config-create.md) | Create a new Config in a specified Product identified by the `--product-id` option |
 | [configcat config rm](configcat-config-rm.md) | Remove a Config identified by the `--config-id` option |
 | [configcat config update](configcat-config-update.md) | Update a Config identified by the `--config-id` option |
+### configcat webhook
+| Command | Description |
+| ------ | ----------- |
+| [configcat webhook](configcat-webhook.md) | Manage Webhooks |
+| [configcat webhook ls](configcat-webhook-ls.md) | List all Webhooks that belongs to the configured user |
+| [configcat webhook show](configcat-webhook-show.md) | Print a Webhook identified by the `--webhook-id` option |
+| [configcat webhook create](configcat-webhook-create.md) | Create a new Webhook |
+| [configcat webhook rm](configcat-webhook-rm.md) | Remove a Webhook identified by the `--webhook-id` option |
+| [configcat webhook update](configcat-webhook-update.md) | Update a Webhook identified by the `--webhook-id` option |
+| [configcat webhook headers](configcat-webhook-headers.md) | Manage Webhook headers |
+| [configcat webhook headers add](configcat-webhook-headers-add.md) | Add new header |
+| [configcat webhook headers rm](configcat-webhook-headers-rm.md) | Remove header |
 ### configcat environment
 | Command | Description |
 | ------ | ----------- |
@@ -119,6 +135,8 @@ This is the complete list of the available commands provided by the CLI.
 | Command | Description |
 | ------ | ----------- |
 | [configcat member](configcat-member.md) | Manage Members |
+| [configcat member lsio](configcat-member-lsio.md) | List all pending Invitations that belongs to an Organization |
+| [configcat member lsip](configcat-member-lsip.md) | List all pending Invitations that belongs to a Product |
 | [configcat member lso](configcat-member-lso.md) | List all Members that belongs to an Organization |
 | [configcat member lsp](configcat-member-lsp.md) | List all Members that belongs to a Product |
 | [configcat member rm](configcat-member-rm.md) | Remove Member from an Organization |

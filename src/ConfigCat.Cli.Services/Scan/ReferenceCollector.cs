@@ -60,27 +60,36 @@ public class ReferenceCollector : IReferenceCollector
                 using var reader = new StreamReader(stream);
                 while (!reader.EndOfStream && !cancellation.IsCancellationRequested)
                 {
-                    var line = await reader.ReadLineAsync();
-                    if (line.Length > Constants.MaxCharCountPerLine)
+                    var line = await reader.ReadLineAsync(cancellation);
+                    if (line is not null)
                     {
-                        this.output.Verbose($"{file.FullName} contains a line that has more than {Constants.MaxCharCountPerLine} characters, skipping.", ConsoleColor.Yellow);
-                        return null;
-                    }
-
-                    foreach (var flagSample in flagSamples)
-                    {
-                        if (flagSample.KeySamples.Any(k => line.Contains(k)) || flagSample.Flag.Aliases.Any(a => line.Contains(a)))
+                        if (line.Length > Constants.MaxCharCountPerLine)
                         {
-                            lineTracker.TrackReference(flagSample.Flag, line, lineNumber);
+                            this.output.Verbose(
+                                $"{file.FullName} contains a line that has more than {Constants.MaxCharCountPerLine} characters, skipping.",
+                                ConsoleColor.Yellow);
+                            lineTracker.AddLine("<truncated>", lineNumber);
+                            lineNumber++;
                             continue;
                         }
 
-                        foreach (var sample in flagSample.Samples)
+                        foreach (var flagSample in flagSamples)
                         {
-                            if (line.Contains(sample, StringComparison.OrdinalIgnoreCase))
+                            if (flagSample.KeySamples.Any(k => line.Contains(k)) ||
+                                flagSample.Flag.Aliases.Any(a => line.Contains(a)))
                             {
-                                var originalFromLine = line.IndexOf(sample, StringComparison.OrdinalIgnoreCase);
-                                lineTracker.TrackReference(flagSample.Flag, line, lineNumber, line.Substring(originalFromLine, sample.Length).Remove(Prefixes));
+                                lineTracker.TrackReference(flagSample.Flag, line, lineNumber);
+                                continue;
+                            }
+
+                            foreach (var sample in flagSample.Samples)
+                            {
+                                if (line.Contains(sample, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    var originalFromLine = line.IndexOf(sample, StringComparison.OrdinalIgnoreCase);
+                                    lineTracker.TrackReference(flagSample.Flag, line, lineNumber,
+                                        line.Substring(originalFromLine, sample.Length).Remove(Prefixes));
+                                }
                             }
                         }
                     }

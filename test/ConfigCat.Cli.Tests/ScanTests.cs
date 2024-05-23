@@ -22,7 +22,7 @@ public class ScanTests
         var flag = new FlagModel { Key = "test_flag" };
         var flag2 = new FlagModel { Key = "leadershipSurvey" };
 
-        var result = await aliasCollector.CollectAsync(new[] { flag, flag2 }, new FileInfo("alias.txt"), CancellationToken.None);
+        var result = await aliasCollector.CollectAsync(new[] { flag, flag2 }, new FileInfo("alias.txt"), [], CancellationToken.None);
 
         var aliases = result.FlagAliases.Values.SelectMany(v => v);
 
@@ -77,7 +77,7 @@ public class ScanTests
         var flag = new FlagModel { Key = "test_flag", SettingType = "boolean" };
         var file = new FileInfo("refs.txt");
 
-        var result = await aliasCollector.CollectAsync(new[] { flag }, file, CancellationToken.None);
+        var result = await aliasCollector.CollectAsync(new[] { flag }, file, [], CancellationToken.None);
         flag.Aliases = result.FlagAliases[flag].ToList();
 
         var references = await scanner.CollectAsync(new[] { flag }, file, 0, CancellationToken.None);
@@ -215,5 +215,70 @@ public class ScanTests
         Assert.Contains("wrapper::IsTestFlagAliasEnabled()", referenceLines);
         Assert.Contains("wrapper::ISTESTFLAGALIASENABLED()", referenceLines);
         Assert.Contains("wrapper::IS_TEST_FLAG_ALIAS_ENABLED()", referenceLines);
+    }
+    
+    [Fact]
+    public async Task Custom()
+    {
+        var aliasCollector = new AliasCollector(new BotPolicy<AliasScanResult>(), Mock.Of<IOutput>());
+        var scanner = new ReferenceCollector(new BotPolicy<FlagReferenceResult>(), Mock.Of<IOutput>());
+
+        var flag = new FlagModel { Key = "test_flag", SettingType = "boolean" };
+        var file = new FileInfo("custom.txt");
+
+        var result = await aliasCollector.CollectAsync(new[] { flag }, file, [@"(\w+) = :CC_KEY"], CancellationToken.None);
+        flag.Aliases = result.FlagAliases[flag].ToList();
+        
+        Assert.Contains("CUS_TEST_FLAG",  flag.Aliases);
+
+        var references = await scanner.CollectAsync(new[] { flag }, file, 0, CancellationToken.None);
+        var referenceLines = references.References.Select(r => r.ReferenceLine.LineText);
+
+        Assert.Contains("CUS_TEST_FLAG = :test_flag", referenceLines);
+        Assert.Contains("Somewhere else refer to CUS_TEST_FLAG", referenceLines);
+    }
+    
+    [Fact]
+    public async Task Custom_Other()
+    {
+        var aliasCollector = new AliasCollector(new BotPolicy<AliasScanResult>(), Mock.Of<IOutput>());
+        var scanner = new ReferenceCollector(new BotPolicy<FlagReferenceResult>(), Mock.Of<IOutput>());
+
+        var flag = new FlagModel { Key = "test_flag", SettingType = "boolean" };
+        var file = new FileInfo("custom.txt");
+
+        var result = await aliasCollector.CollectAsync(new[] { flag }, file, [@"(\w+) := FLAGS(CC_KEY)"], CancellationToken.None);
+        flag.Aliases = result.FlagAliases[flag].ToList();
+        
+        Assert.Contains("is_test_flag_on",  flag.Aliases);
+
+        var references = await scanner.CollectAsync(new[] { flag }, file, 0, CancellationToken.None);
+        var referenceLines = references.References.Select(r => r.ReferenceLine.LineText);
+
+        Assert.Contains("let is_test_flag_on := FLAGS('test_flag')", referenceLines);
+        Assert.Contains("Reference to is_test_flag_on", referenceLines);
+        
+        result = await aliasCollector.CollectAsync(new[] { flag }, file, [@"(\w+) = client_wrapper\.get_flag\(:CC_KEY\)"], CancellationToken.None);
+        flag.Aliases = result.FlagAliases[flag].ToList();
+        
+        Assert.Contains("CUS2_TEST_FLAG",  flag.Aliases);
+
+        references = await scanner.CollectAsync(new[] { flag }, file, 0, CancellationToken.None);
+        referenceLines = references.References.Select(r => r.ReferenceLine.LineText);
+
+        Assert.Contains("CUS2_TEST_FLAG = client_wrapper.get_flag(:test_flag)", referenceLines);
+        Assert.Contains("Reference to CUS2_TEST_FLAG", referenceLines);
+    }
+    
+    [Fact]
+    public async Task Alias_Patterns_Bad()
+    {
+        var aliasCollector = new AliasCollector(new BotPolicy<AliasScanResult>(), Mock.Of<IOutput>());
+
+        var flag = new FlagModel { Key = "another_flag", SettingType = "boolean" };
+        var file = new FileInfo("custom.txt");
+
+        var result = await aliasCollector.CollectAsync(new[] { flag }, file, [":CC_KEY"], CancellationToken.None);
+        Assert.Empty(result.FlagAliases);
     }
 }

@@ -246,6 +246,9 @@ internal class FlagValueV2(
         if (!flagValue.TryParseFlagValue(value.Setting.SettingType, out var parsed))
             throw new ShowHelpException($"Flag value '{flagValue}' must respect the type '{value.Setting.SettingType}'.");
 
+        if (await workspaceLoader.NeedsReasonAsync(environmentId, token) && reason.IsEmpty())
+            reason = await prompt.GetStringAsync("Mandatory reason", token);
+        
         var jsonPatchDocument = new JsonPatchDocument();
         jsonPatchDocument.Replace($"/defaultValue/{flag.SettingType.ToValuePropertyName()}", parsed);
 

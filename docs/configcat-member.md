@@ -19,6 +19,8 @@ configcat member [command]
 ## Subcommands
 | Command | Description |
 | ------ | ----------- |
+| [configcat member lsio](configcat-member-lsio.md) | List all pending Invitations that belongs to an Organization |
+| [configcat member lsip](configcat-member-lsip.md) | List all pending Invitations that belongs to a Product |
 | [configcat member lso](configcat-member-lso.md) | List all Members that belongs to an Organization |
 | [configcat member lsp](configcat-member-lsp.md) | List all Members that belongs to a Product |
 | [configcat member rm](configcat-member-rm.md) | Remove Member from an Organization |

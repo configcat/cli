@@ -15,6 +15,7 @@ class FlagPercentage(
     IFlagValueClient flagValueClient,
     IFlagClient flagClient,
     IWorkspaceLoader workspaceLoader,
+    IPrompt prompt,
     IOutput output)
 {
     public async Task<int> UpdatePercentageRulesAsync(int? flagId, string environmentId, string reason, UpdatePercentageModel[] rules, CancellationToken token)
@@ -51,6 +52,9 @@ class FlagPercentage(
              !(bool)result[0].Value && !(bool)result[1].Value))
             throw new ShowHelpException($"Boolean percentage rules cannot have the same value.");
 
+        if (await workspaceLoader.NeedsReasonAsync(environmentId, token) && reason.IsEmpty())
+            reason = await prompt.GetStringAsync("Mandatory reason", token);
+        
         value.PercentageRules = result;
         await flagValueClient.ReplaceValueAsync(flag.SettingId, environmentId, reason, value, token);
 
@@ -66,6 +70,9 @@ class FlagPercentage(
         if (environmentId.IsEmpty())
             environmentId = (await workspaceLoader.LoadEnvironmentAsync(token, flag.ConfigId)).EnvironmentId;
 
+        if (await workspaceLoader.NeedsReasonAsync(environmentId, token) && reason.IsEmpty())
+            reason = await prompt.GetStringAsync("Mandatory reason", token);
+        
         var value = await flagValueClient.GetValueAsync(flag.SettingId, environmentId, token);
         value.PercentageRules = [];
         await flagValueClient.ReplaceValueAsync(flag.SettingId, environmentId, reason, value, token);

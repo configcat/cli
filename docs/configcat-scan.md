@@ -22,6 +22,7 @@ configcat scan ./dir -c <config-id> -l 5 --print
 | `--commit-url-template`, `-ct` | Template url used to generate VCS commit links. Available template parameters: `commitHash`. Example: https://github.com/my/repo/commit/{commitHash} |
 | `--runner`, `-ru` | Overrides the default `ConfigCat CLI {version}` executor label on the ConfigCat dashboard |
 | `--exclude-flag-keys`, `-ex` | Exclude the given Feature Flag keys from scanning. E.g.: `-ex flag1 flag2` or `-ex 'flag1,flag2'` |
+| `--alias-patterns`, `-ap` | List of custom regex patterns used to search for additional aliases |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |
 | `--non-interactive`, `-ni` | Turn off progress rendering and interactive features |
 | `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |

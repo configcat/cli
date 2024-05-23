@@ -11,6 +11,7 @@ public static class Constants
     public const string ApiHostEnvironmentVariableName = "CONFIGCAT_API_HOST";
     public const string ApiUserNameEnvironmentVariableName = "CONFIGCAT_API_USER";
     public const string ApiPasswordEnvironmentVariableName = "CONFIGCAT_API_PASS";
+    public const string AliasPatternsEnvironmentVariableName = "CONFIGCAT_ALIAS_PATTERNS";
 
     public static readonly string ConfigFilePath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
@@ -173,4 +174,34 @@ public static class SettingTypes
     public const string String = "string";
     public const string Int = "int";
     public const string Double = "double";
+}
+
+public static class KeyGenerationModes
+{
+    public static readonly string[] Collection =
+    [
+        CamelCase,
+        LowerCase,
+        UpperCase,
+        PascalCase,
+        KebabCase
+    ];
+
+    public const string CamelCase = "camelCase";
+    public const string LowerCase = "lowerCase";
+    public const string UpperCase = "upperCase";
+    public const string PascalCase = "pascalCase";
+    public const string KebabCase = "kebabCase";
+}
+
+public static class HttpMethods
+{
+    public static readonly string[] Collection =
+    [
+        Get,
+        Post,
+    ];
+
+    public const string Get = "get";
+    public const string Post = "post";
 }
