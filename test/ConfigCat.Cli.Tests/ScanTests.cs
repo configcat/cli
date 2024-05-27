@@ -268,6 +268,17 @@ public class ScanTests
 
         Assert.Contains("CUS2_TEST_FLAG = client_wrapper.get_flag(:test_flag)", referenceLines);
         Assert.Contains("Reference to CUS2_TEST_FLAG", referenceLines);
+        
+        result = await aliasCollector.CollectAsync(new[] { flag }, file, [@"client_wrapper\.get_flag\(:CC_KEY, (\w+) =>"], CancellationToken.None);
+        flag.Aliases = result.FlagAliases[flag].ToList();
+        
+        Assert.Contains("cust_flag_val",  flag.Aliases);
+
+        references = await scanner.CollectAsync(new[] { flag }, file, 0, CancellationToken.None);
+        referenceLines = references.References.Select(r => r.ReferenceLine.LineText);
+
+        Assert.Contains("client_wrapper.get_flag(:test_flag, cust_flag_val => {", referenceLines);
+        Assert.Contains("Reference to cust_flag_val", referenceLines);
     }
     
     [Fact]

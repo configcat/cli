@@ -6,6 +6,8 @@ Somewhere else refer to CUS_TEST_FLAG
 
 CUS2_TEST_FLAG = client_wrapper.get_flag(:test_flag)
 
+client_wrapper.get_flag(:test_flag, cust_flag_val => {
+
 Somewhere else refer to CUS_TEST_FLAG
 
 let is_test_flag_on := FLAGS('test_flag')
@@ -13,3 +15,5 @@ let is_test_flag_on := FLAGS('test_flag')
 Reference to is_test_flag_on
 
 Reference to CUS2_TEST_FLAG
+
+Reference to cust_flag_val
