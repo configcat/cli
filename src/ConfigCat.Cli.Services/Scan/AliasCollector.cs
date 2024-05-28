@@ -87,18 +87,24 @@ public class AliasCollector : IAliasCollector
                             if (!matchPattern.Contains("CC_KEY"))
                                 continue;
                             
-                            var regMatch = Regex.Match(line, matchPattern.Replace("CC_KEY", $"[`'\"]?({keys})[`'\"]?"), RegexOptions.Compiled);
+                            var regMatch = Regex.Match(line, matchPattern.Replace("CC_KEY", $"[`'\"]?(?<keys>{keys})[`'\"]?"), RegexOptions.Compiled);
                             while (regMatch.Success && !cancellation.IsCancellationRequested)
                             {
-                                var key = regMatch.Groups[2].Value;
-                                var found = regMatch.Groups[1].Value;
-                                var flag = flags.FirstOrDefault(f => f.Key == key);
+                                var keyGroup = regMatch.Groups["keys"];
+                                var found = regMatch.Groups.Values.Skip(1).Except([keyGroup]).FirstOrDefault();
+                                if (found is null)
+                                {
+                                    regMatch = regMatch.NextMatch();
+                                    continue;
+                                }
+
+                                var flag = flags.FirstOrDefault(f => f.Key == keyGroup.Value);
 
                                 if (flag != null)
                                     result.FoundFlags.Add(flag);
 
-                                if (flag != null && !found.IsEmpty())
-                                    result.FlagAliases.AddOrUpdate(flag, [found], (k, v) => { v.Add(found); return v; });
+                                if (flag != null && !found.Value.IsEmpty())
+                                    result.FlagAliases.AddOrUpdate(flag, [found.Value], (k, v) => { v.Add(found.Value); return v; });
 
                                 regMatch = regMatch.NextMatch();
                             }
