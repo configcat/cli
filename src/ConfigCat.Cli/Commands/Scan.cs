@@ -43,6 +43,7 @@ internal class Scan(
         string commitUrlTemplate,
         string runner,
         string[] aliasPatterns,
+        string[] usagePatterns,
         string[] excludeFlagKeys,
         CancellationToken token)
     {
@@ -79,7 +80,10 @@ internal class Scan(
 
         var patternsFromEnv =
             System.Environment.GetEnvironmentVariable(Constants.AliasPatternsEnvironmentVariableName)?.Split(',') ?? [];
-        var flagReferences = await fileScanner.ScanAsync(flags.Concat(deletedFlags).ToArray(), files.ToArray(), patternsFromEnv.Concat(aliasPatterns).ToArray(), lineCount, token);
+        var usagePatternsFromEnv = 
+            System.Environment.GetEnvironmentVariable(Constants.UsagePatternsEnvironmentVariableName)?.Split(',') ?? [];
+        var flagReferences = await fileScanner.ScanAsync(flags.Concat(deletedFlags).ToArray(), files.ToArray(), 
+            patternsFromEnv.Concat(aliasPatterns).ToArray(), usagePatternsFromEnv.Concat(usagePatterns).ToArray(), lineCount, token);
 
         var flagReferenceResults = flagReferences as FlagReferenceResult[] ?? flagReferences.ToArray();
         var aliveFlagReferences = Filter(flagReferenceResults, r => r.FoundFlag is not DeletedFlagModel).ToArray();

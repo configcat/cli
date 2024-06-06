@@ -9,12 +9,14 @@ using System.Threading.Tasks;
 using Trybot;
 using Trybot.Timeout.Exceptions;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace ConfigCat.Cli.Services.Scan;
 
 public interface IReferenceCollector
 {
-    Task<FlagReferenceResult> CollectAsync(IEnumerable<FlagModel> flags, FileInfo file, int contextLines, CancellationToken token);
+    Task<FlagReferenceResult> CollectAsync(IEnumerable<FlagModel> flags, FileInfo file, int contextLines, 
+        string[] usagePatterns, CancellationToken token);
 }
 
 public class ReferenceCollector : IReferenceCollector
@@ -32,7 +34,8 @@ public class ReferenceCollector : IReferenceCollector
         this.botPolicy.Configure(p => p.Timeout(t => t.After(TimeSpan.FromSeconds(10))));
     }
 
-    public async Task<FlagReferenceResult> CollectAsync(IEnumerable<FlagModel> flags, FileInfo file, int contextLines, CancellationToken token)
+    public async Task<FlagReferenceResult> CollectAsync(IEnumerable<FlagModel> flags, FileInfo file, int contextLines, 
+        string[] usagePatterns, CancellationToken token)
     {
         try
         {
@@ -54,7 +57,11 @@ public class ReferenceCollector : IReferenceCollector
                 {
                     Flag = f,
                     KeySamples = ProduceKeySamples(f).Distinct().ToArray(),
-                    Samples = ProduceVariationSamples(f).Distinct().ToArray()
+                    Samples = ProduceVariationSamples(f).Distinct().ToArray(),
+                    UsagePatterns = usagePatterns
+                        .Where(p => p.Contains(Constants.KeyPatternPlaceHolder))
+                        .Select(p => new Regex(p.Replace(Constants.KeyPatternPlaceHolder, $"[`'\"]?({f.Key})[`'\"]?"), RegexOptions.Compiled))
+                        .ToArray()
                 }).ToArray();
 
                 using var reader = new StreamReader(stream);
@@ -66,9 +73,9 @@ public class ReferenceCollector : IReferenceCollector
                         if (line.Length > Constants.MaxCharCountPerLine)
                         {
                             this.output.Verbose(
-                                $"{file.FullName} contains a line that has more than {Constants.MaxCharCountPerLine} characters, skipping.",
+                                $"{file.FullName} line {lineNumber}. is longer than allowed ({Constants.MaxCharCountPerLine} chars), skipping.",
                                 ConsoleColor.Yellow);
-                            lineTracker.AddLine("<truncated>", lineNumber);
+                            lineTracker.AddLine("<line was too long>", lineNumber);
                             lineNumber++;
                             continue;
                         }
@@ -76,7 +83,8 @@ public class ReferenceCollector : IReferenceCollector
                         foreach (var flagSample in flagSamples)
                         {
                             if (flagSample.KeySamples.Any(k => line.Contains(k)) ||
-                                flagSample.Flag.Aliases.Any(a => line.Contains(a)))
+                                flagSample.Flag.Aliases.Any(a => line.Contains(a)) ||
+                                flagSample.UsagePatterns.Any(p => p.IsMatch(line)))
                             {
                                 lineTracker.TrackReference(flagSample.Flag, line, lineNumber);
                                 continue;
@@ -227,5 +235,7 @@ public class ReferenceCollector : IReferenceCollector
         public string[] Samples { get; set; }
 
         public string[] KeySamples { get; set; }
+
+        public Regex[] UsagePatterns { get; set; }
     }
 }

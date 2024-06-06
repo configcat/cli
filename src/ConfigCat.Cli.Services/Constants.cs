@@ -12,6 +12,9 @@ public static class Constants
     public const string ApiUserNameEnvironmentVariableName = "CONFIGCAT_API_USER";
     public const string ApiPasswordEnvironmentVariableName = "CONFIGCAT_API_PASS";
     public const string AliasPatternsEnvironmentVariableName = "CONFIGCAT_ALIAS_PATTERNS";
+    public const string UsagePatternsEnvironmentVariableName = "CONFIGCAT_USAGE_PATTERNS";
+
+    public const string KeyPatternPlaceHolder = "CC_KEY";
 
     public static readonly string ConfigFilePath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),

@@ -1303,6 +1303,7 @@ public static class CommandBuilder
                 new Option<string>(["--runner", "-ru"], "Overrides the default `ConfigCat CLI {version}` executor label on the ConfigCat dashboard"),
                 new Option<string[]>(["--exclude-flag-keys", "-ex"], "Exclude the given Feature Flag keys from scanning. E.g.: `-ex flag1 flag2` or `-ex 'flag1,flag2'`"),
                 new Option<string[]>(["--alias-patterns", "-ap"], "List of custom regex patterns used to search for additional aliases"),
+                new Option<string[]>(["--usage-patterns", "-up"], "List of custom regex patterns that describe additional feature flag key usages"),
 
             }
         };

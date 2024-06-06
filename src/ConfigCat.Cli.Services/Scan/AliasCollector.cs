@@ -84,10 +84,10 @@ public class AliasCollector : IAliasCollector
                     {
                         foreach (var matchPattern in matchPatterns)
                         {
-                            if (!matchPattern.Contains("CC_KEY"))
+                            if (!matchPattern.Contains(Constants.KeyPatternPlaceHolder))
                                 continue;
                             
-                            var regMatch = Regex.Match(line, matchPattern.Replace("CC_KEY", $"[`'\"]?(?<keys>{keys})[`'\"]?"), RegexOptions.Compiled);
+                            var regMatch = Regex.Match(line, matchPattern.Replace(Constants.KeyPatternPlaceHolder, $"[`'\"]?(?<keys>{keys})[`'\"]?"), RegexOptions.Compiled);
                             while (regMatch.Success && !cancellation.IsCancellationRequested)
                             {
                                 var keyGroup = regMatch.Groups["keys"];
