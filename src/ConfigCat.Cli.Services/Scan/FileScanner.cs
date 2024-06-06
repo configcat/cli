@@ -16,6 +16,7 @@ public interface IFileScanner
     Task<IEnumerable<FlagReferenceResult>> ScanAsync(FlagModel[] flags,
         FileInfo[] filesToScan,
         string[] matchPatterns,
+        string[] usagePatterns,
         int contextLines,
         CancellationToken token);
 }
@@ -42,6 +43,7 @@ public class FileScanner : IFileScanner
     public async Task<IEnumerable<FlagReferenceResult>> ScanAsync(FlagModel[] flags,
         FileInfo[] filesToScan,
         string[] matchPatterns,
+        string[] usagePatterns,
         int contextLines,
         CancellationToken token)
     {
@@ -69,7 +71,7 @@ public class FileScanner : IFileScanner
             var scanTasks = aliasResults
                 .Select(r => r.ScannedFile)
                 .TakeWhile(file => !cancellation.IsCancellationRequested)
-                .Select(file => this.referenceCollector.CollectAsync(foundFlags, file, contextLines, cancellation));
+                .Select(file => this.referenceCollector.CollectAsync(foundFlags, file, contextLines, usagePatterns, cancellation));
 
             var referenceResults = (await Task.WhenAll(scanTasks)).Where(r => r is not null);
 
