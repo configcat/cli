@@ -23,6 +23,7 @@ configcat scan ./dir -c <config-id> -l 5 --print
 | `--runner`, `-ru` | Overrides the default `ConfigCat CLI {version}` executor label on the ConfigCat dashboard |
 | `--exclude-flag-keys`, `-ex` | Exclude the given Feature Flag keys from scanning. E.g.: `-ex flag1 flag2` or `-ex 'flag1,flag2'` |
 | `--alias-patterns`, `-ap` | List of custom regex patterns used to search for additional aliases |
+| `--usage-patterns`, `-up` | List of custom regex patterns that describe additional feature flag key usages |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |
 | `--non-interactive`, `-ni` | Turn off progress rendering and interactive features |
 | `-h`, `/h`, `--help`, `-?`, `/?` | Show help and usage information |
