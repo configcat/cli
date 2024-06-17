@@ -71,11 +71,8 @@ public class AliasCollector : IAliasCollector
                         var found = match.Groups[1].Value;
                         var flag = flags.FirstOrDefault(f => f.Key == key);
 
-                        if (flag != null)
-                            result.FoundFlags.Add(flag);
-
                         if (flag != null && !found.IsEmpty() && Similarity(flag.Key, found) > 0.3)
-                            result.FlagAliases.AddOrUpdate(flag, [found], (k, v) => { v.Add(found); return v; });
+                            result.FlagAliases.AddOrUpdate(flag.Key, [found], (k, v) => { v.Add(found); return v; });
 
                         match = match.NextMatch();
                     }
@@ -100,11 +97,8 @@ public class AliasCollector : IAliasCollector
 
                                 var flag = flags.FirstOrDefault(f => f.Key == keyGroup.Value);
 
-                                if (flag != null)
-                                    result.FoundFlags.Add(flag);
-
                                 if (flag != null && !found.Value.IsEmpty())
-                                    result.FlagAliases.AddOrUpdate(flag, [found.Value], (k, v) => { v.Add(found.Value); return v; });
+                                    result.FlagAliases.AddOrUpdate(flag.Key, [found.Value], (k, v) => { v.Add(found.Value); return v; });
 
                                 regMatch = regMatch.NextMatch();
                             }
