@@ -53,25 +53,28 @@ public class FileScanner : IFileScanner
             this.output.Verbose($"Searching for flag ALIASES...", ConsoleColor.Magenta);
             if (matchPatterns.Length > 0)
                 this.output.Verbose($"Using the following custom alias patterns: {string.Join(", ", matchPatterns.Select(p => $"'{p}'"))}");
+            if (usagePatterns.Length > 0)
+                this.output.Verbose($"Using the following custom usage patterns: {string.Join(", ", usagePatterns.Select(p => $"'{p}'"))}");
             var aliasTasks = filesToScan.TakeWhile(file => !cancellation.IsCancellationRequested)
                 .Select(file => this.aliasCollector.CollectAsync(flags, file, matchPatterns, token));
 
             var aliasResults = (await Task.WhenAll(aliasTasks)).Where(r => r is not null).ToArray();
 
-            foreach (var (key, value) in aliasResults.SelectMany(a => a.FlagAliases))
+            foreach (var (key, aliases) in aliasResults.SelectMany(a => a.FlagAliases))
             {
-                key.Aliases ??= [];
-                key.Aliases.AddRange(value);
-                key.Aliases = key.Aliases.Distinct().ToList();
+                var flag = flags.FirstOrDefault(f => f.Key == key);
+                if (flag is null) continue;
+                
+                flag.Aliases ??= [];
+                flag.Aliases.AddRange(aliases);
+                flag.Aliases = flag.Aliases.Distinct().ToList();
             }
-
-            var foundFlags = aliasResults.SelectMany(a => a.FoundFlags).Distinct().ToArray();
 
             this.output.Verbose($"Scanning for flag REFERENCES...", ConsoleColor.Magenta);
             var scanTasks = aliasResults
                 .Select(r => r.ScannedFile)
                 .TakeWhile(file => !cancellation.IsCancellationRequested)
-                .Select(file => this.referenceCollector.CollectAsync(foundFlags, file, contextLines, usagePatterns, cancellation));
+                .Select(file => this.referenceCollector.CollectAsync(flags, file, contextLines, usagePatterns, cancellation));
 
             var referenceResults = (await Task.WhenAll(scanTasks)).Where(r => r is not null);
 

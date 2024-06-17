@@ -17,3 +17,6 @@ Reference to is_test_flag_on
 Reference to CUS2_TEST_FLAG
 
 Reference to cust_flag_val
+
+if FLAGS.enabled(:test_direct) {
+}

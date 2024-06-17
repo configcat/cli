@@ -78,7 +78,7 @@ public class ScanTests
         var file = new FileInfo("refs.txt");
 
         var result = await aliasCollector.CollectAsync(new[] { flag }, file, [], CancellationToken.None);
-        flag.Aliases = result.FlagAliases[flag].ToList();
+        flag.Aliases = result.FlagAliases[flag.Key].ToList();
 
         var references = await scanner.CollectAsync(new[] { flag }, file, 0, [], CancellationToken.None);
 
@@ -227,7 +227,7 @@ public class ScanTests
         var file = new FileInfo("custom.txt");
 
         var result = await aliasCollector.CollectAsync(new[] { flag }, file, [@"(\w+) = :CC_KEY"], CancellationToken.None);
-        flag.Aliases = result.FlagAliases[flag].ToList();
+        flag.Aliases = result.FlagAliases[flag.Key].ToList();
         
         Assert.Contains("CUS_TEST_FLAG",  flag.Aliases);
 
@@ -248,7 +248,7 @@ public class ScanTests
         var file = new FileInfo("custom.txt");
 
         var result = await aliasCollector.CollectAsync(new[] { flag }, file, [@"(\w+) := FLAGS(CC_KEY)"], CancellationToken.None);
-        flag.Aliases = result.FlagAliases[flag].ToList();
+        flag.Aliases = result.FlagAliases[flag.Key].ToList();
         
         Assert.Contains("is_test_flag_on",  flag.Aliases);
 
@@ -259,7 +259,7 @@ public class ScanTests
         Assert.Contains("Reference to is_test_flag_on", referenceLines);
         
         result = await aliasCollector.CollectAsync(new[] { flag }, file, [@"(\w+) = client_wrapper\.get_flag\(:CC_KEY\)"], CancellationToken.None);
-        flag.Aliases = result.FlagAliases[flag].ToList();
+        flag.Aliases = result.FlagAliases[flag.Key].ToList();
         
         Assert.Contains("CUS2_TEST_FLAG",  flag.Aliases);
 
@@ -270,7 +270,7 @@ public class ScanTests
         Assert.Contains("Reference to CUS2_TEST_FLAG", referenceLines);
         
         result = await aliasCollector.CollectAsync(new[] { flag }, file, [@"client_wrapper\.get_flag\(:CC_KEY, (\w+) =>"], CancellationToken.None);
-        flag.Aliases = result.FlagAliases[flag].ToList();
+        flag.Aliases = result.FlagAliases[flag.Key].ToList();
         
         Assert.Contains("cust_flag_val",  flag.Aliases);
 
@@ -293,7 +293,7 @@ public class ScanTests
         Assert.Empty(result.FlagAliases);
     }
     
-     [Fact]
+    [Fact]
     public async Task Usage_Custom()
     {
         var aliasCollector = new AliasCollector(new BotPolicy<AliasScanResult>(), Mock.Of<IOutput>());
@@ -303,7 +303,7 @@ public class ScanTests
         var file = new FileInfo("custom.txt");
 
         var result = await aliasCollector.CollectAsync([flag], file, [@"(\w+) = client_wrapper\.get_flag\(:CC_KEY\)"], CancellationToken.None);
-        flag.Aliases = result.FlagAliases[flag].ToList();
+        flag.Aliases = result.FlagAliases[flag.Key].ToList();
         
         Assert.Contains("is_test_flag_on",  flag.Aliases);
 
@@ -315,5 +315,23 @@ public class ScanTests
         Assert.Contains("CUS2_TEST_FLAG = client_wrapper.get_flag(:test_flag)", referenceLines);
         Assert.Contains("client_wrapper.get_flag(:test_flag, cust_flag_val => {", referenceLines);
         Assert.Contains("Reference to CUS2_TEST_FLAG", referenceLines);
+    }
+    
+    [Fact]
+    public async Task Usage_Custom_Direct()
+    {
+        var aliasCollector = new AliasCollector(new BotPolicy<AliasScanResult>(), Mock.Of<IOutput>());
+        var scanner = new ReferenceCollector(new BotPolicy<FlagReferenceResult>(), Mock.Of<IOutput>());
+
+        var flag = new FlagModel { Key = "test_direct", SettingType = "boolean" };
+        var file = new FileInfo("custom.txt");
+
+        var result = await aliasCollector.CollectAsync([flag], file, [], CancellationToken.None);
+        Assert.Empty(result.FlagAliases);
+
+        var references = await scanner.CollectAsync(new[] { flag }, file, 0, [":CC_KEY"], CancellationToken.None);
+        var referenceLines = references.References.Select(r => r.ReferenceLine.LineText);
+
+        Assert.Contains("if FLAGS.enabled(:test_direct) {", referenceLines);
     }
 }
