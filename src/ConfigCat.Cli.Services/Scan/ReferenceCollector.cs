@@ -60,7 +60,7 @@ public class ReferenceCollector : IReferenceCollector
                     Samples = ProduceVariationSamples(f).Distinct().ToArray(),
                     UsagePatterns = usagePatterns
                         .Where(p => p.Contains(Constants.KeyPatternPlaceHolder))
-                        .Select(p => new Regex(p.Replace(Constants.KeyPatternPlaceHolder, $"[`'\"]?({f.Key})[`'\"]?"), RegexOptions.Compiled))
+                        .Select(p => new Regex(p.Replace(Constants.KeyPatternPlaceHolder, f.Key), RegexOptions.Compiled))
                         .ToArray()
                 }).ToArray();
 
