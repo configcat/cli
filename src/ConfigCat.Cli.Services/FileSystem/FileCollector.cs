@@ -32,7 +32,7 @@ public class FileCollector(IOutput output) : IFileCollector
             .Cast<IgnorePolicy>()
             .ToList();
 
-        ignores.Add(new GlobalIgnorePolicy(rootDirectory, "**/.git/**"));
+        ignores.Add(new GlobalIgnorePolicy(rootDirectory, "**/.git/**", "*.lock", "*lock.json", "*.graphql", "*.md", ".dockerignore"));
 
         foreach (var ignore in ignores)
         {

@@ -8,6 +8,7 @@ using ConfigCat.Cli.Services.Git;
 using ConfigCat.Cli.Services.Rendering;
 using ConfigCat.Cli.Services.Scan;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -27,6 +28,8 @@ internal class Scan(
     IGitClient gitClient,
     IOutput output)
 {
+    private const int MaxReferenceCountToUpload = 150;
+    
     private static readonly Lazy<string> Version = new(() =>
         Assembly.GetEntryAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>()
             .InformationalVersion);
@@ -82,9 +85,13 @@ internal class Scan(
             System.Environment.GetEnvironmentVariable(Constants.AliasPatternsEnvironmentVariableName)?.Split(',') ?? [];
         var usagePatternsFromEnv = 
             System.Environment.GetEnvironmentVariable(Constants.UsagePatternsEnvironmentVariableName)?.Split(',') ?? [];
+        var warningTracker = new ConcurrentBag<string>();
         var flagReferences = await fileScanner.ScanAsync(flags.Concat(deletedFlags).ToArray(), files.ToArray(), 
-            patternsFromEnv.Concat(aliasPatterns).ToArray(), usagePatternsFromEnv.Concat(usagePatterns).ToArray(), lineCount, token);
+            patternsFromEnv.Concat(aliasPatterns).ToArray(), usagePatternsFromEnv.Concat(usagePatterns).ToArray(), lineCount, warningTracker, token);
 
+        if (!warningTracker.IsEmpty)
+            output.WriteYellow(string.Join(System.Environment.NewLine, warningTracker.Select(w => $"[warning]: {w}"))).WriteLine();
+        
         var flagReferenceResults = flagReferences as FlagReferenceResult[] ?? flagReferences.ToArray();
         var aliveFlagReferences = Filter(flagReferenceResults, r => r.FoundFlag is not DeletedFlagModel).ToArray();
         var deletedFlagReferences = Filter(flagReferenceResults, r => r.FoundFlag is DeletedFlagModel).ToArray();
@@ -141,7 +148,7 @@ internal class Scan(
                 .Select(r => new FlagReference
                 {
                     SettingId = r.Key.SettingId,
-                    References = r.Select(item => new ReferenceLines
+                    References = r.OrderBy(it => it.reference.IsAlias).Select(item => new ReferenceLines
                     {
                         File = item.File.FullName.AsSlash().Replace(repositoryDirectory, string.Empty, StringComparison.OrdinalIgnoreCase).Trim('/'),
                         FileUrl = !commitHash.IsEmpty() && !fileUrlTemplate.IsEmpty()
@@ -153,7 +160,7 @@ internal class Scan(
                         PostLines = item.reference.PostLines,
                         PreLines = item.reference.PreLines,
                         ReferenceLine = item.reference.ReferenceLine
-                    }).ToList()
+                    }).Take(MaxReferenceCountToUpload).ToList()
                 }).ToList(),
             Repository = repo,
             Branch = branch,
