@@ -140,28 +140,41 @@ internal class Scan(
         var repositoryDirectory = gitInfo == null || gitInfo.WorkingDirectory.IsEmpty()
             ? directory.FullName.AsSlash()
             : gitInfo.WorkingDirectory;
+
+        var references = aliveFlagReferences
+            .SelectMany(referenceResult => referenceResult.References,
+                (file, reference) => new { file.File, reference })
+            .GroupBy(r => r.reference.FoundFlag)
+            .Select(r => new FlagReference
+            {
+                SettingId = r.Key.SettingId,
+                Key = r.Key.Key,
+                References = r.OrderBy(it => it.reference.IsAlias).Select(item => new ReferenceLines
+                {
+                    File = item.File.FullName.AsSlash()
+                        .Replace(repositoryDirectory, string.Empty, StringComparison.OrdinalIgnoreCase).Trim('/'),
+                    FileUrl = !commitHash.IsEmpty() && !fileUrlTemplate.IsEmpty()
+                        ? fileUrlTemplate
+                            .Replace("{commitHash}", commitHash)
+                            .Replace("{filePath}",
+                                item.File.FullName.AsSlash().Replace(repositoryDirectory, string.Empty,
+                                    StringComparison.OrdinalIgnoreCase).Trim('/'))
+                            .Replace("{lineNumber}", item.reference.ReferenceLine.LineNumber.ToString())
+                        : null,
+                    PostLines = item.reference.PostLines,
+                    PreLines = item.reference.PreLines,
+                    ReferenceLine = item.reference.ReferenceLine
+                }).Take(MaxReferenceCountToUpload).ToList()
+            }).ToList();
+
+        var keysWhereUploadLimitReached = references.Where(r => r.References.Count >= MaxReferenceCountToUpload).Select(r => r.Key).Distinct().ToArray();
+        if (keysWhereUploadLimitReached.Length > 0)
+            output.WriteWarning(
+                $"The number of references for the following feature flag keys were capped as they reached the maximum limit ({MaxReferenceCountToUpload}): [{string.Join(", ", keysWhereUploadLimitReached)}]").WriteLine();
+        
         await codeReferenceClient.UploadAsync(new CodeReferenceRequest
         {
-            FlagReferences = aliveFlagReferences
-                .SelectMany(referenceResult => referenceResult.References, (file, reference) => new { file.File, reference })
-                .GroupBy(r => r.reference.FoundFlag)
-                .Select(r => new FlagReference
-                {
-                    SettingId = r.Key.SettingId,
-                    References = r.OrderBy(it => it.reference.IsAlias).Select(item => new ReferenceLines
-                    {
-                        File = item.File.FullName.AsSlash().Replace(repositoryDirectory, string.Empty, StringComparison.OrdinalIgnoreCase).Trim('/'),
-                        FileUrl = !commitHash.IsEmpty() && !fileUrlTemplate.IsEmpty()
-                            ? fileUrlTemplate
-                                .Replace("{commitHash}", commitHash)
-                                .Replace("{filePath}", item.File.FullName.AsSlash().Replace(repositoryDirectory, string.Empty, StringComparison.OrdinalIgnoreCase).Trim('/'))
-                                .Replace("{lineNumber}", item.reference.ReferenceLine.LineNumber.ToString())
-                            : null,
-                        PostLines = item.reference.PostLines,
-                        PreLines = item.reference.PreLines,
-                        ReferenceLine = item.reference.ReferenceLine
-                    }).Take(MaxReferenceCountToUpload).ToList()
-                }).ToList(),
+            FlagReferences = references,
             Repository = repo,
             Branch = branch,
             CommitHash = commitHash,
