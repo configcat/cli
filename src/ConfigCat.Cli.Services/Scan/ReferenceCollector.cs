@@ -2,6 +2,7 @@
 using ConfigCat.Cli.Models.Scan;
 using ConfigCat.Cli.Services.Rendering;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -16,7 +17,7 @@ namespace ConfigCat.Cli.Services.Scan;
 public interface IReferenceCollector
 {
     Task<FlagReferenceResult> CollectAsync(IEnumerable<FlagModel> flags, FileInfo file, int contextLines, 
-        string[] usagePatterns, CancellationToken token);
+        string[] usagePatterns, ConcurrentBag<string> warningTracker, CancellationToken token);
 }
 
 public class ReferenceCollector : IReferenceCollector
@@ -31,11 +32,11 @@ public class ReferenceCollector : IReferenceCollector
         this.botPolicy = botPolicy;
         this.output = output;
 
-        this.botPolicy.Configure(p => p.Timeout(t => t.After(TimeSpan.FromSeconds(10))));
+        this.botPolicy.Configure(p => p.Timeout(t => t.After(TimeSpan.FromSeconds(60))));
     }
 
     public async Task<FlagReferenceResult> CollectAsync(IEnumerable<FlagModel> flags, FileInfo file, int contextLines, 
-        string[] usagePatterns, CancellationToken token)
+        string[] usagePatterns, ConcurrentBag<string> warningTracker, CancellationToken token)
     {
         try
         {
@@ -48,7 +49,7 @@ public class ReferenceCollector : IReferenceCollector
                     return null;
                 }
 
-                this.output.Verbose($"{file.FullName} scanning...");
+                this.output.Verbose($"{file.FullName} - scanning...");
 
                 var lineTracker = new LineTracker(contextLines);
                 var lineNumber = 1;
@@ -72,9 +73,8 @@ public class ReferenceCollector : IReferenceCollector
                     {
                         if (line.Length > Constants.MaxCharCountPerLine)
                         {
-                            this.output.Verbose(
-                                $"{file.FullName} line {lineNumber}. is longer than allowed ({Constants.MaxCharCountPerLine} chars), skipping.",
-                                ConsoleColor.Yellow);
+                            warningTracker.Add(
+                                $"{file.FullName} - {lineNumber}. line is longer than allowed ({Constants.MaxCharCountPerLine} chars), skipping code reference scan.");
                             lineTracker.AddLine("<line was too long>", lineNumber);
                             lineNumber++;
                             continue;
@@ -83,10 +83,15 @@ public class ReferenceCollector : IReferenceCollector
                         foreach (var flagSample in flagSamples)
                         {
                             if (flagSample.KeySamples.Any(k => line.Contains(k)) ||
-                                flagSample.Flag.Aliases.Any(a => line.Contains(a)) ||
                                 flagSample.UsagePatterns.Any(p => p.IsMatch(line)))
                             {
                                 lineTracker.TrackReference(flagSample.Flag, line, lineNumber);
+                                continue;
+                            }
+
+                            if (flagSample.Flag.Aliases.Any(a => line.Contains(a)))
+                            {
+                                lineTracker.TrackReference(flagSample.Flag, line, lineNumber, isAlias: true);
                                 continue;
                             }
 
@@ -108,13 +113,13 @@ public class ReferenceCollector : IReferenceCollector
 
                 lineTracker.FinishAll();
 
-                this.output.Verbose($"{file.FullName} scan completed.", ConsoleColor.Green);
+                this.output.Verbose($"{file.FullName} - scan completed.", ConsoleColor.Green);
                 return new FlagReferenceResult { File = file, References = lineTracker.FinishedReferences };
             }, token);
         }
         catch (OperationTimeoutException)
         {
-            this.output.Verbose($"{file.FullName} scan timed out.", ConsoleColor.Red);
+            warningTracker.Add($"{file.FullName} - scan timed out.");
             return null;
         }
     }
@@ -172,14 +177,15 @@ public class ReferenceCollector : IReferenceCollector
             this.HandleBufferQueue(currentLine);
         }
 
-        public void TrackReference(FlagModel flag, string line, int lineNumber, string matchedSample = null)
+        public void TrackReference(FlagModel flag, string line, int lineNumber, string matchedSample = null, bool isAlias = false)
         {
             var reference = new Reference
             {
                 FoundFlag = flag,
                 ReferenceLine = new Line { LineText = line, LineNumber = lineNumber },
                 PreLines = this.preContextLineBuffer.ToList(),
-                MatchedSample = matchedSample
+                MatchedSample = matchedSample,
+                IsAlias = isAlias
             };
             this.trackedReferences.Add(new Trackable
                 { RemainingContextLines = contextLineCount, FlagReference = reference });

@@ -7,6 +7,7 @@ using Trybot;
 using Trybot.Timeout.Exceptions;
 using ConfigCat.Cli.Services.Rendering;
 using System;
+using System.Collections.Concurrent;
 using System.Text.RegularExpressions;
 using System.Linq;
 using ConfigCat.Cli.Models.Scan;
@@ -19,6 +20,7 @@ public interface IAliasCollector
     Task<AliasScanResult> CollectAsync(FlagModel[] flags,
         FileInfo fileToScan,
         string[] matchPatterns,
+        ConcurrentBag<string> warningTracker,
         CancellationToken token);
 }
 
@@ -33,11 +35,11 @@ public class AliasCollector : IAliasCollector
         this.botPolicy = botPolicy;
         this.output = output;
 
-        this.botPolicy.Configure(p => p.Timeout(t => t.After(TimeSpan.FromSeconds(10))));
+        this.botPolicy.Configure(p => p.Timeout(t => t.After(TimeSpan.FromSeconds(60))));
     }
 
     public async Task<AliasScanResult> CollectAsync(FlagModel[] flags, FileInfo fileToScan,
-        string[] matchPatterns, CancellationToken token)
+        string[] matchPatterns, ConcurrentBag<string> warningTracker, CancellationToken token)
     {
         try
         {
@@ -50,16 +52,22 @@ public class AliasCollector : IAliasCollector
                     return null;
                 }
 
-                this.output.Verbose($"{fileToScan.FullName} searching aliases...");
+                this.output.Verbose($"{fileToScan.FullName} - searching aliases...");
 
                 var flagKeys = flags.Select(f => f.Key).ToArray();
                 var keys = string.Join('|', flagKeys);
 
                 var result = new AliasScanResult { ScannedFile = fileToScan };
 
-                Parallel.ForEach(File.ReadLines(fileToScan.FullName), line =>
+                Parallel.ForEach(File.ReadLines(fileToScan.FullName), (line, _, index) =>
                 {
-                    if (line.Length > Constants.MaxCharCountPerLine || !flagKeys.Any(line.Contains))
+                    if (line.Length > Constants.MaxCharCountPerLine)
+                    {
+                        warningTracker.Add($"{fileToScan.FullName} - {index + 1}. line is longer than allowed ({Constants.MaxCharCountPerLine} chars), skipping alias search.");
+                        return;
+                    }
+
+                    if (!flagKeys.Any(line.Contains))
                         return;
 
                     var match = Regex.Match(line, @"[`{'""]?([a-zA-Z_$0-9]*)[[`}'\""]?\s*(?>\:?\s*(?>[sS]tring)?\s*=?>?\s*(?>new|await)?)\s*\S*[@$]?[`'""](" + keys + ")[`'\"]",
@@ -106,13 +114,13 @@ public class AliasCollector : IAliasCollector
                     }
                 });
 
-                this.output.Verbose($"{fileToScan.FullName} search completed.", ConsoleColor.Green);
+                this.output.Verbose($"{fileToScan.FullName} - alias search completed.", ConsoleColor.Green);
                 return result;
             }, token);
         }
         catch (OperationTimeoutException)
         {
-            this.output.Verbose($"{fileToScan.FullName} search timed out.", ConsoleColor.Red);
+            warningTracker.Add($"{fileToScan.FullName} - alias search timed out.");
             return null;
         }
     }

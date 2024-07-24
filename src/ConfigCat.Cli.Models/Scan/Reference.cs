@@ -14,5 +14,7 @@ namespace ConfigCat.Cli.Models.Scan
         public List<Line> PostLines { get; set; } = new List<Line>();
 
         public Line ReferenceLine { get; set; }
+
+        public bool IsAlias { get; set; }
     }
 }

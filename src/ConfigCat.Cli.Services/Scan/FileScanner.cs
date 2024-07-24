@@ -2,6 +2,7 @@
 using ConfigCat.Cli.Models.Scan;
 using ConfigCat.Cli.Services.Rendering;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -18,6 +19,7 @@ public interface IFileScanner
         string[] matchPatterns,
         string[] usagePatterns,
         int contextLines,
+        ConcurrentBag<string> warningTracker,
         CancellationToken token);
 }
 
@@ -37,7 +39,7 @@ public class FileScanner : IFileScanner
         this.aliasCollector = aliasCollector;
         this.botPolicy = botPolicy;
         this.output = output;
-        this.botPolicy.Configure(p => p.Timeout(t => t.After(TimeSpan.FromSeconds(600))));
+        this.botPolicy.Configure(p => p.Timeout(t => t.After(TimeSpan.FromSeconds(1800))));
     }
 
     public async Task<IEnumerable<FlagReferenceResult>> ScanAsync(FlagModel[] flags,
@@ -45,18 +47,19 @@ public class FileScanner : IFileScanner
         string[] matchPatterns,
         string[] usagePatterns,
         int contextLines,
+        ConcurrentBag<string> warningTracker,
         CancellationToken token)
     {
         using var spinner = this.output.CreateSpinner(token);
-        return await this.botPolicy.ExecuteAsync(async (ctx, cancellation) =>
+        return await this.botPolicy.ExecuteAsync(async (_, cancellation) =>
         {
             this.output.Verbose($"Searching for flag ALIASES...", ConsoleColor.Magenta);
             if (matchPatterns.Length > 0)
                 this.output.Verbose($"Using the following custom alias patterns: {string.Join(", ", matchPatterns.Select(p => $"'{p}'"))}");
             if (usagePatterns.Length > 0)
                 this.output.Verbose($"Using the following custom usage patterns: {string.Join(", ", usagePatterns.Select(p => $"'{p}'"))}");
-            var aliasTasks = filesToScan.TakeWhile(file => !cancellation.IsCancellationRequested)
-                .Select(file => this.aliasCollector.CollectAsync(flags, file, matchPatterns, token));
+            var aliasTasks = filesToScan.TakeWhile(_ => !cancellation.IsCancellationRequested)
+                .Select(file => this.aliasCollector.CollectAsync(flags, file, matchPatterns, warningTracker, token));
 
             var aliasResults = (await Task.WhenAll(aliasTasks)).Where(r => r is not null).ToArray();
 
@@ -74,7 +77,7 @@ public class FileScanner : IFileScanner
             var scanTasks = aliasResults
                 .Select(r => r.ScannedFile)
                 .TakeWhile(file => !cancellation.IsCancellationRequested)
-                .Select(file => this.referenceCollector.CollectAsync(flags, file, contextLines, usagePatterns, cancellation));
+                .Select(file => this.referenceCollector.CollectAsync(flags, file, contextLines, usagePatterns, warningTracker, cancellation));
 
             var referenceResults = (await Task.WhenAll(scanTasks)).Where(r => r is not null);
 

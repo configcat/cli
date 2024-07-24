@@ -103,7 +103,7 @@ public class Output(CliOptions options) : IOutput
             return this;
         }
     }
-
+    
     public IOutput WriteGreen(string text) => this.WriteColor(text, ConsoleColor.Green);
 
     public IOutput WriteYellow(string text) => this.WriteColor(text, ConsoleColor.Yellow);

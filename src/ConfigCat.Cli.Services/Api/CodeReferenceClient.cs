@@ -3,6 +3,7 @@ using ConfigCat.Cli.Models.Scan;
 using ConfigCat.Cli.Services.Rendering;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Trybot;
@@ -52,6 +53,9 @@ public class CodeReferenceRequest
 public class FlagReference
 {
     public int SettingId { get; set; }
+
+    [JsonIgnore]
+    public string Key { get; set; }
 
     public List<ReferenceLines> References { get; set; }
 }
