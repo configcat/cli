@@ -5,8 +5,8 @@ namespace ConfigCat.Cli.Services.FileSystem.Ignore;
 
 internal abstract class IgnorePolicy
 {
-    protected readonly IgnoreRuleSet AcceptMatcher = new IgnoreRuleSet();
-    protected readonly IgnoreRuleSet IgnoreMatcher = new IgnoreRuleSet();
+    protected readonly IgnoreRuleSet AcceptMatcher = new();
+    protected readonly IgnoreRuleSet IgnoreMatcher = new();
 
     public abstract bool IsAccepting(FileInfo file);
 

@@ -29,7 +29,7 @@ internal class IgnoreFile : IgnorePolicy
     public override bool IsIgnoring(FileInfo file) => base.IsIgnoringInternal(file.FullName.Replace(this.File.DirectoryName, string.Empty));
 
     public override bool Handles(FileInfo file) =>
-        file.DirectoryName.IndexOf(this.File.DirectoryName) != -1;
+        file.DirectoryName.AsSlash().Contains(this.File.DirectoryName.AsSlash().TrimEnd('/'));
 
     private void ProcessPatterns(string[] patterns)
     {
