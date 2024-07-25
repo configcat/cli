@@ -3,126 +3,117 @@ using System.Collections.Generic;
 using System.IO;
 using ConfigCat.Cli.Models.Api;
 using System.Threading;
-using Trybot;
-using Trybot.Timeout.Exceptions;
 using ConfigCat.Cli.Services.Rendering;
 using System;
 using System.Collections.Concurrent;
 using System.Text.RegularExpressions;
 using System.Linq;
-using ConfigCat.Cli.Models.Scan;
 using System.Collections.ObjectModel;
 
 namespace ConfigCat.Cli.Services.Scan;
 
 public interface IAliasCollector
 {
-    Task<AliasScanResult> CollectAsync(FlagModel[] flags,
+    Task<ConcurrentDictionary<string, ConcurrentBag<string>>> CollectAsync(FlagModel[] flags,
         FileInfo fileToScan,
         string[] matchPatterns,
-        ConcurrentBag<string> warningTracker,
+        List<string> warningTracker,
         CancellationToken token);
 }
 
-public class AliasCollector : IAliasCollector
+public class AliasCollector(IOutput output) : IAliasCollector
 {
-    private readonly IBotPolicy<AliasScanResult> botPolicy;
-    private readonly IOutput output;
-
-    public AliasCollector(IBotPolicy<AliasScanResult> botPolicy,
-        IOutput output)
+    public async Task<ConcurrentDictionary<string, ConcurrentBag<string>>> CollectAsync(FlagModel[] flags,
+        FileInfo fileToScan,
+        string[] matchPatterns, List<string> warningTracker, CancellationToken token)
     {
-        this.botPolicy = botPolicy;
-        this.output = output;
-
-        this.botPolicy.Configure(p => p.Timeout(t => t.After(TimeSpan.FromSeconds(60))));
-    }
-
-    public async Task<AliasScanResult> CollectAsync(FlagModel[] flags, FileInfo fileToScan,
-        string[] matchPatterns, ConcurrentBag<string> warningTracker, CancellationToken token)
-    {
-        try
+        if (await fileToScan.IsBinaryAsync(token))
         {
-            return await this.botPolicy.ExecuteAsync(async (ctx, cancellation) =>
-            {
-                await using var stream = fileToScan.OpenRead();
-                if (await stream.IsBinaryAsync(cancellation))
-                {
-                    this.output.Verbose($"{fileToScan.FullName} is binary, skipping.", ConsoleColor.Yellow);
-                    return null;
-                }
-
-                this.output.Verbose($"{fileToScan.FullName} - searching aliases...");
-
-                var flagKeys = flags.Select(f => f.Key).ToArray();
-                var keys = string.Join('|', flagKeys);
-
-                var result = new AliasScanResult { ScannedFile = fileToScan };
-
-                Parallel.ForEach(File.ReadLines(fileToScan.FullName), (line, _, index) =>
-                {
-                    if (line.Length > Constants.MaxCharCountPerLine)
-                    {
-                        warningTracker.Add($"{fileToScan.FullName} - {index + 1}. line is longer than allowed ({Constants.MaxCharCountPerLine} chars), skipping alias search.");
-                        return;
-                    }
-
-                    if (!flagKeys.Any(line.Contains))
-                        return;
-
-                    var match = Regex.Match(line, @"[`{'""]?([a-zA-Z_$0-9]*)[[`}'\""]?\s*(?>\:?\s*(?>[sS]tring)?\s*=?>?\s*(?>new|await)?)\s*\S*[@$]?[`'""](" + keys + ")[`'\"]",
-                        RegexOptions.Compiled);
-                    
-                    while (match.Success && !cancellation.IsCancellationRequested)
-                    {
-                        var key = match.Groups[2].Value;
-                        var found = match.Groups[1].Value;
-                        var flag = flags.FirstOrDefault(f => f.Key == key);
-
-                        if (flag != null && !found.IsEmpty() && Similarity(flag.Key, found) > 0.3)
-                            result.FlagAliases.AddOrUpdate(flag.Key, [found], (k, v) => { v.Add(found); return v; });
-
-                        match = match.NextMatch();
-                    }
-
-                    if (matchPatterns.Length != 0)
-                    {
-                        foreach (var matchPattern in matchPatterns)
-                        {
-                            if (!matchPattern.Contains(Constants.KeyPatternPlaceHolder))
-                                continue;
-                            
-                            var regMatch = Regex.Match(line, matchPattern.Replace(Constants.KeyPatternPlaceHolder, $"[`'\"]?(?<keys>{keys})[`'\"]?"), RegexOptions.Compiled);
-                            while (regMatch.Success && !cancellation.IsCancellationRequested)
-                            {
-                                var keyGroup = regMatch.Groups["keys"];
-                                var found = regMatch.Groups.Values.Skip(1).Except([keyGroup]).FirstOrDefault();
-                                if (found is null)
-                                {
-                                    regMatch = regMatch.NextMatch();
-                                    continue;
-                                }
-
-                                var flag = flags.FirstOrDefault(f => f.Key == keyGroup.Value);
-
-                                if (flag != null && !found.Value.IsEmpty())
-                                    result.FlagAliases.AddOrUpdate(flag.Key, [found.Value], (k, v) => { v.Add(found.Value); return v; });
-
-                                regMatch = regMatch.NextMatch();
-                            }
-                        }
-                    }
-                });
-
-                this.output.Verbose($"{fileToScan.FullName} - alias search completed.", ConsoleColor.Green);
-                return result;
-            }, token);
-        }
-        catch (OperationTimeoutException)
-        {
-            warningTracker.Add($"{fileToScan.FullName} - alias search timed out.");
+            output.Verbose($"{fileToScan.FullName} is binary, skipping.", ConsoleColor.Yellow);
             return null;
         }
+
+        output.Verbose($"{fileToScan.FullName} - searching aliases...");
+
+        var flagKeys = flags.Select(f => f.Key).ToArray();
+        var keys = string.Join('|', flagKeys);
+
+        var aliases = new ConcurrentDictionary<string, ConcurrentBag<string>>();
+
+        var lineNumber = 1;
+        var lines = File.ReadLinesAsync(fileToScan.FullName, token);
+        await foreach (var line in lines)
+        {
+            if (line.Length > Constants.MaxCharCountPerLine)
+            {
+                warningTracker.Add(
+                    $"{fileToScan.FullName} - {lineNumber}. line is longer than allowed ({Constants.MaxCharCountPerLine} chars), skipping alias search.");
+                continue;
+            }
+
+            if (!flagKeys.Any(line.Contains))
+                continue;
+
+            var match = Regex.Match(line,
+                @"[`{'""]?([a-zA-Z_$0-9]*)[[`}'\""]?\s*(?>\:?\s*(?>[sS]tring)?\s*=?>?\s*(?>new|await)?)\s*\S*[@$]?[`'""](" +
+                keys + ")[`'\"]",
+                RegexOptions.Compiled);
+
+            while (match.Success && !token.IsCancellationRequested)
+            {
+                var key = match.Groups[2].Value;
+                var found = match.Groups[1].Value;
+                var flag = flags.FirstOrDefault(f => f.Key == key);
+
+                if (flag != null && !found.IsEmpty() && Similarity(flag.Key, found) > 0.3)
+                    aliases.AddOrUpdate(flag.Key, [found], (k, v) =>
+                    {
+                        v.Add(found);
+                        return v;
+                    });
+
+                match = match.NextMatch();
+            }
+
+            if (matchPatterns.Length != 0)
+            {
+                foreach (var matchPattern in matchPatterns)
+                {
+                    if (!matchPattern.Contains(Constants.KeyPatternPlaceHolder))
+                        continue;
+
+                    var regMatch = Regex.Match(line,
+                        matchPattern.Replace(Constants.KeyPatternPlaceHolder, $"[`'\"]?(?<keys>{keys})[`'\"]?"),
+                        RegexOptions.Compiled);
+                    while (regMatch.Success && !token.IsCancellationRequested)
+                    {
+                        var keyGroup = regMatch.Groups["keys"];
+                        var found = regMatch.Groups.Values.Skip(1).Except([keyGroup]).FirstOrDefault();
+                        if (found is null)
+                        {
+                            regMatch = regMatch.NextMatch();
+                            continue;
+                        }
+
+                        var flag = flags.FirstOrDefault(f => f.Key == keyGroup.Value);
+
+                        if (flag != null && !found.Value.IsEmpty())
+                            aliases.AddOrUpdate(flag.Key, [found.Value], (k, v) =>
+                            {
+                                v.Add(found.Value);
+                                return v;
+                            });
+
+                        regMatch = regMatch.NextMatch();
+                    }
+                }
+            }
+
+            lineNumber++;
+        }
+
+        output.Verbose($"{fileToScan.FullName} - alias search completed.", ConsoleColor.Green);
+        return aliases;
     }
 
     private static double Similarity(string a, string b)
@@ -158,6 +149,7 @@ public class AliasCollector : IAliasCollector
                 else
                     shingles[shingle] = 1;
             }
+
             return new ReadOnlyDictionary<string, int>(shingles);
         }
 
@@ -181,6 +173,7 @@ public class AliasCollector : IAliasCollector
 
                 distance += Math.Abs(v1 - v2);
             }
+
             return distance;
         }
     }

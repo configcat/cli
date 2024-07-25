@@ -2,13 +2,10 @@
 using ConfigCat.Cli.Models.Scan;
 using ConfigCat.Cli.Services.Rendering;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Trybot;
-using Trybot.Timeout.Exceptions;
 using System.Linq;
 using System.Text.RegularExpressions;
 
@@ -16,112 +13,85 @@ namespace ConfigCat.Cli.Services.Scan;
 
 public interface IReferenceCollector
 {
-    Task<FlagReferenceResult> CollectAsync(IEnumerable<FlagModel> flags, FileInfo file, int contextLines, 
-        string[] usagePatterns, ConcurrentBag<string> warningTracker, CancellationToken token);
+    Task<FlagReferenceResult> CollectAsync(IEnumerable<FlagModel> flags, FileInfo file, int contextLines,
+        string[] usagePatterns, List<string> warningTracker, CancellationToken token);
 }
 
-public class ReferenceCollector : IReferenceCollector
+public class ReferenceCollector(IOutput output) : IReferenceCollector
 {
     private static readonly string[] Prefixes = ["::", ".", "->"];
-    private readonly IBotPolicy<FlagReferenceResult> botPolicy;
-    private readonly IOutput output;
 
-    public ReferenceCollector(IBotPolicy<FlagReferenceResult> botPolicy,
-        IOutput output)
+    public async Task<FlagReferenceResult> CollectAsync(IEnumerable<FlagModel> flags, FileInfo file, int contextLines,
+        string[] usagePatterns, List<string> warningTracker, CancellationToken token)
     {
-        this.botPolicy = botPolicy;
-        this.output = output;
-
-        this.botPolicy.Configure(p => p.Timeout(t => t.After(TimeSpan.FromSeconds(60))));
-    }
-
-    public async Task<FlagReferenceResult> CollectAsync(IEnumerable<FlagModel> flags, FileInfo file, int contextLines, 
-        string[] usagePatterns, ConcurrentBag<string> warningTracker, CancellationToken token)
-    {
-        try
+        if (await file.IsBinaryAsync(token))
         {
-            return await this.botPolicy.ExecuteAsync(async (ctx, cancellation) =>
-            {
-                await using var stream = file.OpenRead();
-                if (await stream.IsBinaryAsync(cancellation))
-                {
-                    this.output.Verbose($"{file.FullName} is binary, skipping.", ConsoleColor.Yellow);
-                    return null;
-                }
-
-                this.output.Verbose($"{file.FullName} - scanning...");
-
-                var lineTracker = new LineTracker(contextLines);
-                var lineNumber = 1;
-
-                var flagSamples = flags.Select(f => new FlagSample
-                {
-                    Flag = f,
-                    KeySamples = ProduceKeySamples(f).Distinct().ToArray(),
-                    Samples = ProduceVariationSamples(f).Distinct().ToArray(),
-                    UsagePatterns = usagePatterns
-                        .Where(p => p.Contains(Constants.KeyPatternPlaceHolder))
-                        .Select(p => new Regex(p.Replace(Constants.KeyPatternPlaceHolder, f.Key), RegexOptions.Compiled))
-                        .ToArray()
-                }).ToArray();
-
-                using var reader = new StreamReader(stream);
-                while (!reader.EndOfStream && !cancellation.IsCancellationRequested)
-                {
-                    var line = await reader.ReadLineAsync(cancellation);
-                    if (line is not null)
-                    {
-                        if (line.Length > Constants.MaxCharCountPerLine)
-                        {
-                            warningTracker.Add(
-                                $"{file.FullName} - {lineNumber}. line is longer than allowed ({Constants.MaxCharCountPerLine} chars), skipping code reference scan.");
-                            lineTracker.AddLine("<line was too long>", lineNumber);
-                            lineNumber++;
-                            continue;
-                        }
-
-                        foreach (var flagSample in flagSamples)
-                        {
-                            if (flagSample.KeySamples.Any(k => line.Contains(k)) ||
-                                flagSample.UsagePatterns.Any(p => p.IsMatch(line)))
-                            {
-                                lineTracker.TrackReference(flagSample.Flag, line, lineNumber);
-                                continue;
-                            }
-
-                            if (flagSample.Flag.Aliases.Any(a => line.Contains(a)))
-                            {
-                                lineTracker.TrackReference(flagSample.Flag, line, lineNumber, isAlias: true);
-                                continue;
-                            }
-
-                            foreach (var sample in flagSample.Samples)
-                            {
-                                if (line.Contains(sample, StringComparison.OrdinalIgnoreCase))
-                                {
-                                    var originalFromLine = line.IndexOf(sample, StringComparison.OrdinalIgnoreCase);
-                                    lineTracker.TrackReference(flagSample.Flag, line, lineNumber,
-                                        line.Substring(originalFromLine, sample.Length).Remove(Prefixes));
-                                }
-                            }
-                        }
-                    }
-
-                    lineTracker.AddLine(line, lineNumber);
-                    lineNumber++;
-                }
-
-                lineTracker.FinishAll();
-
-                this.output.Verbose($"{file.FullName} - scan completed.", ConsoleColor.Green);
-                return new FlagReferenceResult { File = file, References = lineTracker.FinishedReferences };
-            }, token);
-        }
-        catch (OperationTimeoutException)
-        {
-            warningTracker.Add($"{file.FullName} - scan timed out.");
+            output.Verbose($"{file.FullName} is binary, skipping.", ConsoleColor.Yellow);
             return null;
         }
+
+        output.Verbose($"{file.FullName} - scanning...");
+
+        var lineTracker = new LineTracker(contextLines);
+        var lineNumber = 1;
+
+        var flagSamples = flags.Select(f => new FlagSample
+        {
+            Flag = f,
+            KeySamples = ProduceKeySamples(f).Distinct().ToArray(),
+            Samples = ProduceVariationSamples(f).Distinct().ToArray(),
+            UsagePatterns = usagePatterns
+                .Where(p => p.Contains(Constants.KeyPatternPlaceHolder))
+                .Select(p => new Regex(p.Replace(Constants.KeyPatternPlaceHolder, f.Key), RegexOptions.Compiled))
+                .ToArray()
+        }).ToArray();
+
+        var lines = File.ReadLinesAsync(file.FullName, token);
+        await foreach (var line in lines)
+        {
+            if (line.Length > Constants.MaxCharCountPerLine)
+            {
+                warningTracker.Add(
+                    $"{file.FullName} - {lineNumber}. line is longer than allowed ({Constants.MaxCharCountPerLine} chars), skipping code reference scan.");
+                lineTracker.AddLine("(truncated)", lineNumber);
+                lineNumber++;
+                continue;
+            }
+
+            foreach (var flagSample in flagSamples)
+            {
+                if (flagSample.KeySamples.Any(k => line.Contains(k)) ||
+                    flagSample.UsagePatterns.Any(p => p.IsMatch(line)))
+                {
+                    lineTracker.TrackReference(flagSample.Flag, line, lineNumber);
+                    continue;
+                }
+
+                if (flagSample.Flag.Aliases.Any(a => line.Contains(a)))
+                {
+                    lineTracker.TrackReference(flagSample.Flag, line, lineNumber, isAlias: true);
+                    continue;
+                }
+
+                foreach (var sample in flagSample.Samples)
+                {
+                    if (line.Contains(sample, StringComparison.OrdinalIgnoreCase))
+                    {
+                        var originalFromLine = line.IndexOf(sample, StringComparison.OrdinalIgnoreCase);
+                        lineTracker.TrackReference(flagSample.Flag, line, lineNumber,
+                            line.Substring(originalFromLine, sample.Length).Remove(Prefixes));
+                    }
+                }
+            }
+
+            lineTracker.AddLine(line, lineNumber);
+            lineNumber++;
+        }
+
+        lineTracker.FinishAll();
+
+        output.Verbose($"{file.FullName} - scan completed.", ConsoleColor.Green);
+        return new FlagReferenceResult { File = file, References = lineTracker.FinishedReferences };
     }
 
     private static IEnumerable<string> ProduceKeySamples(FlagModel flag)
@@ -177,7 +147,8 @@ public class ReferenceCollector : IReferenceCollector
             this.HandleBufferQueue(currentLine);
         }
 
-        public void TrackReference(FlagModel flag, string line, int lineNumber, string matchedSample = null, bool isAlias = false)
+        public void TrackReference(FlagModel flag, string line, int lineNumber, string matchedSample = null,
+            bool isAlias = false)
         {
             var reference = new Reference
             {

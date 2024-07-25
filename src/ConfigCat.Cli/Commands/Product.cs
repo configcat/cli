@@ -7,7 +7,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using ConfigCat.Cli.Models.Api;
-using ConfigCat.Cli.Services.Exceptions;
 
 namespace ConfigCat.Cli.Commands;
 

@@ -9,10 +9,10 @@ public static class FileSystemExtensions
 {
     public static bool IsIgnoreFile(this FileInfo info) => IgnoreFile.IgnoreFileNames.Contains(info.Name);
 
-    public static async Task<bool> IsBinaryAsync(this FileStream stream, CancellationToken token)
+    public static async Task<bool> IsBinaryAsync(this FileInfo file, CancellationToken token)
     {
         const int readLimit = 8000;
-
+        await using var stream = file.OpenRead();
         var readBuffer = new byte[readLimit];
         var readBytes = await stream.ReadAsync(readBuffer, token);
 

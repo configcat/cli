@@ -8,7 +8,6 @@ using ConfigCat.Cli.Services.Git;
 using ConfigCat.Cli.Services.Rendering;
 using ConfigCat.Cli.Services.Scan;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -82,14 +81,19 @@ internal class Scan(
         var files = await fileCollector.CollectAsync(directory, token);
 
         var patternsFromEnv =
-            System.Environment.GetEnvironmentVariable(Constants.AliasPatternsEnvironmentVariableName)?.Split(',') ?? [];
+            System.Environment.GetEnvironmentVariable(Constants.AliasPatternsEnvironmentVariableName)?.Split(',', StringSplitOptions.RemoveEmptyEntries) ?? [];
         var usagePatternsFromEnv = 
-            System.Environment.GetEnvironmentVariable(Constants.UsagePatternsEnvironmentVariableName)?.Split(',') ?? [];
-        var warningTracker = new ConcurrentBag<string>();
-        var flagReferences = await fileScanner.ScanAsync(flags.Concat(deletedFlags).ToArray(), files.ToArray(), 
-            patternsFromEnv.Concat(aliasPatterns).ToArray(), usagePatternsFromEnv.Concat(usagePatterns).ToArray(), lineCount, warningTracker, token);
+            System.Environment.GetEnvironmentVariable(Constants.UsagePatternsEnvironmentVariableName)?.Split(',', StringSplitOptions.RemoveEmptyEntries) ?? [];
+        var warningTracker = new List<string>();
+        var flagReferences = await fileScanner.ScanAsync(flags.Concat(deletedFlags).ToArray(), 
+            files.ToArray(), 
+            patternsFromEnv.Concat(aliasPatterns).ToArray(), 
+            usagePatternsFromEnv.Concat(usagePatterns).ToArray(), 
+            lineCount, 
+            warningTracker, 
+            token);
 
-        if (!warningTracker.IsEmpty)
+        if (!warningTracker.IsEmpty())
             output.WriteYellow(string.Join(System.Environment.NewLine, warningTracker.Select(w => $"[warning]: {w}"))).WriteLine();
         
         var flagReferenceResults = flagReferences as FlagReferenceResult[] ?? flagReferences.ToArray();

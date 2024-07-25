@@ -1,5 +1,4 @@
 using ConfigCat.Cli.Models.Api;
-using ConfigCat.Cli.Models.Scan;
 using ConfigCat.Cli.Services.Rendering;
 using ConfigCat.Cli.Services.Scan;
 using Moq;
@@ -7,7 +6,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Trybot;
 using Xunit;
 
 namespace ConfigCat.Cli.Tests;
@@ -17,14 +15,14 @@ public class ScanTests
     [Fact]
     public async Task Alias()
     {
-        var aliasCollector = new AliasCollector(new BotPolicy<AliasScanResult>(), Mock.Of<IOutput>());
+        var aliasCollector = new AliasCollector(Mock.Of<IOutput>());
 
         var flag = new FlagModel { Key = "test_flag" };
         var flag2 = new FlagModel { Key = "leadershipSurvey" };
 
         var result = await aliasCollector.CollectAsync(new[] { flag, flag2 }, new FileInfo("alias.txt"), [], [], CancellationToken.None);
 
-        var aliases = result.FlagAliases.Values.SelectMany(v => v);
+        var aliases = result.Values.SelectMany(v => v).ToList();
 
         Assert.DoesNotContain("feature", aliases);
         Assert.DoesNotContain("notRelevant", aliases);
@@ -71,18 +69,18 @@ public class ScanTests
     [Fact]
     public async Task Scan()
     {
-        var aliasCollector = new AliasCollector(new BotPolicy<AliasScanResult>(), Mock.Of<IOutput>());
-        var scanner = new ReferenceCollector(new BotPolicy<FlagReferenceResult>(), Mock.Of<IOutput>());
+        var aliasCollector = new AliasCollector(Mock.Of<IOutput>());
+        var scanner = new ReferenceCollector(Mock.Of<IOutput>());
 
         var flag = new FlagModel { Key = "test_flag", SettingType = "boolean" };
         var file = new FileInfo("refs.txt");
 
         var result = await aliasCollector.CollectAsync(new[] { flag }, file, [], [], CancellationToken.None);
-        flag.Aliases = result.FlagAliases[flag.Key].ToList();
+        flag.Aliases = result[flag.Key].ToList();
 
         var references = await scanner.CollectAsync(new[] { flag }, file, 0, [], [], CancellationToken.None);
 
-        var referenceLines = references.References.Select(r => r.ReferenceLine.LineText);
+        var referenceLines = references.References.Select(r => r.ReferenceLine.LineText).ToList();
 
         Assert.Contains("wrapper.test_flag", referenceLines);
         Assert.Contains("wrapper.testFlag", referenceLines);
@@ -220,19 +218,19 @@ public class ScanTests
     [Fact]
     public async Task Alias_Custom()
     {
-        var aliasCollector = new AliasCollector(new BotPolicy<AliasScanResult>(), Mock.Of<IOutput>());
-        var scanner = new ReferenceCollector(new BotPolicy<FlagReferenceResult>(), Mock.Of<IOutput>());
+        var aliasCollector = new AliasCollector(Mock.Of<IOutput>());
+        var scanner = new ReferenceCollector(Mock.Of<IOutput>());
 
         var flag = new FlagModel { Key = "test_flag", SettingType = "boolean" };
         var file = new FileInfo("custom.txt");
 
         var result = await aliasCollector.CollectAsync(new[] { flag }, file, [@"(\w+) = :CC_KEY"], [], CancellationToken.None);
-        flag.Aliases = result.FlagAliases[flag.Key].ToList();
+        flag.Aliases = result[flag.Key].ToList();
         
         Assert.Contains("CUS_TEST_FLAG",  flag.Aliases);
 
         var references = await scanner.CollectAsync(new[] { flag }, file, 0, [], [], CancellationToken.None);
-        var referenceLines = references.References.Select(r => r.ReferenceLine.LineText);
+        var referenceLines = references.References.Select(r => r.ReferenceLine.LineText).ToList();
 
         Assert.Contains("CUS_TEST_FLAG = :test_flag", referenceLines);
         Assert.Contains("Somewhere else refer to CUS_TEST_FLAG", referenceLines);
@@ -241,41 +239,41 @@ public class ScanTests
     [Fact]
     public async Task Alias_Custom_Other()
     {
-        var aliasCollector = new AliasCollector(new BotPolicy<AliasScanResult>(), Mock.Of<IOutput>());
-        var scanner = new ReferenceCollector(new BotPolicy<FlagReferenceResult>(), Mock.Of<IOutput>());
+        var aliasCollector = new AliasCollector(Mock.Of<IOutput>());
+        var scanner = new ReferenceCollector(Mock.Of<IOutput>());
 
         var flag = new FlagModel { Key = "test_flag", SettingType = "boolean" };
         var file = new FileInfo("custom.txt");
 
         var result = await aliasCollector.CollectAsync(new[] { flag }, file, [@"(\w+) := FLAGS(CC_KEY)"], [], CancellationToken.None);
-        flag.Aliases = result.FlagAliases[flag.Key].ToList();
+        flag.Aliases = result[flag.Key].ToList();
         
         Assert.Contains("is_test_flag_on",  flag.Aliases);
 
         var references = await scanner.CollectAsync(new[] { flag }, file, 0, [], [], CancellationToken.None);
-        var referenceLines = references.References.Select(r => r.ReferenceLine.LineText);
+        var referenceLines = references.References.Select(r => r.ReferenceLine.LineText).ToList();
 
         Assert.Contains("let is_test_flag_on := FLAGS('test_flag')", referenceLines);
         Assert.Contains("Reference to is_test_flag_on", referenceLines);
         
         result = await aliasCollector.CollectAsync(new[] { flag }, file, [@"(\w+) = client_wrapper\.get_flag\(:CC_KEY\)"], [], CancellationToken.None);
-        flag.Aliases = result.FlagAliases[flag.Key].ToList();
+        flag.Aliases = result[flag.Key].ToList();
         
         Assert.Contains("CUS2_TEST_FLAG",  flag.Aliases);
 
         references = await scanner.CollectAsync(new[] { flag }, file, 0, [], [], CancellationToken.None);
-        referenceLines = references.References.Select(r => r.ReferenceLine.LineText);
+        referenceLines = references.References.Select(r => r.ReferenceLine.LineText).ToList();
 
         Assert.Contains("CUS2_TEST_FLAG = client_wrapper.get_flag(:test_flag)", referenceLines);
         Assert.Contains("Reference to CUS2_TEST_FLAG", referenceLines);
         
         result = await aliasCollector.CollectAsync(new[] { flag }, file, [@"client_wrapper\.get_flag\(:CC_KEY, (\w+) =>"], [], CancellationToken.None);
-        flag.Aliases = result.FlagAliases[flag.Key].ToList();
+        flag.Aliases = result[flag.Key].ToList();
         
         Assert.Contains("cust_flag_val",  flag.Aliases);
 
         references = await scanner.CollectAsync(new[] { flag }, file, 0, [], [], CancellationToken.None);
-        referenceLines = references.References.Select(r => r.ReferenceLine.LineText);
+        referenceLines = references.References.Select(r => r.ReferenceLine.LineText).ToList();
 
         Assert.Contains("client_wrapper.get_flag(:test_flag, cust_flag_val => {", referenceLines);
         Assert.Contains("Reference to cust_flag_val", referenceLines);
@@ -284,31 +282,31 @@ public class ScanTests
     [Fact]
     public async Task Alias_Patterns_Bad()
     {
-        var aliasCollector = new AliasCollector(new BotPolicy<AliasScanResult>(), Mock.Of<IOutput>());
+        var aliasCollector = new AliasCollector(Mock.Of<IOutput>());
 
         var flag = new FlagModel { Key = "another_flag", SettingType = "boolean" };
         var file = new FileInfo("custom.txt");
 
         var result = await aliasCollector.CollectAsync(new[] { flag }, file, [":CC_KEY"], [], CancellationToken.None);
-        Assert.Empty(result.FlagAliases);
+        Assert.Empty(result);
     }
     
     [Fact]
     public async Task Usage_Custom()
     {
-        var aliasCollector = new AliasCollector(new BotPolicy<AliasScanResult>(), Mock.Of<IOutput>());
-        var scanner = new ReferenceCollector(new BotPolicy<FlagReferenceResult>(), Mock.Of<IOutput>());
+        var aliasCollector = new AliasCollector(Mock.Of<IOutput>());
+        var scanner = new ReferenceCollector(Mock.Of<IOutput>());
 
         var flag = new FlagModel { Key = "test_flag", SettingType = "boolean" };
         var file = new FileInfo("custom.txt");
 
         var result = await aliasCollector.CollectAsync([flag], file, [@"(\w+) = client_wrapper\.get_flag\(:CC_KEY\)"], [], CancellationToken.None);
-        flag.Aliases = result.FlagAliases[flag.Key].ToList();
+        flag.Aliases = result[flag.Key].ToList();
         
         Assert.Contains("is_test_flag_on",  flag.Aliases);
 
         var references = await scanner.CollectAsync(new[] { flag }, file, 0, [@"get_flag\(:CC_KEY"], [], CancellationToken.None);
-        var referenceLines = references.References.Select(r => r.ReferenceLine.LineText);
+        var referenceLines = references.References.Select(r => r.ReferenceLine.LineText).ToList();
 
         Assert.Contains("let is_test_flag_on := FLAGS('test_flag')", referenceLines);
         Assert.Contains("Reference to is_test_flag_on", referenceLines);
@@ -320,14 +318,14 @@ public class ScanTests
     [Fact]
     public async Task Usage_Custom_Direct()
     {
-        var aliasCollector = new AliasCollector(new BotPolicy<AliasScanResult>(), Mock.Of<IOutput>());
-        var scanner = new ReferenceCollector(new BotPolicy<FlagReferenceResult>(), Mock.Of<IOutput>());
+        var aliasCollector = new AliasCollector(Mock.Of<IOutput>());
+        var scanner = new ReferenceCollector(Mock.Of<IOutput>());
 
         var flag = new FlagModel { Key = "test_direct", SettingType = "boolean" };
         var file = new FileInfo("custom.txt");
 
         var result = await aliasCollector.CollectAsync([flag], file, [], [], CancellationToken.None);
-        Assert.Empty(result.FlagAliases);
+        Assert.Empty(result);
 
         var references = await scanner.CollectAsync(new[] { flag }, file, 0, [":CC_KEY"], [], CancellationToken.None);
         var referenceLines = references.References.Select(r => r.ReferenceLine.LineText);
