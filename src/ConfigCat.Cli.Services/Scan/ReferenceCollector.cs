@@ -53,7 +53,7 @@ public class ReferenceCollector(IOutput output) : IReferenceCollector
             {
                 warningTracker.Add(
                     $"{file.FullName} - {lineNumber}. line is longer than allowed ({Constants.MaxCharCountPerLine} chars), skipping code reference scan.");
-                lineTracker.AddLine("<line was too long>", lineNumber);
+                lineTracker.AddLine("(truncated)", lineNumber);
                 lineNumber++;
                 continue;
             }

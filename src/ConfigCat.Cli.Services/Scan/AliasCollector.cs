@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using ConfigCat.Cli.Models.Api;
 using System.Threading;
-using Trybot;
 using ConfigCat.Cli.Services.Rendering;
 using System;
 using System.Collections.Concurrent;

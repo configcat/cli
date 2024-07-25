@@ -1,6 +1,4 @@
-using System.Collections.Concurrent;
 using ConfigCat.Cli.Models.Api;
-using ConfigCat.Cli.Models.Scan;
 using ConfigCat.Cli.Services.Rendering;
 using ConfigCat.Cli.Services.Scan;
 using Moq;
@@ -8,7 +6,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Trybot;
 using Xunit;
 
 namespace ConfigCat.Cli.Tests;
