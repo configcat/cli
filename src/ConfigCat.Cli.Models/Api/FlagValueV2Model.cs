@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using ConfigCat.Cli.Models.ConfigFile;
+﻿using System.Collections.Generic;
 
 namespace ConfigCat.Cli.Models.Api;
 
