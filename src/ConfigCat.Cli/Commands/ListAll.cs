@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using ConfigCat.Cli.Models;
 
 namespace ConfigCat.Cli.Commands;
 
@@ -69,12 +70,5 @@ internal class ListAll(
         public ConfigModel Config { get; set; }
 
         public EnvironmentModel Environment { get; set; }
-    }
-
-    private class ProductJsonOutput : ProductModel
-    {
-        public IEnumerable<EnvironmentModel> Environments { get; set; }
-
-        public IEnumerable<ConfigModel> Configs { get; set; }
     }
 }

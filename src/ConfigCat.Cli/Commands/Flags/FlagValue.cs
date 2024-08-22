@@ -1,5 +1,4 @@
-﻿using ConfigCat.Cli.Models.Api;
-using ConfigCat.Cli.Services;
+﻿using ConfigCat.Cli.Services;
 using ConfigCat.Cli.Services.Api;
 using ConfigCat.Cli.Services.Exceptions;
 using ConfigCat.Cli.Services.Json;
@@ -9,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using ConfigCat.Cli.Models;
 
 namespace ConfigCat.Cli.Commands.Flags;
 
@@ -37,6 +37,9 @@ internal class FlagValue(
             foreach (var environment in environments)
             {
                 var value = await flagValueClient.GetValueAsync(flag.SettingId, environment.EnvironmentId, token);
+                flag.CreatorEmail ??= value.Setting.CreatorEmail;
+                flag.CreatorFullName ??= value.Setting.CreatorFullName;
+                flag.CreatedAt ??= value.Setting.CreatedAt;
                 valuesInJson.Add(new ValueInEnvironmentJsonOutput
                 {
                     EnvironmentId = environment.EnvironmentId,
@@ -166,24 +169,4 @@ internal class FlagValue(
         await flagValueClient.UpdateValueAsync(flag.SettingId, environmentId, reason, jsonPatchDocument.Operations, token);
         return ExitCodes.Ok;
     }
-}
-
-internal class FlagValueJsonOutput
-{
-    public FlagModel Setting { get; set; }
-
-    public IEnumerable<ValueInEnvironmentJsonOutput> Values { get; set; }
-}
-
-internal class ValueInEnvironmentJsonOutput
-{
-    public string EnvironmentId { get; set; }
-
-    public string EnvironmentName { get; set; }
-
-    public List<PercentageModel> PercentageRules { get; set; }
-
-    public List<TargetingModel> TargetingRules { get; set; }
-
-    public object Value { get; set; }
 }

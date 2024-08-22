@@ -62,12 +62,12 @@ class Flag(
         var itemsToRender = flags.Select(f => new
         {
             Id = f.SettingId,
-            f.Name,
-            f.Key,
+            Name = f.Name.TrimToFitColumn(),
+            Key = f.Key.TrimToFitColumn(),
             Hint = f.Hint.TrimToFitColumn(),
             Type = f.SettingType,
             Tags = $"[{string.Join(", ", f.Tags.Select(t => $"{t.Name} ({t.TagId})"))}]",
-            Owner = $"{f.OwnerUserFullName} [{f.OwnerUserEmail}]",
+            Owner = $"{f.CreatorFullName} [{f.CreatorEmail}]",
             Config = $"{f.ConfigName} [{f.ConfigId}]",
         });
         output.RenderTable(itemsToRender);

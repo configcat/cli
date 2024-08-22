@@ -141,5 +141,5 @@ public static class SystemExtensions
         => text == null ? "\"\"" : $"\"{text.TrimToLength(30)}\"";
     
     public static string TrimToLength(this string text, int length)
-        => text.Length > length ? $"{text[0..(length - 2)]}..." : text;
+        => text.Length > length ? $"{text[..(length - 2)]}..." : text;
 }

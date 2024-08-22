@@ -1,5 +1,4 @@
-﻿using ConfigCat.Cli.Models.Api;
-using ConfigCat.Cli.Services;
+﻿using ConfigCat.Cli.Services;
 using ConfigCat.Cli.Services.Api;
 using ConfigCat.Cli.Services.Exceptions;
 using ConfigCat.Cli.Services.Json;
@@ -9,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using ConfigCat.Cli.Models;
 using ConfigCat.Cli.Services.Extensions;
 
 namespace ConfigCat.Cli.Commands.Flags.V2;
@@ -255,19 +255,4 @@ internal class FlagValueV2(
         await flagValueClient.UpdateValueAsync(flag.SettingId, environmentId, reason, jsonPatchDocument.Operations, token);
         return ExitCodes.Ok;
     }
-}
-
-internal class FlagValueV2JsonOutput
-{
-    public FlagModel Setting { get; set; }
-    public IEnumerable<ValueV2InEnvironmentJsonOutput> Values { get; set; }
-}
-
-internal class ValueV2InEnvironmentJsonOutput
-{
-    public string EnvironmentId { get; set; }
-    public string EnvironmentName { get; set; }
-    public ValueModel DefaultValue { get; set; }
-    public List<TargetingRuleModel> TargetingRules { get; set; }
-    public string PercentageEvaluationAttribute { get; set; }
 }

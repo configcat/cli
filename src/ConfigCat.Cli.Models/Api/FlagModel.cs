@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json.Serialization;
 
 namespace ConfigCat.Cli.Models.Api;
 
@@ -18,13 +20,16 @@ public class FlagModel
     public string Hint { get; set; }
 
     public string SettingType { get; set; }
+    
+    public DateTime? CreatedAt { get; set; }
 
-    public string OwnerUserFullName { get; set; }
+    public string CreatorEmail { get; set; }
 
-    public string OwnerUserEmail { get; set; }
+    public string CreatorFullName { get; set; }
 
     public List<TagModel> Tags { get; set; }
 
+    [JsonIgnore]
     public List<string> Aliases { get; set; } = [];
 
     public UpdateFlagModel ToUpdateModel() =>
