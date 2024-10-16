@@ -19,13 +19,13 @@ internal class Setup(
     public async Task<int> InvokeAsync(string apiHost, string userName, string password, CancellationToken token)
     {
         if (apiHost.IsEmpty())
-            apiHost = await prompt.GetStringAsync("API Host", token, Constants.DefaultApiHost);
+            apiHost = await prompt.GetStringAsync("API host", token, Constants.DefaultApiHost);
 
         if (userName.IsEmpty())
-            userName = await prompt.GetStringAsync("Username", token);
+            userName = await prompt.GetStringAsync("Basic auth username", token);
 
         if (password.IsEmpty())
-            password = await prompt.GetMaskedStringAsync("Password", token);
+            password = await prompt.GetMaskedStringAsync("Basic auth password", token);
 
         output.WriteLine();
         output.Write($"Saving the configuration to '{Constants.ConfigFilePath}'... ");
