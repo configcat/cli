@@ -29,9 +29,9 @@ jobs:
         cp README.md publish/${{ matrix.arch }}/README.md
 
     - name: Archive executables
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
-        name: executables
+        name: executables-${{ strategy.job-index }}
         path: publish
 
   produce-osx-executables:
@@ -56,9 +56,9 @@ jobs:
         cp README.md publish/${{ matrix.arch }}/README.md
 
     - name: Archive executables
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
-        name: executables
+        name: executables-osx-${{ strategy.job-index }}
         path: publish
 
   snap:
@@ -69,9 +69,10 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Download executables
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
-        name: executables
+        pattern: executables-*
+        merge-multiple: true
 
     - name: Get version from tag
       run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
@@ -84,7 +85,7 @@ jobs:
       id: build
 
     - name: Archive snap
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: snap-pack
         path: configcat_*.snap
@@ -105,9 +106,10 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Download executables
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
-        name: executables
+        pattern: executables-*
+        merge-multiple: true
 
     - name: Get version from tag
       run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
@@ -129,7 +131,7 @@ jobs:
       run: choco pack choco\configcat.nuspec
 
     - name: Archive choco package
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: choco-pack
         path: configcat.*.nupkg
@@ -147,9 +149,10 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Download executables
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
-        name: executables
+        pattern: executables-*
+        merge-multiple: true
 
     - name: Get version from tag
       run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
@@ -180,9 +183,10 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Download executables
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
-        name: executables
+        pattern: executables-*
+        merge-multiple: true
 
     - name: Get version from tag
       run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
@@ -210,9 +214,10 @@ jobs:
 
     steps:
     - name: Download executables
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
-        name: executables
+        pattern: executables-*
+        merge-multiple: true
 
     - name: Get version from tag
       run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
@@ -243,7 +248,7 @@ jobs:
         configcat-cli_${{ env.VERSION }}_win-arm64.zip > configcat-cli_${{ env.VERSION }}_checksums.sha256
 
     - name: Archive tars for brew
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: brew-pack
         path: |
@@ -252,7 +257,7 @@ jobs:
           configcat-cli_${{ env.VERSION }}_osx-arm64.tar.gz
 
     - name: Archive zips for scoop
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: scoop-pack
         path: |
@@ -276,7 +281,7 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Download archives
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: brew-pack
 
@@ -300,7 +305,7 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Download archives
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: scoop-pack
 
