@@ -45,7 +45,7 @@ jobs:
     - name: Archive executables
       uses: actions/upload-artifact@v4
       with:
-        name: executables
+        name: executables-${{ strategy.job-index }}
         path: publish
 
   produce-osx-executable:
@@ -71,7 +71,7 @@ jobs:
     - name: Archive executables
       uses: actions/upload-artifact@v4
       with:
-        name: executables
+        name: executables-osx-${{ strategy.job-index }}
         path: publish
       
   linux-snap-tests:
@@ -84,7 +84,8 @@ jobs:
     - name: Download executables
       uses: actions/download-artifact@v4
       with:
-        name: executables
+        pattern: executables-*
+        merge-multiple: true
 
     - name: Update version in snapcraft
       run: sed -i 's/#VERSION_PLACEHOLDER#/0.0.1/g' snap/snapcraft.yaml
@@ -114,7 +115,8 @@ jobs:
     - name: Download executables
       uses: actions/download-artifact@v4
       with:
-        name: executables
+        pattern: executables-*
+        merge-multiple: true
 
     - name: Update version in nuspec
       run: ((Get-Content -path choco\configcat.nuspec -Raw) -replace '#VERSION_PLACEHOLDER#','0.0.1') | Set-Content -Path choco\configcat.nuspec
@@ -152,7 +154,8 @@ jobs:
     - name: Download executables
       uses: actions/download-artifact@v4
       with:
-        name: executables
+        pattern: executables-*
+        merge-multiple: true
 
     - name: Execute tests
       shell: pwsh
@@ -174,7 +177,8 @@ jobs:
     - name: Download executables
       uses: actions/download-artifact@v4
       with:
-        name: executables
+        pattern: executables-*
+        merge-multiple: true
 
     - name: Set permissions
       run: chmod +x ./linux-musl-x64/configcat

@@ -27,7 +27,7 @@ jobs:
       - name: Archive executables
         uses: actions/upload-artifact@v4
         with:
-          name: executables
+          name: executables-${{ strategy.job-index }}
           path: publish
           
   docker:
@@ -40,7 +40,8 @@ jobs:
       - name: Download executables
         uses: actions/download-artifact@v4
         with:
-          name: executables
+        pattern: executables-*
+        merge-multiple: true
 
       - name: Set permissions
         run: chmod +x ./linux-musl-x64/configcat
@@ -69,7 +70,8 @@ jobs:
       - name: Download executables
         uses: actions/download-artifact@v4
         with:
-          name: executables
+        pattern: executables-*
+        merge-multiple: true
 
       - name: Set permissions
         run: chmod +x ./linux-musl-x64/configcat
