@@ -12,22 +12,30 @@ namespace ConfigCat.Cli.Services.Git;
 
 public interface IGitClient
 {
-    Task<GitRepositoryInfo> GatherGitInfo(string path);
+    Task<DirectoryInfo> GetRepoRootDirectoryOrNull(DirectoryInfo directory);
+
+    Task<GitRepositoryInfo> GetRepoDetailsOrNull(DirectoryInfo directory);
 }
 
 public class GitClient(IOutput output) : IGitClient
 {
     private static readonly TimeSpan GitCmdTimeout = TimeSpan.FromSeconds(30);
-    
-    public async Task<GitRepositoryInfo> GatherGitInfo(string path)
-    {
-        output.Write("Collecting Git repository information from ")
-            .WriteCyan(path)
-            .WriteLine();
 
+    public async Task<DirectoryInfo> GetRepoRootDirectoryOrNull(DirectoryInfo directory)
+    {
         try
         {
-            return await this.CollectInfoFromCli(path);
+            var startInfo = GetGitProcessStartInfoForPath(directory.FullName);
+
+            var repoWorkingDir = await ExecuteAsync(startInfo, "rev-parse --show-toplevel", GitCmdTimeout);
+            if (repoWorkingDir.StdOut.IsEmpty() || !Directory.Exists(repoWorkingDir.StdOut))
+            {
+                output.WriteYellow($"{directory.FullName} is not a Git repository. Skipping.").WriteLine();
+                return null;
+            }
+
+            output.WriteGreen($"Git repository found at {repoWorkingDir.StdOut}").WriteLine();
+            return new DirectoryInfo(repoWorkingDir.StdOut);
         }
         catch (Exception)
         {
@@ -36,26 +44,26 @@ public class GitClient(IOutput output) : IGitClient
         }
     }
 
-    private async Task<GitRepositoryInfo> CollectInfoFromCli(string path)
+    public async Task<GitRepositoryInfo> GetRepoDetailsOrNull(DirectoryInfo directory)
     {
-        var startInfo = new ProcessStartInfo()
-        {
-            UseShellExecute = false,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            FileName = "git",
-            CreateNoWindow = true,
-            WorkingDirectory = path
-        };
+        output.Write("Collecting Git repository information from ")
+            .WriteCyan(directory.FullName)
+            .WriteLine();
 
-        var repoWorkingDir = await ExecuteAsync(startInfo, "rev-parse --show-toplevel", GitCmdTimeout);
-        if (repoWorkingDir.StdOut.IsEmpty() || !Directory.Exists(repoWorkingDir.StdOut))
+        try
         {
-            output.WriteYellow($"{path} is not a Git repository. Skipping.").WriteLine();
+            return await this.CollectInfoFromCli(directory);
+        }
+        catch (Exception)
+        {
+            output.WriteYellow("Could not execute the Git CLI, it's probably not installed. Skipping.").WriteLine();
             return null;
         }
+    }
 
-        output.WriteGreen($"Git repository found at {repoWorkingDir.StdOut}").WriteLine();
+    private async Task<GitRepositoryInfo> CollectInfoFromCli(DirectoryInfo directory)
+    {
+        var startInfo = GetGitProcessStartInfoForPath(directory.FullName);
 
         var commitHash = await ExecuteAsync(startInfo, "rev-parse HEAD", GitCmdTimeout);
         var branchName = await ExecuteAsync(startInfo, "rev-parse --abbrev-ref HEAD", GitCmdTimeout);
@@ -75,7 +83,6 @@ public class GitClient(IOutput output) : IGitClient
         return new GitRepositoryInfo
         {
             ActiveBranches = activeBranches,
-            WorkingDirectory = repoWorkingDir.StdOut,
             Branch = branchName.StdOut,
             CurrentCommitHash = commitHash.StdOut,
         };
@@ -92,10 +99,7 @@ public class GitClient(IOutput output) : IGitClient
         var processTasks = new List<Task>();
 
         var processExitEvent = new TaskCompletionSource<object>();
-        process.Exited += (_, _) =>
-        {
-            processExitEvent.TrySetResult(true);
-        };
+        process.Exited += (_, _) => { processExitEvent.TrySetResult(true); };
         processTasks.Add(processExitEvent.Task);
 
         var stdOutBuilder = new StringBuilder();
@@ -114,7 +118,7 @@ public class GitClient(IOutput output) : IGitClient
                 stdOutBuilder.AppendLine(e.Data);
             }
         };
-        
+
         process.ErrorDataReceived += (s, e) =>
         {
             if (e.Data == null)
@@ -129,7 +133,7 @@ public class GitClient(IOutput output) : IGitClient
 
         processTasks.Add(stdOutCloseEvent.Task);
         processTasks.Add(stdErrCloseEvent.Task);
-            
+
         if (!process.Start())
         {
             result.ExitCode = process.ExitCode;
@@ -138,7 +142,7 @@ public class GitClient(IOutput output) : IGitClient
 
         process.BeginOutputReadLine();
         process.BeginErrorReadLine();
-        
+
         var processCompletionTask = Task.WhenAll(processTasks);
 
         var awaitingTask = Task.WhenAny(Task.Delay(timeout), processCompletionTask);
@@ -153,21 +157,35 @@ public class GitClient(IOutput output) : IGitClient
             {
                 process.Kill();
             }
-            catch { /*ignored*/ }
+            catch
+            {
+                /*ignored*/
+            }
+
             output.WriteWarning($"'{startInfo.FileName} {arguments}' has timed out without a result.");
-            
         }
 
         result.StdOut = stdOutBuilder.ToString().Trim();
         result.StdErr = stdErrBuilder.ToString().Trim();
-        
+
         if (result.ExitCode is not 0)
         {
-            output.WriteWarning($"'{startInfo.FileName} {arguments}' exited with code {result.ExitCode}. Error: {result.StdOut}{Environment.NewLine}{result.StdErr}");
+            output.WriteWarning(
+                $"'{startInfo.FileName} {arguments}' exited with code {result.ExitCode}. Error: {result.StdOut}{Environment.NewLine}{result.StdErr}");
         }
 
         return result;
     }
+
+    private static ProcessStartInfo GetGitProcessStartInfoForPath(string path) => new()
+    {
+        UseShellExecute = false,
+        RedirectStandardOutput = true,
+        RedirectStandardError = true,
+        FileName = "git",
+        CreateNoWindow = true,
+        WorkingDirectory = path
+    };
 
     private class Result
     {

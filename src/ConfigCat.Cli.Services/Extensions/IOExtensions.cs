@@ -8,6 +8,9 @@ namespace System.IO;
 public static class FileSystemExtensions
 {
     public static bool IsIgnoreFile(this FileInfo info) => IgnoreFile.IgnoreFileNames.Contains(info.Name);
+    
+    public static bool SameDirectory(this DirectoryInfo dir1, DirectoryInfo dir2) => 
+        Path.GetRelativePath(dir1.FullName, dir2.FullName) == ".";
 
     public static async Task<bool> IsBinaryAsync(this FileInfo file, CancellationToken token)
     {

@@ -1,22 +1,23 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using Ignore;
 
 namespace ConfigCat.Cli.Services.FileSystem.Ignore;
 
 internal abstract class IgnorePolicy
 {
-    protected readonly IgnoreRuleSet AcceptMatcher = new();
-    protected readonly IgnoreRuleSet IgnoreMatcher = new();
+    protected readonly List<IgnoreRule> AcceptRules = [];
+    protected readonly List<IgnoreRule> DenyRules = [];
 
-    public abstract bool IsAccepting(FileInfo file);
+    public bool IsAccepting(FileInfo file) => AcceptRules.Any(rule => rule.IsMatch(PreProcessFilePath(file)));
 
-    public abstract bool IsIgnoring(FileInfo file);
+    public bool IsIgnoring(FileInfo file) => DenyRules.Any(rule => rule.IsMatch(PreProcessFilePath(file)));
 
     public abstract bool Handles(FileInfo file);
+    
+    protected abstract string PreProcessFilePath(FileInfo file);
 
-    public int Rank { get; protected set; }
-
-    protected bool IsAcceptingInternal(string filePath) => this.AcceptMatcher.HasMatch(filePath.AsSlash().AsSpan());
-
-    protected bool IsIgnoringInternal(string filePath) => this.IgnoreMatcher.HasMatch(filePath.AsSlash().AsSpan());
+    public int Rank { get; protected init; }
 }

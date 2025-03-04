@@ -78,7 +78,9 @@ internal class Scan(
         if (excludeFlagKeys is {Length: > 0})
             deletedFlags = deletedFlags.Where(f => !excludeFlagKeys.Contains(f.Key));
 
-        var files = await fileCollector.CollectAsync(directory, token);
+        var gitRepoDir = await gitClient.GetRepoRootDirectoryOrNull(directory);
+        
+        var files = await fileCollector.CollectAsync(directory, gitRepoDir, token);
 
         var patternsFromEnv =
             System.Environment.GetEnvironmentVariable(Constants.AliasPatternsEnvironmentVariableName)?.Split(',', StringSplitOptions.RemoveEmptyEntries) ?? [];
@@ -128,7 +130,9 @@ internal class Scan(
 
         output.WriteLine("Initiating code reference upload...");
 
-        var gitInfo = await gitClient.GatherGitInfo(directory.FullName);
+        var gitInfo = gitRepoDir != null 
+            ? await gitClient.GetRepoDetailsOrNull(directory)
+            : null;
 
         branch = branch.NullIfEmpty() ?? gitInfo?.Branch;
         commitHash = commitHash.NullIfEmpty() ?? gitInfo?.CurrentCommitHash;
@@ -141,9 +145,9 @@ internal class Scan(
             .Write("Branch").Write(":").WriteCyan($" {branch}").WriteLine()
             .Write("Commit").Write(":").WriteCyan($" {commitHash}").WriteLine();
 
-        var repositoryDirectory = gitInfo == null || gitInfo.WorkingDirectory.IsEmpty()
-            ? directory.FullName.AsSlash()
-            : gitInfo.WorkingDirectory;
+        var repositoryDirectory = gitRepoDir == null
+            ? directory.FullName.WithSlashes()
+            : gitRepoDir.FullName.WithSlashes();
 
         var references = aliveFlagReferences
             .SelectMany(referenceResult => referenceResult.References,
@@ -155,13 +159,13 @@ internal class Scan(
                 Key = r.Key.Key,
                 References = r.OrderBy(it => it.reference.IsAlias).Select(item => new ReferenceLines
                 {
-                    File = item.File.FullName.AsSlash()
+                    File = item.File.FullName.WithSlashes()
                         .Replace(repositoryDirectory, string.Empty, StringComparison.OrdinalIgnoreCase).Trim('/'),
                     FileUrl = !commitHash.IsEmpty() && !fileUrlTemplate.IsEmpty()
                         ? fileUrlTemplate
                             .Replace("{commitHash}", commitHash)
                             .Replace("{filePath}",
-                                item.File.FullName.AsSlash().Replace(repositoryDirectory, string.Empty,
+                                item.File.FullName.WithSlashes().Replace(repositoryDirectory, string.Empty,
                                     StringComparison.OrdinalIgnoreCase).Trim('/'))
                             .Replace("{lineNumber}", item.reference.ReferenceLine.LineNumber.ToString())
                         : null,

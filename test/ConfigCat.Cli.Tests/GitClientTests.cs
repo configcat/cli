@@ -13,11 +13,13 @@ public class GitClientTests
     public async Task Test_GitClient()
     {
         var client = new GitClient(new Output(new CliOptions()));
-        var response = await client.GatherGitInfo(Directory.GetCurrentDirectory());
+        var executingDir = new DirectoryInfo(Directory.GetCurrentDirectory());
+        var info = await client.GetRepoDetailsOrNull(executingDir);
+        var repoDir = await client.GetRepoRootDirectoryOrNull(executingDir);
         
-        Assert.NotEmpty(response.WorkingDirectory);
-        Assert.NotEmpty(response.Branch);
-        Assert.NotEmpty(response.ActiveBranches);
-        Assert.NotEmpty(response.CurrentCommitHash);
+        Assert.NotEmpty(repoDir.FullName);
+        Assert.NotEmpty(info.Branch);
+        Assert.NotEmpty(info.ActiveBranches);
+        Assert.NotEmpty(info.CurrentCommitHash);
     }
 }
