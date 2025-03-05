@@ -9,7 +9,7 @@ namespace System;
 
 public static class SystemExtensions
 {
-    public static string AsSlash(this string text) => text.Replace(Path.DirectorySeparatorChar, '/');
+    public static string WithSlashes(this string text) => text.Replace(Path.DirectorySeparatorChar, '/');
 
     public static string RemoveDashes(this string text) => text.Replace("-", string.Empty).Replace("_", string.Empty);
 

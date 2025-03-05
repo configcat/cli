@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Ignore;
 
 namespace ConfigCat.Cli.Services.FileSystem.Ignore;
 
@@ -24,12 +25,11 @@ internal class IgnoreFile : IgnorePolicy
         this.ProcessPatterns(lines);
     }
 
-    public override bool IsAccepting(FileInfo file) => base.IsAcceptingInternal(file.FullName.Replace(this.File.DirectoryName, string.Empty));
-
-    public override bool IsIgnoring(FileInfo file) => base.IsIgnoringInternal(file.FullName.Replace(this.File.DirectoryName, string.Empty));
-
     public override bool Handles(FileInfo file) =>
-        file.DirectoryName.AsSlash().Contains(this.File.DirectoryName.AsSlash().TrimEnd('/'));
+        file.DirectoryName.WithSlashes().Contains(this.File.DirectoryName.WithSlashes().TrimEnd('/'));
+
+    protected override string PreProcessFilePath(FileInfo file) =>
+        Path.GetRelativePath(this.File.DirectoryName, file.FullName).WithSlashes();
 
     private void ProcessPatterns(string[] patterns)
     {
@@ -41,15 +41,15 @@ internal class IgnoreFile : IgnorePolicy
 
             if (current.StartsWith('!'))
             {
-                current = current.Substring(1);
-                base.AcceptMatcher.Add(current);
+                current = current[1..];
+                base.AcceptRules.Add(new IgnoreRule(current));
                 continue;
             }
 
             if (pattern.StartsWith(@"\#") || pattern.StartsWith(@"\!"))
-                current = current.Substring(1);
+                current = current[1..];
 
-            base.IgnoreMatcher.Add(current);
+            base.DenyRules.Add(new IgnoreRule(current));
         }
     }
 }

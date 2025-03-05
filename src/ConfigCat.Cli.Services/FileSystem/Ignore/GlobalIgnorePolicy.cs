@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using Ignore;
 
 namespace ConfigCat.Cli.Services.FileSystem.Ignore;
 
@@ -9,16 +10,13 @@ internal class GlobalIgnorePolicy : IgnorePolicy
 
     public GlobalIgnorePolicy(DirectoryInfo rootDirectory, params string[] patterns)
     {
-        foreach (var pattern in patterns)
-            base.IgnoreMatcher.Add(pattern);
-
         this.rootDirectory = rootDirectory;
+        foreach (var pattern in patterns)
+            base.DenyRules.Add(new IgnoreRule(pattern));
     }
 
-    public override bool IsAccepting(FileInfo file) => base.IsAcceptingInternal(file.FullName.Replace(this.rootDirectory.FullName, string.Empty));
+    public override bool Handles(FileInfo file) => true;
 
-    public override bool IsIgnoring(FileInfo file) => base.IsIgnoringInternal(file.FullName.Replace(this.rootDirectory.FullName, string.Empty));
-
-    public override bool Handles(FileInfo file) =>
-        file.DirectoryName.AsSlash().Contains(this.rootDirectory.FullName.AsSlash().TrimEnd('/'));
+    protected override string PreProcessFilePath(FileInfo file) =>
+        Path.GetRelativePath(this.rootDirectory.FullName, file.FullName).WithSlashes();
 }
