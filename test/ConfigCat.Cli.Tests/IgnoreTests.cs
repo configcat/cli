@@ -77,4 +77,25 @@ public class IgnoreTests
 
         Assert.Equal(expectations, fileNames);
     }
+    
+    [Theory]
+    [InlineData("a",
+        new[] { "a/a.txt", "a/b/d/d.txt", "a/b/d/h.txt", "a/b/e/e.txt", "a/c/c.txt", "a/c/g/g.txt" })]
+    [InlineData("a/b", new[] { "a/b/b.txt", "a/b/d/d.txt", "a/b/d/h.txt", "a/b/e/e.txt" })]
+    [InlineData("a/b/d", new[] { "a/b/d/d.txt", "a/b/d/h.txt" })]
+    [InlineData("a/b/e", new[] { "a/b/e/e.txt" })]
+    [InlineData("a/c", new[] { "a/c/c.txt", "a/c/g/g.txt" })]
+    [InlineData("a/c/g", new[] { "a/c/g/g.txt" })]
+    public async Task Test_IgnoreFile_Process_Without_Git(string searchDir, string[] expectedFiles)
+    {
+        var executingDir = new DirectoryInfo(Path.Combine(Directory.GetCurrentDirectory(), searchDir));
+        var fileCollector = new FileCollector(new Output(new CliOptions()));
+        var files = (await fileCollector.CollectAsync(executingDir, null, CancellationToken.None)).ToArray();
+
+        var expectations = expectedFiles.Select(f => Path.Combine(Directory.GetCurrentDirectory(), f).WithSlashes()).Order()
+            .ToArray();
+        var fileNames = files.Select(f => f.FullName.WithSlashes()).Order();
+
+        Assert.Equal(expectations, fileNames);
+    }
 }
