@@ -11,8 +11,8 @@ public static class JsonPatch
 
     public static JsonPatchDocument GenerateDocument<T>(T original, T modified)
     {
-        var originalJson = JsonSerializer.Serialize(original, Constants.CamelCaseOptions);
-        var modifiedJson = JsonSerializer.Serialize(modified, Constants.CamelCaseOptions);
+        var originalJson = JsonSerializer.Serialize(original, Constants.RequestJsonOptions);
+        var modifiedJson = JsonSerializer.Serialize(modified, Constants.RequestJsonOptions);
         using var originalElement = JsonDocument.Parse(originalJson);
         using var modifiedElement = JsonDocument.Parse(modifiedJson);
 
@@ -50,7 +50,7 @@ public static class JsonPatch
                 HandleArray(original.Value, modified.Value, path + modified.Name, document);
                 break;
             default:
-                document.Replace(path + modified.Name, JsonSerializer.Deserialize<object>(modified.Value.GetRawText(), Constants.CamelCaseOptions));
+                document.Replace(path + modified.Name, JsonSerializer.Deserialize<object>(modified.Value.GetRawText(), Constants.RequestJsonOptions));
                 break;
         }
     }
@@ -70,13 +70,13 @@ public static class JsonPatch
                     WalkOnProperties(originalItems[i], modifiedItems[i], path, document);
                 else if (!originalItems[i].GetRawText().Equals(modifiedItems[i].GetRawText()))
                     document.Replace(path + PathSeparator + i,
-                        JsonSerializer.Deserialize<object>(modifiedItems[i].GetRawText(), Constants.CamelCaseOptions));
+                        JsonSerializer.Deserialize<object>(modifiedItems[i].GetRawText(), Constants.RequestJsonOptions));
             }
         }
 
         for (var i = originalItems.Length; i < modifiedItems.Length; i++)
             document.Add(path + PathSeparator + Dash,
-                JsonSerializer.Deserialize<object>(modifiedItems[i].GetRawText(), Constants.CamelCaseOptions));
+                JsonSerializer.Deserialize<object>(modifiedItems[i].GetRawText(), Constants.RequestJsonOptions));
     }
 }
 

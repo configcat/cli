@@ -68,7 +68,7 @@ public abstract class ApiClient
 
         try
         {
-            return JsonSerializer.Deserialize<TResult>(content, Constants.CamelCaseOptions);
+            return JsonSerializer.Deserialize<TResult>(content, Constants.RequestJsonOptions);
         }
         catch (JsonException exception)
         {
@@ -83,7 +83,7 @@ public abstract class ApiClient
 
         if (body is not null)
         {
-            var jsonBody = JsonSerializer.Serialize(body, Constants.CamelCaseOptions);
+            var jsonBody = JsonSerializer.Serialize(body, Constants.RequestJsonOptions);
             this.Output.Verbose($"Request body: {jsonBody}");
 
             request.Content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
@@ -106,7 +106,7 @@ public abstract class ApiClient
 
         if (body is not null)
         {
-            var jsonBody = JsonSerializer.Serialize(body, Constants.CamelCaseOptions);
+            var jsonBody = JsonSerializer.Serialize(body, Constants.RequestJsonOptions);
             this.Output.Verbose($"Request body: {jsonBody}");
 
             request.Content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
@@ -123,7 +123,7 @@ public abstract class ApiClient
 
         try
         {
-            return JsonSerializer.Deserialize<TResult>(content, Constants.CamelCaseOptions);
+            return JsonSerializer.Deserialize<TResult>(content, Constants.RequestJsonOptions);
         }
         catch (JsonException exception)
         {

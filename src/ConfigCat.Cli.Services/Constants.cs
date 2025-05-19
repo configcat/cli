@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace ConfigCat.Cli.Services;
 
@@ -131,14 +132,16 @@ public static class Constants
         "Delete Segments"
     ];
 
-    public static readonly JsonSerializerOptions CamelCaseOptions = new()
+    public static readonly JsonSerializerOptions RequestJsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        //DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
     };
 
-    public static readonly JsonSerializerOptions PrettyFormattedCamelCaseOptions = new()
+    public static readonly JsonSerializerOptions PrettyFormattedOutputJsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         WriteIndented = true
     };
 

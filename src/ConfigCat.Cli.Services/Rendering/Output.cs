@@ -309,8 +309,8 @@ public class Output(CliOptions options) : IOutput
     public IOutput RenderJson(object toRender)
     {
         var jsonOptions = options.IsVerboseEnabled
-            ? Constants.PrettyFormattedCamelCaseOptions
-            : Constants.CamelCaseOptions;
+            ? Constants.PrettyFormattedOutputJsonOptions
+            : Constants.RequestJsonOptions;
         return this.Write(JsonSerializer.Serialize(toRender, jsonOptions));
     }
 
