@@ -135,7 +135,7 @@ public static class Constants
     public static readonly JsonSerializerOptions RequestJsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        //DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
     };
 
     public static readonly JsonSerializerOptions PrettyFormattedOutputJsonOptions = new()
