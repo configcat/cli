@@ -13,6 +13,7 @@ configcat scan ./dir -c <config-id> -l 5 --print
 | ------ | ----------- |
 | `--config-id`, `-c` | ID of the Config to scan against |
 | `--line-count`, `-l` | Context line count before and after the reference line (min: 1, max: 10) |
+| `--timeout`, `-to` | Scan timeout in seconds (default: 1800, min: 60) |
 | `--print`, `-p` | Print found references to output |
 | `--upload`, `-u` | Upload references to ConfigCat |
 | `--repo`, `-r` | Repository name. Mandatory for code reference upload |

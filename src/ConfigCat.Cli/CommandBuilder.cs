@@ -1293,6 +1293,7 @@ public static class CommandBuilder
             {
                 new Option<string>(["--config-id", "-c"], "ID of the Config to scan against"),
                 new Option<int>(["--line-count", "-l"], () => 4, "Context line count before and after the reference line (min: 1, max: 10)"),
+                new Option<int>(["--timeout", "-to"], () => 1800, "Scan timeout in seconds (default: 1800, min: 60)"),
                 new Option<bool>(["--print", "-p"], "Print found references to output"),
                 new Option<bool>(["--upload", "-u"], "Upload references to ConfigCat"),
                 new Option<string>(["--repo", "-r"], "Repository name. Mandatory for code reference upload"),
