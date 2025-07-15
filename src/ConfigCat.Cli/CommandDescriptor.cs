@@ -16,13 +16,13 @@ public class CommandDescriptor(string name, string description, string example =
 
     public bool IsHidden { get; init; }
 
-    public IEnumerable<Option> Options { get; init; } = Enumerable.Empty<Option>();
+    public IEnumerable<Option> Options { get; init; } = [];
 
-    public IEnumerable<Argument> Arguments { get; init; } = Enumerable.Empty<Argument>();
+    public IEnumerable<Argument> Arguments { get; init; } = [];
 
-    public IEnumerable<string> Aliases { get; init; } = Enumerable.Empty<string>();
+    public IEnumerable<string> Aliases { get; init; } = [];
 
-    public IEnumerable<CommandDescriptor> SubCommands { get; init; } = Enumerable.Empty<CommandDescriptor>();
+    public IEnumerable<CommandDescriptor> SubCommands { get; init; } = [];
 
     public HandlerDescriptor Handler { get; init; }
 }

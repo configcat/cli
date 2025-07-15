@@ -47,6 +47,7 @@ internal class Scan(
         string[] aliasPatterns,
         string[] usagePatterns,
         string[] excludeFlagKeys,
+        int timeout,
         CancellationToken token)
     {
         if (upload && repo.IsEmpty())
@@ -67,6 +68,10 @@ internal class Scan(
         lineCount = lineCount is < 0 or > 10
             ? 4
             : lineCount;
+        
+        timeout = timeout < 60
+            ? 60
+            : timeout;
 
         var flags = await flagClient.GetFlagsAsync(configId, token);
         if (excludeFlagKeys is {Length: > 0})
@@ -78,6 +83,8 @@ internal class Scan(
         if (excludeFlagKeys is {Length: > 0})
             deletedFlags = deletedFlags.Where(f => !excludeFlagKeys.Contains(f.Key));
 
+        output.Verbose($"Scanning {directory} with {timeout}s timeout");
+        
         var gitRepoDir = await gitClient.GetRepoRootDirectoryOrNull(directory);
         
         var files = await fileCollector.CollectAsync(directory, gitRepoDir, token);
@@ -92,6 +99,7 @@ internal class Scan(
             patternsFromEnv.Concat(aliasPatterns).ToArray(), 
             usagePatternsFromEnv.Concat(usagePatterns).ToArray(), 
             lineCount, 
+            TimeSpan.FromSeconds(timeout),
             warningTracker, 
             token);
 

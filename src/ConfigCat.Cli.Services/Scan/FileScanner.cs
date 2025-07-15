@@ -19,6 +19,7 @@ public interface IFileScanner
         string[] matchPatterns,
         string[] usagePatterns,
         int contextLines,
+        TimeSpan timeout,
         List<string> warningTracker,
         CancellationToken token);
 }
@@ -40,7 +41,6 @@ public class FileScanner : IFileScanner
         this.aliasCollector = aliasCollector;
         this.botPolicy = botPolicy;
         this.output = output;
-        this.botPolicy.Configure(p => p.Timeout(t => t.After(TimeSpan.FromMinutes(30))));
     }
 
     public async Task<IEnumerable<FlagReferenceResult>> ScanAsync(FlagModel[] flags,
@@ -48,9 +48,11 @@ public class FileScanner : IFileScanner
         string[] matchPatterns,
         string[] usagePatterns,
         int contextLines,
+        TimeSpan timeout,
         List<string> warningTracker,
         CancellationToken token)
     {
+        this.botPolicy.Configure(p => p.Timeout(t => t.After(timeout)));
         using var spinner = this.output.CreateSpinner(token);
         return await this.botPolicy.ExecuteAsync(async (_, cancellation) =>
         {
