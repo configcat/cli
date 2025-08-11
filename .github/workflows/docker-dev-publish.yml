@@ -40,8 +40,8 @@ jobs:
       - name: Download executables
         uses: actions/download-artifact@v5
         with:
-        pattern: executables-*
-        merge-multiple: true
+          pattern: executables-*
+          merge-multiple: true
 
       - name: Set permissions
         run: chmod +x ./linux-musl-x64/configcat
@@ -70,8 +70,8 @@ jobs:
       - name: Download executables
         uses: actions/download-artifact@v5
         with:
-        pattern: executables-*
-        merge-multiple: true
+          pattern: executables-*
+          merge-multiple: true
 
       - name: Set permissions
         run: chmod +x ./linux-musl-x64/configcat
