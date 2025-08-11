@@ -69,7 +69,7 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Download executables
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v5
       with:
         pattern: executables-*
         merge-multiple: true
@@ -106,7 +106,7 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Download executables
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v5
       with:
         pattern: executables-*
         merge-multiple: true
@@ -149,7 +149,7 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Download executables
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v5
       with:
         pattern: executables-*
         merge-multiple: true
@@ -183,7 +183,7 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Download executables
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v5
       with:
         pattern: executables-*
         merge-multiple: true
@@ -214,7 +214,7 @@ jobs:
 
     steps:
     - name: Download executables
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v5
       with:
         pattern: executables-*
         merge-multiple: true
@@ -281,7 +281,7 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Download archives
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v5
       with:
         name: brew-pack
 
@@ -305,7 +305,7 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Download archives
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v5
       with:
         name: scoop-pack
 
