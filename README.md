@@ -4,7 +4,7 @@
 
 The ConfigCat Command Line Interface allows you to interact with the <a target="_blank" href="https://configcat.com/docs/advanced/public-api">Public Management API</a> via the command line. It supports most functionality found on the ConfigCat Dashboard. You can manage ConfigCat resources like Feature Flags, Targeting / Percentage rules, Products, Configs, Environments, and more.
 
-<img src="assets/cli-flag-create.gif" alt="ConfigCat CLI Feature Flag Create"/>
+<img src="assets/flag-create.gif" alt="ConfigCat CLI Feature Flag Create"/>
 
 See the <a target="_blank" href="https://configcat.github.io/cli/">command reference documentation</a> for more information about each available command.
 
