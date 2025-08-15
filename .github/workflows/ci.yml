@@ -2,11 +2,18 @@ name: ConfigCat CLI CI
 
 on:
   schedule:
-    - cron: '0 0 * * *'
+    - cron: '0 8 * * 1'
   push:
     branches: [ '*' ]
+    paths-ignore:
+      - '**.md'
+      - '**.gif'
+
   pull_request:
     branches: [ main ]
+    paths-ignore:
+      - '**.md'
+      - '**.gif'
 
   workflow_dispatch:
   
