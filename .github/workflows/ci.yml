@@ -21,7 +21,7 @@ jobs:
   unit-tests:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Setup dotnet
       uses: actions/setup-dotnet@v4
       with:
@@ -37,7 +37,7 @@ jobs:
         arch: [win-x64, win-x86, win-arm64, linux-x64, linux-musl-x64, linux-musl-arm64, linux-arm, linux-arm64]
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Setup dotnet
       uses: actions/setup-dotnet@v4
       with:
@@ -63,7 +63,7 @@ jobs:
         arch: [osx-x64, osx-arm64]
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Setup dotnet
       uses: actions/setup-dotnet@v4
       with:
@@ -86,7 +86,7 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - name: Download executables
       uses: actions/download-artifact@v5
@@ -117,7 +117,7 @@ jobs:
     runs-on: windows-latest
     
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - name: Download executables
       uses: actions/download-artifact@v5
@@ -156,7 +156,7 @@ jobs:
     runs-on: macos-latest
     
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     
     - name: Download executables
       uses: actions/download-artifact@v5
@@ -179,7 +179,7 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - name: Download executables
       uses: actions/download-artifact@v5
