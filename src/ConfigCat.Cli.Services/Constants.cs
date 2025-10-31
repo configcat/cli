@@ -14,6 +14,7 @@ public static class Constants
     public const string ApiPasswordEnvironmentVariableName = "CONFIGCAT_API_PASS";
     public const string AliasPatternsEnvironmentVariableName = "CONFIGCAT_ALIAS_PATTERNS";
     public const string UsagePatternsEnvironmentVariableName = "CONFIGCAT_USAGE_PATTERNS";
+    public const string SdkKeyEnvironmentVariableName = "CONFIGCAT_SDK_KEY";
 
     public const string KeyPatternPlaceHolder = "CC_KEY";
 
@@ -180,6 +181,18 @@ public static class SettingTypes
     public const string String = "string";
     public const string Int = "int";
     public const string Double = "double";
+}
+
+public static class DataGovernance
+{
+    public static readonly string[] Collection =
+    [
+        Global,
+        Eu
+    ];
+
+    public const string Global = "global";
+    public const string Eu = "eu";
 }
 
 public static class KeyGenerationModes

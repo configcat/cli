@@ -13,7 +13,7 @@ using ConfigCat.Cli.Options;
 
 namespace ConfigCat.Cli.Commands.Flags;
 
-class Flag(
+internal class Flag(
     IFlagClient flagClient,
     IConfigClient configClient,
     IProductClient productClient,

@@ -11,7 +11,7 @@ using ConfigCat.Cli.Services.Rendering;
 
 namespace ConfigCat.Cli.Commands.Flags;
 
-class FlagPercentage(
+internal class FlagPercentage(
     IFlagValueClient flagValueClient,
     IFlagClient flagClient,
     IWorkspaceLoader workspaceLoader,

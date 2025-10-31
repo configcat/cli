@@ -11,7 +11,7 @@ internal sealed class PercentageRuleArgument : Argument<UpdatePercentageModel[]>
     {
         var length = argumentResult.Tokens.Count;
         if (length == 0)
-            return Array.Empty<UpdatePercentageModel>();
+            return [];
 
         var result = new UpdatePercentageModel[length];
         for (var i = 0; i < length; i++)
