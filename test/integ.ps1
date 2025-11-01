@@ -675,3 +675,20 @@ Describe "Scan Tests" {
         $result | Should -Match ([regex]::Escape("custom_alias"))
     }
 }
+
+Describe "Eval Tests" {
+    BeforeAll {
+        $flagIdToEval = Invoke-ConfigCat "flag", "create", "-c", $configId, "-n", "Flag-To-Eval", "-k", "flag_to_eval", "-H", "hint", "-t", "boolean"
+        Invoke-ConfigCat "flag", "targeting", "create", "-i", $flagIdToEval, "-e", $environmentId, "-a", "Identifier", "-c", "isoneof", "-t", "SOMEID", "-f", "true"
+        $sdkKey = Invoke-ConfigCat "k", "-e", $environmentId, "-c", $configId
+    }
+
+    AfterAll {
+        Invoke-ConfigCat "flag", "rm", "-i", $flagIdToEval
+    }
+
+    It "Eval with user attributes" {
+        $result = Invoke-ConfigCat "eval", "-sk", $sdkKey, "-fk", "flag_to_eval", "-u", "https://test-cdn-global.configcat.com", "-ua", "id:SOMEID"
+        $result | Should -Match ([regex]::Escape("true"))
+    }
+}

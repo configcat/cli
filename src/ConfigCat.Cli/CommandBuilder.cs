@@ -1278,6 +1278,8 @@ public static class CommandBuilder
             Handler = CreateHandler<SdkKey>(nameof(SdkKey.InvokeAsync)),
             Options =
             [
+                new Option<string>(["--environment-id", "-e"], "ID of the Environment"),
+                new Option<string>(["--config-id", "-c"], "ID of the Config"),
                 new Option<bool>(["--json"], "Format the output in JSON")
             ]
         };

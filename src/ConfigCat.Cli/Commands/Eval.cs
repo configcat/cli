@@ -66,7 +66,7 @@ internal class Eval(IPrompt prompt, IOutput output, CliOptions options)
 
         var final = results.ToDictionary(r => r.Key, r => new
         {
-            r.Value,
+            Value = r.Value is bool b ? b.ToString().ToLowerInvariant() : r.Value?.ToString(),
             r.VariationId,
             r.IsDefaultValue,
             r.FetchTime,
@@ -82,11 +82,19 @@ internal class Eval(IPrompt prompt, IOutput output, CliOptions options)
             return ExitCodes.Ok;
         }
 
-        output.RenderTable(final.Select(f => new
+        if (flagKeys.Length == 1)
         {
-            f.Key,
-            f.Value.Value,
-        }));
+            output.Write(results[0].Value?.ToString());
+        }
+        else
+        {
+            output.RenderTable(final.Select(f => new
+            {
+                f.Key,
+                f.Value.Value,
+            }));
+        }
+        
         return ExitCodes.Ok;
     }
 
