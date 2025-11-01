@@ -29,8 +29,8 @@ internal class Eval(IPrompt prompt, IOutput output, CliOptions options)
     {
         if (sdkKey.IsEmpty())
         {
-            var fromEnv = System.Environment.GetEnvironmentVariable(Constants.SdkKeyEnvironmentVariableName);
-            if (fromEnv.IsEmpty())
+            sdkKey = System.Environment.GetEnvironmentVariable(Constants.SdkKeyEnvironmentVariableName);
+            if (sdkKey.IsEmpty())
             {
                 sdkKey = await prompt.GetStringAsync("SDK key", token);
             }
