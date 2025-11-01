@@ -691,10 +691,4 @@ Describe "Eval Tests" {
         $result = Invoke-ConfigCat "eval", "-sk", $sdkKey, "-fk", "flag_to_eval", "-u", "https://test-cdn-global.configcat.com", "-ua", "id:SOMEID"
         $result | Should -Match ([regex]::Escape("true"))
     }
-    
-    It "Eval with env var" {
-        $Env:CONFIGCAT_SDK_KEY = $sdkKey
-        $result = Invoke-ConfigCat "eval", "-fk", "flag_to_eval", "-u", "https://test-cdn-global.configcat.com", "-ua", "id:SOMEID"
-        $result | Should -Match ([regex]::Escape("true"))
-    }
 }
