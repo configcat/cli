@@ -5,13 +5,14 @@
     <Product>ConfigCat CLI</Product>
     <Company>ConfigCat</Company>
     <Description>Command Line Interface for ConfigCat.</Description>
-    <Copyright>Copyright © ConfigCat 2021</Copyright>
+    <Copyright>Copyright © ConfigCat 2025</Copyright>
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
     <AssemblyName>configcat</AssemblyName>
     <AssemblyTitle>ConfigCat CLI</AssemblyTitle>
     <InvariantGlobalization>true</InvariantGlobalization>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <_ExtraTrimmerArgs>--keep-metadata parametername</_ExtraTrimmerArgs>
     <Version>0.0.0</Version>
   </PropertyGroup>
 
