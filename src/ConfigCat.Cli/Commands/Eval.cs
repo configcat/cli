@@ -25,6 +25,7 @@ internal class Eval(IPrompt prompt, IOutput output, CliOptions options)
         string baseUrl,
         UserAttributeModel[] userAttributes,
         bool json,
+        bool map,
         CancellationToken token)
     {
         if (sdkKey.IsEmpty())
@@ -61,24 +62,31 @@ internal class Eval(IPrompt prompt, IOutput output, CliOptions options)
         var results = new List<EvaluationDetails>();
         foreach (var flagKey in flagKeys)
         {
-            results.Add(await client.GetValueDetailsAsync<object>(flagKey, null, user, token));
+            var result = await client.GetValueDetailsAsync<object>(flagKey, null, user, token);
+            result.Value = result.Value is bool b ? b.ToString().ToLowerInvariant() : result.Value?.ToString();
+            results.Add(result);
         }
-
-        var final = results.ToDictionary(r => r.Key, r => new
-        {
-            Value = r.Value is bool b ? b.ToString().ToLowerInvariant() : r.Value?.ToString(),
-            r.VariationId,
-            r.IsDefaultValue,
-            r.FetchTime,
-            r.ErrorCode,
-            r.ErrorMessage,
-            TargetingMatch = r.MatchedTargetingRule is not null || r.MatchedPercentageOption is not null,
-            r.User
-        });
-
+        
         if (json)
         {
+            var final = results.ToDictionary(r => r.Key, r => new EvalResult
+            {
+                Value = r.Value,
+                VariationId = r.VariationId,
+                IsDefaultValue = r.IsDefaultValue,
+                FetchTime = r.FetchTime,
+                ErrorCode = r.ErrorCode,
+                ErrorMessage = r.ErrorMessage,
+                TargetingMatch = r.MatchedTargetingRule is not null || r.MatchedPercentageOption is not null,
+                User = r.User
+            });
             output.RenderJson(final);
+            return ExitCodes.Ok;
+        }
+
+        if (map)
+        {
+            output.Write(string.Join(";", results.Select(r => $"{r.Key}={r.Value}")));
             return ExitCodes.Ok;
         }
 
@@ -88,10 +96,10 @@ internal class Eval(IPrompt prompt, IOutput output, CliOptions options)
         }
         else
         {
-            output.RenderTable(final.Select(f => new
+            output.RenderTable(results.Select(f => new
             {
                 f.Key,
-                f.Value.Value,
+                f.Value,
             }));
         }
         
@@ -119,4 +127,23 @@ internal class Eval(IPrompt prompt, IOutput output, CliOptions options)
                 opts.Logger = new ConsoleLogger(LogLevel.Debug);
         });
     }
+}
+
+internal class EvalResult
+{
+    public required object Value { get; init; }
+
+    public required string VariationId { get; init; }
+
+    public required DateTime FetchTime { get; init; }
+
+    public required User User { get; init; }
+
+    public required bool IsDefaultValue { get; init; }
+
+    public required EvaluationErrorCode ErrorCode { get; init; }
+
+    public required string ErrorMessage { get; init; }
+
+    public required bool TargetingMatch { get; init; }
 }

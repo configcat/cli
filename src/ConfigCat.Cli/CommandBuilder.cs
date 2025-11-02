@@ -1368,6 +1368,7 @@ public static class CommandBuilder
                 new Option<string>(["--data-governance", "-dg"], () => DataGovernance.Global, "Describes the location of your feature flag and setting data within the ConfigCat CDN.")
                     .AddSuggestions(DataGovernance.Collection),
                 new Option<bool>(["--json"], "Format the output in JSON"),
+                new Option<bool>(["--map"], "Format the output in semicolon delimited map: <key1>=<value1>;<key2>=<value2>"),
 
             ]
         };
