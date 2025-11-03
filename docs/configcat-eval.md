@@ -1,5 +1,5 @@
 # configcat eval
-Evaluate feature flags
+Evaluate feature flags. In case of a single feature flag, by default, the command writes only the evaluated value to the output. In case of multiple feature flags, the command writes a table if no other format is specified
 ## Usage
 ```
 configcat eval [options]

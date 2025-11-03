@@ -1356,7 +1356,7 @@ public static class CommandBuilder
         };
     
     private static CommandDescriptor BuildEvalCommand() =>
-        new("eval", "Evaluate feature flags", "configcat eval -sk <sdk-key> -fk <flag-keys> -ua id:<user-id>")
+        new("eval", "Evaluate feature flags. In case of a single feature flag, by default, the command writes only the evaluated value to the output. In case of multiple feature flags, the command writes a table if no other format is specified", "configcat eval -sk <sdk-key> -fk <flag-keys> -ua id:<user-id>")
         {
             Handler = CreateHandler<Eval>(nameof(Eval.InvokeAsync)),
             Options =
