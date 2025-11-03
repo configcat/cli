@@ -1356,7 +1356,7 @@ public static class CommandBuilder
         };
     
     private static CommandDescriptor BuildEvalCommand() =>
-        new("eval", "Evaluate feature flags", "configcat eval -sk <sdk-key> -fk <flag-key> -ua id:<user-id>")
+        new("eval", "Evaluate feature flags", "configcat eval -sk <sdk-key> -fk <flag-keys> -ua id:<user-id>")
         {
             Handler = CreateHandler<Eval>(nameof(Eval.InvokeAsync)),
             Options =

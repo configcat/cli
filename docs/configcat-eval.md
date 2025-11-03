@@ -6,7 +6,7 @@ configcat eval [options]
 ```
 ## Example
 ```
-configcat eval -sk <sdk-key> -fk <flag-key> -ua id:<user-id>
+configcat eval -sk <sdk-key> -fk <flag-keys> -ua id:<user-id>
 ```
 ## Options
 | Option | Description |
