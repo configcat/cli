@@ -33,7 +33,7 @@ if ! command -v curl &> /dev/null; then
 fi
 
 if [ -z "$VERSION" ]; then
-    VERSION=$(curl -s "https://api.github.com/repos/configcat/cli/releases/latest" | awk '/tag_name/{gsub(/("v|"|",)/,"",$2);print $2}')
+    VERSION=$(curl -s "https://raw.githubusercontent.com/configcat/cli/main/.version")
 fi
 
 DIR="${DIR:-/usr/local/bin}"
@@ -45,14 +45,25 @@ UCPATH=$(mktemp -d "${TMPDIR:-/tmp}/configcat.XXXXXXXXX")
 case "$(uname -s)" in
     Linux)
         OS='linux'
-        ARCH="${ARCH:-x64}"
     ;;
     Darwin)
         OS='osx'
-        ARCH="${ARCH:-x64}"
     ;;
     *)
         echo '==> ERROR: Not supported operating system.'
+        exit 1	
+    ;;
+esac
+
+case "$(uname -m)" in
+    x86_64 | amd64)
+        ARCH="${ARCH:-x64}"
+    ;;
+    aarch64 | arm64)
+        ARCH="${ARCH:-arm64}"
+    ;;
+    *)
+        echo '==> ERROR: Could not determine the OS architecture, please set it with the -a argument.'
         exit 1	
     ;;
 esac
