@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using ConfigCat.Cli.Models;
 using ConfigCat.Cli.Options;
 using ConfigCat.Cli.Services;
+using ConfigCat.Cli.Services.Exceptions;
 using ConfigCat.Cli.Services.Rendering;
 using ConfigCat.Client;
 using ConfigCat.Client.Configuration;
@@ -37,6 +38,9 @@ internal class Eval(IPrompt prompt, IOutput output, CliOptions options)
             }
         }
 
+        if (sdkKey.IsEmpty())
+            throw new ShowHelpException($"Either the --sdk-key argument or the {Constants.SdkKeyEnvironmentVariableName} environment variable must be set.");
+        
         if (flagKeys.IsEmpty())
             flagKeys = (await prompt.GetRepeatedValuesAsync("Set the feature flag keys that you want to evaluate",
                 token, ["Flag key"])).SelectMany(t => t).ToArray();
