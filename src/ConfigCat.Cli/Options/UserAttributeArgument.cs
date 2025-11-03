@@ -6,7 +6,7 @@ namespace ConfigCat.Cli.Options;
 
 internal sealed class UserAttributeOption : Option<UserAttributeModel[]>
 {
-    public UserAttributeOption() : base(["-user-attributes", "-ua"], argumentResult =>
+    public UserAttributeOption() : base(["--user-attributes", "-ua"], argumentResult =>
     {
         var length = argumentResult.Tokens.Count;
         if (length == 0)

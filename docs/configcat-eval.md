@@ -13,7 +13,7 @@ configcat eval -sk <sdk-key> -fk <flag-keys> -ua id:<user-id>
 | ------ | ----------- |
 | `--sdk-key`, `-sk` | SDK key identifying the config to download, also loaded from CONFIGCAT_SDK_KEY |
 | `--flag-keys`, `-fk` | Feature flag keys to evaluate |
-| `-user-attributes`, `-ua` | User attributes for flag evaluation. Format: `<key>:<value>`. Dedicated User Object attributes are mapped like the following: Identifier => id, Email => email, Country => country |
+| `--user-attributes`, `-ua` | User attributes for flag evaluation. Format: `<key>:<value>`. Dedicated User Object attributes are mapped like the following: Identifier => id, Email => email, Country => country |
 | `--base-url`, `-u` | The CDN base url from where the CLI will download the config JSON. Defaults to ConfigCat CDN servers |
 | `--data-governance`, `-dg` | Describes the location of your feature flag and setting data within the ConfigCat CDN<br/><br/>*Possible values*: `eu`, `global` |
 | `--json` | Format the output in JSON |
