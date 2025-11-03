@@ -79,10 +79,10 @@ internal class Eval(IPrompt prompt, IOutput output, CliOptions options)
                 VariationId = r.VariationId,
                 IsDefaultValue = r.IsDefaultValue,
                 FetchTime = r.FetchTime,
-                ErrorCode = r.ErrorCode,
+                ErrorCode = (int)r.ErrorCode,
                 ErrorMessage = r.ErrorMessage,
                 TargetingMatch = r.MatchedTargetingRule is not null || r.MatchedPercentageOption is not null,
-                User = r.User
+                User = r.User?.GetAllAttributes()
             });
             output.RenderJson(final);
             return ExitCodes.Ok;
@@ -131,23 +131,4 @@ internal class Eval(IPrompt prompt, IOutput output, CliOptions options)
                 opts.Logger = new ConsoleLogger(LogLevel.Debug);
         });
     }
-}
-
-internal class EvalResult
-{
-    public required object Value { get; init; }
-
-    public required string VariationId { get; init; }
-
-    public required DateTime FetchTime { get; init; }
-
-    public required User User { get; init; }
-
-    public required bool IsDefaultValue { get; init; }
-
-    public required EvaluationErrorCode ErrorCode { get; init; }
-
-    public required string ErrorMessage { get; init; }
-
-    public required bool TargetingMatch { get; init; }
 }

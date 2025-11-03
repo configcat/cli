@@ -12,7 +12,6 @@
     <AssemblyTitle>ConfigCat CLI</AssemblyTitle>
     <InvariantGlobalization>true</InvariantGlobalization>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
-    <_ExtraTrimmerArgs>--keep-metadata parametername</_ExtraTrimmerArgs>
     <Version>0.0.0</Version>
   </PropertyGroup>
 
