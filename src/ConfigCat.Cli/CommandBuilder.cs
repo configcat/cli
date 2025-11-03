@@ -1278,8 +1278,8 @@ public static class CommandBuilder
             Handler = CreateHandler<SdkKey>(nameof(SdkKey.InvokeAsync)),
             Options =
             [
-                new Option<string>(["--environment-id", "-e"], "ID of the Environment"),
-                new Option<string>(["--config-id", "-c"], "ID of the Config"),
+                new Option<string>(["--environment-id", "-e"], "(Optional) Filter for the SDK key's environment"),
+                new Option<string>(["--config-id", "-c"], "(Optional) Filter for the SDK key's config"),
                 new Option<bool>(["--json"], "Format the output in JSON")
             ]
         };
@@ -1361,11 +1361,11 @@ public static class CommandBuilder
             Handler = CreateHandler<Eval>(nameof(Eval.InvokeAsync)),
             Options =
             [
-                new Option<string>(["--sdk-key", "-sk"], "SDK key identifying the config to download"),
-                new Option<string[]>(["--flag-keys", "-fk"], "Keys of feature flags to evaluate"),
+                new Option<string>(["--sdk-key", "-sk"], $"SDK key identifying the config to download, also loaded from {Constants.SdkKeyEnvironmentVariableName}"),
+                new Option<string[]>(["--flag-keys", "-fk"], "Feature flag keys to evaluate"),
                 new UserAttributeOption(),
                 new Option<string>(["--base-url", "-u"], "The CDN base url from where the CLI will download the config JSON. Defaults to ConfigCat CDN servers"),
-                new Option<string>(["--data-governance", "-dg"], () => DataGovernance.Global, "Describes the location of your feature flag and setting data within the ConfigCat CDN.")
+                new Option<string>(["--data-governance", "-dg"], () => DataGovernance.Global, "Describes the location of your feature flag and setting data within the ConfigCat CDN")
                     .AddSuggestions(DataGovernance.Collection),
                 new Option<bool>(["--json"], "Format the output in JSON"),
                 new Option<bool>(["--map"], "Format the output in semicolon delimited map: <key1>=<value1>;<key2>=<value2>"),

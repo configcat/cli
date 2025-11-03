@@ -159,6 +159,10 @@ This is the complete list of the available commands provided by the CLI.
 | Command | Description |
 | ------ | ----------- |
 | [configcat scan](configcat-scan.md) | Scan files for Feature Flag & Setting usages |
+### configcat eval
+| Command | Description |
+| ------ | ----------- |
+| [configcat eval](configcat-eval.md) | Evaluate a feature flag |
 ### configcat config-json
 | Command | Description |
 | ------ | ----------- |
