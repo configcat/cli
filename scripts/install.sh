@@ -55,18 +55,20 @@ case "$(uname -s)" in
     ;;
 esac
 
+if [ -z "$ARCH" ]; then
 case "$(uname -m)" in
     x86_64 | amd64)
-        ARCH="${ARCH:-x64}"
+        ARCH="x64"
     ;;
     aarch64 | arm64)
-        ARCH="${ARCH:-arm64}"
+        ARCH="arm64"
     ;;
     *)
-        echo '==> ERROR: Could not determine the OS architecture, please set it with the -a argument.'
+        echo '==> ERROR: Could not determine the OS architecture, please set it with the -a,--arch argument.'
         exit 1	
     ;;
 esac
+fi
 
 mkdir -p "$DIR"
 
