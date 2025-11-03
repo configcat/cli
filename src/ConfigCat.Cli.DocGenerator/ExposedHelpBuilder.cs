@@ -27,7 +27,7 @@ internal class ExposedHelpBuilder() : HelpBuilder(new MockConsole())
     public IEnumerable<HelpItem> ExposeGetCommandArguments(ICommand command) => base.GetCommandArguments(command);
 }
 
-class MockConsole : IConsole
+internal class MockConsole : IConsole
 {
     public IStandardStreamWriter Out => throw new System.NotImplementedException();
 

@@ -675,3 +675,27 @@ Describe "Scan Tests" {
         $result | Should -Match ([regex]::Escape("custom_alias"))
     }
 }
+
+Describe "Eval Tests" {
+    BeforeAll {
+        $flagIdToEval1 = Invoke-ConfigCat "flag", "create", "-c", $configId, "-n", "Flag-To-Eval1", "-k", "flag_to_eval1", "-H", "hint", "-t", "boolean"
+        $flagIdToEval2 = Invoke-ConfigCat "flag", "create", "-c", $configId, "-n", "Flag-To-Eval2", "-k", "flag_to_eval2", "-H", "hint", "-t", "boolean"
+        Invoke-ConfigCat "flag", "targeting", "create", "-i", $flagIdToEval1, "-e", $environmentId, "-a", "Identifier", "-c", "isoneof", "-t", "SOMEID", "-f", "true"
+        $sdkKey = Invoke-ConfigCat "k", "-e", $environmentId, "-c", $configId
+    }
+
+    AfterAll {
+        Invoke-ConfigCat "flag", "rm", "-i", $flagIdToEval1
+        Invoke-ConfigCat "flag", "rm", "-i", $flagIdToEval2
+    }
+
+    It "Eval with user attributes" {
+        $result = Invoke-ConfigCat "eval", "-sk", $sdkKey, "-fk", "flag_to_eval1", "-u", "https://test-cdn-global.configcat.com", "-ua", "id:SOMEID"
+        $result | Should -Match ([regex]::Escape("true"))
+    }
+    
+    It "Eval multiple with user attributes" {
+        $result = Invoke-ConfigCat "eval", "-sk", $sdkKey, "-fk", "flag_to_eval1", "flag_to_eval2", "-u", "https://test-cdn-global.configcat.com", "-ua", "id:SOMEID", "--map"
+        $result | Should -Match ([regex]::Escape("flag_to_eval1=true;flag_to_eval2=false"))
+    }
+}

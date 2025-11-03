@@ -16,42 +16,58 @@ internal class SdkKey(
     ISdkKeyClient sdkKeyClient,
     IOutput output)
 {
-    public async Task<int> InvokeAsync(bool json, CancellationToken token)
+    public async Task<int> InvokeAsync(string configId, string environmentId, bool json, CancellationToken token)
     {
-        var items = new List<SdkKeyTableItem>();
-        var products = await productClient.GetProductsAsync(token);
-        foreach (var product in products)
+        if (!configId.IsEmpty() && !environmentId.IsEmpty())
         {
-            var configs = await configClient.GetConfigsAsync(product.ProductId, token);
-            var environments = await environmentClient.GetEnvironmentsAsync(product.ProductId, token);
+            var sdkKey = await sdkKeyClient.GetSdkKeyAsync(configId, environmentId, token);
+            if (json)
+            {
+                output.RenderJson(sdkKey);
+                return ExitCodes.Ok;
+            }
 
-            foreach (var config in configs)
-            foreach (var environment in environments)
-                items.Add(new SdkKeyTableItem
-                {
-                    Config = config,
-                    Environment = environment,
-                    SdkKey = await sdkKeyClient.GetSdkKeyAsync(config.ConfigId, environment.EnvironmentId, token)
-                });
-        }
-
-        if (json)
-        {
-            output.RenderJson(items);
+            output.Write(sdkKey.Primary);
             return ExitCodes.Ok;
         }
-
-        var itemsToRender = items.Select(p => new
+        else
         {
-            p.SdkKey.Primary,
-            p.SdkKey.Secondary,
-            Environment = p.Environment.Name,
-            Config = p.Config.Name,
-            Product = p.Config.Product.Name
-        });
-        output.RenderTable(itemsToRender);
+            var items = new List<SdkKeyTableItem>();
+            var products = await productClient.GetProductsAsync(token);
 
-        return ExitCodes.Ok;
+            
+            foreach (var product in products)
+            {
+                var configs = await configClient.GetConfigsAsync(product.ProductId, token);
+                var environments = await environmentClient.GetEnvironmentsAsync(product.ProductId, token);
+
+                foreach (var config in configs)
+                foreach (var environment in environments)
+                    items.Add(new SdkKeyTableItem
+                    {
+                        Config = config,
+                        Environment = environment,
+                        SdkKey = await sdkKeyClient.GetSdkKeyAsync(config.ConfigId, environment.EnvironmentId, token)
+                    });
+            }
+            
+            if (json)
+            {
+                output.RenderJson(items);
+                return ExitCodes.Ok;
+            }
+
+            var itemsToRender = items.Select(p => new
+            {
+                p.SdkKey.Primary,
+                p.SdkKey.Secondary,
+                Environment = p.Environment.Name,
+                Config = p.Config.Name,
+                Product = p.Config.Product.Name
+            });
+            output.RenderTable(itemsToRender);
+            return ExitCodes.Ok;
+        }
     }
 
     private class SdkKeyTableItem

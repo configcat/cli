@@ -13,6 +13,8 @@ configcat sdk-key
 ## Options
 | Option | Description |
 | ------ | ----------- |
+| `--environment-id`, `-e` | (Optional) Filter for the SDK key's environment |
+| `--config-id`, `-c` | (Optional) Filter for the SDK key's config |
 | `--json` | Format the output in JSON |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |
 | `--non-interactive`, `-ni` | Turn off progress rendering and interactive features |

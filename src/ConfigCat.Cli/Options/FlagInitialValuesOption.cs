@@ -10,7 +10,7 @@ internal sealed class FlagInitialValuesOption : Option<InitialValueOption[]>
     {
         var length = argumentResult.Tokens.Count;
         if (length == 0)
-            return Array.Empty<InitialValueOption>();
+            return [];
 
         var result = new InitialValueOption[length];
         for (var i = 0; i < length; i++)

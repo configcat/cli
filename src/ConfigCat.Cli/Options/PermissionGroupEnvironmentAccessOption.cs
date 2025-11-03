@@ -11,7 +11,7 @@ internal sealed class PermissionGroupEnvironmentAccessOption : Option<Environmen
     {
         var length = argumentResult.Tokens.Count;
         if (length == 0)
-            return Array.Empty<EnvironmentSpecificAccess>();
+            return [];
 
         var result = new EnvironmentSpecificAccess[length];
         for (var i = 0; i < length; i++)

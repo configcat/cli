@@ -159,6 +159,10 @@ This is the complete list of the available commands provided by the CLI.
 | Command | Description |
 | ------ | ----------- |
 | [configcat scan](configcat-scan.md) | Scan files for Feature Flag & Setting usages |
+### configcat eval
+| Command | Description |
+| ------ | ----------- |
+| [configcat eval](configcat-eval.md) | Evaluate feature flags. In case of a single feature flag, by default, the command writes only the evaluated value to the output. In case of multiple feature flags, the command writes a table if no other format is specified |
 ### configcat config-json
 | Command | Description |
 | ------ | ----------- |

@@ -10,12 +10,12 @@ using System.Threading.Tasks;
 
 namespace ConfigCat.Cli.DocGenerator;
 
-class Program
+internal class Program
 {
     private readonly static ExposedHelpBuilder helpBuilder = new ExposedHelpBuilder();
     private readonly static string currentPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "docs");
 
-    static async Task Main()
+    private static async Task Main()
     {
         if (!Directory.Exists(currentPath))
             Directory.CreateDirectory(currentPath);
@@ -60,7 +60,7 @@ class Program
         await File.WriteAllTextAsync(Path.Combine(currentPath, $"README.md"), output.ToString());
     }
 
-    static async Task GenerateDocsForSubCommand(Command command, Stack<Command> parents, IDictionary<string, string> generatedDocs)
+    private static async Task GenerateDocsForSubCommand(Command command, Stack<Command> parents, IDictionary<string, string> generatedDocs)
     {
         var output = new StringBuilder();
 
