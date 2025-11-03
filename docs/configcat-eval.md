@@ -1,5 +1,5 @@
 # configcat eval
-Evaluate a feature flag
+Evaluate feature flags
 ## Usage
 ```
 configcat eval [options]

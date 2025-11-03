@@ -162,7 +162,7 @@ This is the complete list of the available commands provided by the CLI.
 ### configcat eval
 | Command | Description |
 | ------ | ----------- |
-| [configcat eval](configcat-eval.md) | Evaluate a feature flag |
+| [configcat eval](configcat-eval.md) | Evaluate feature flags |
 ### configcat config-json
 | Command | Description |
 | ------ | ----------- |
