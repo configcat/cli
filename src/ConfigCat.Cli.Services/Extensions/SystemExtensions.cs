@@ -142,4 +142,7 @@ public static class SystemExtensions
     
     public static string TrimToLength(this string text, int length)
         => text.Length > length ? $"{text[..(length - 2)]}..." : text;
+    
+    public static object FormatIfBool(this object val) 
+        => val is bool b ? b.ToString().ToLowerInvariant() : val; 
 }

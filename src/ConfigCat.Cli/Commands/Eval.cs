@@ -63,17 +63,15 @@ internal class Eval(IPrompt prompt, IOutput output, CliOptions options)
             user.Custom = custom;
         }
 
-        var results = new List<EvaluationDetails>();
+        var evalResults = new List<EvaluationDetails>();
         foreach (var flagKey in flagKeys)
         {
-            var result = await client.GetValueDetailsAsync<object>(flagKey, null, user, token);
-            result.Value = result.Value is bool b ? b.ToString().ToLowerInvariant() : result.Value?.ToString();
-            results.Add(result);
+            evalResults.Add(await client.GetValueDetailsAsync<object>(flagKey, null, user, token));
         }
-        
+     
         if (json)
         {
-            var final = results.ToDictionary(r => r.Key, r => new EvalResult
+            var final = evalResults.ToDictionary(r => r.Key, r => new EvalResult
             {
                 Value = r.Value,
                 VariationId = r.VariationId,
@@ -84,26 +82,26 @@ internal class Eval(IPrompt prompt, IOutput output, CliOptions options)
                 TargetingMatch = r.MatchedTargetingRule is not null || r.MatchedPercentageOption is not null,
                 User = r.User?.GetAllAttributes()
             });
-            output.RenderJson(final);
+            output.RenderJson(final, renderNulls: true);
             return ExitCodes.Ok;
         }
 
         if (map)
         {
-            output.Write(string.Join(";", results.Select(r => $"{r.Key}={r.Value}")));
+            output.Write(string.Join(";", evalResults.Select(r => $"{r.Key}={r.Value.FormatIfBool()}")));
             return ExitCodes.Ok;
         }
 
         if (flagKeys.Length == 1)
         {
-            output.Write(results[0].Value?.ToString());
+            output.Write(evalResults[0].Value?.FormatIfBool().ToString());
         }
         else
         {
-            output.RenderTable(results.Select(f => new
+            output.RenderTable(evalResults.Select(f => new
             {
                 f.Key,
-                f.Value,
+                Value = f.Value.FormatIfBool().ToString(),
             }));
         }
         

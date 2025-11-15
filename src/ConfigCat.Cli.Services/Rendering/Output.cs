@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -43,7 +44,7 @@ public interface IOutput
     Spinner CreateSpinner(CancellationToken token);
     CursorHider CreateCursorHider();
     IOutput RenderTable<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(IEnumerable<T> items);
-    IOutput RenderJson(object toRender);
+    IOutput RenderJson(object toRender, bool renderNulls = false);
 }
 
 public class Output(CliOptions options) : IOutput
@@ -306,11 +307,18 @@ public class Output(CliOptions options) : IOutput
         string FormatColumn(string text, int columnLength) => $"{text}{new string(' ', columnLength - text.Length)}";
     }
 
-    public IOutput RenderJson(object toRender)
+    public IOutput RenderJson(object toRender, bool renderNulls = false)
     {
         var jsonOptions = options.IsVerboseEnabled
             ? Constants.PrettyFormattedOutputJsonOptions
             : Constants.RequestJsonOptions;
+        if (renderNulls)
+        {
+            jsonOptions = new JsonSerializerOptions(jsonOptions)
+            {
+                DefaultIgnoreCondition = JsonIgnoreCondition.Never
+            };
+        }
         return this.Write(JsonSerializer.Serialize(toRender, jsonOptions));
     }
 
