@@ -698,4 +698,9 @@ Describe "Eval Tests" {
         $result = Invoke-ConfigCat "eval", "-sk", $sdkKey, "-fk", "flag_to_eval1", "flag_to_eval2", "-u", "https://test-cdn-global.configcat.com", "-ua", "id:SOMEID", "--map"
         $result | Should -Match ([regex]::Escape("flag_to_eval1=true;flag_to_eval2=false"))
     }
+
+    It "Eval null in JSON" {
+        $result = Invoke-ConfigCat "eval", "-sk", $sdkKey, "-fk", "nonexisting", "-u", "https://test-cdn-global.configcat.com", "-ua", "id:SOMEID", "--json"
+        $result | Should -Match ([regex]::Escape("`"value`":null"))
+    }
 }
