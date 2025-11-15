@@ -701,6 +701,6 @@ Describe "Eval Tests" {
 
     It "Eval null in JSON" {
         $result = Invoke-ConfigCat "eval", "-sk", $sdkKey, "-fk", "nonexisting", "-u", "https://test-cdn-global.configcat.com", "-ua", "id:SOMEID", "--json"
-        $result | Should -Match ([regex]::Escape("`"value`": null"))
+        $result | Should -Match ([regex]::Escape("`"value`":null"))
     }
 }
