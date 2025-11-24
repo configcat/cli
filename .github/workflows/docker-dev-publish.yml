@@ -10,7 +10,7 @@ jobs:
       matrix:
         arch: [linux-musl-x64]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Setup dotnet
         uses: actions/setup-dotnet@v5
         with:
@@ -35,7 +35,7 @@ jobs:
     needs: [ produce-executables ]
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Download executables
         uses: actions/download-artifact@v6
@@ -65,7 +65,7 @@ jobs:
     needs: [ produce-executables ]
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Download executables
         uses: actions/download-artifact@v6
