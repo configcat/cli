@@ -66,8 +66,9 @@ internal class Variation(
             Value = parsed
         });
         
-        await variationClient.UpdateVariationsAsync(flag.SettingId, updated, token);
-
+        var result = await variationClient.UpdateVariationsAsync(flag.SettingId, updated, token);
+        var created = result.PredefinedVariations.FirstOrDefault(e => e.Name == name && e.Hint == hint && e.Value.Equals(parsed));
+        output.Write(created?.PredefinedVariationId);
         return ExitCodes.Ok;
     }
     

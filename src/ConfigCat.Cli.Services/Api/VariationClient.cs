@@ -11,7 +11,7 @@ namespace ConfigCat.Cli.Services.Api;
 
 public interface IVariationClient
 {
-    Task UpdateVariationsAsync(int flagId, List<VariationModel> updatedModel, CancellationToken token);
+    Task<VariationsModel> UpdateVariationsAsync(int flagId, List<VariationModel> updatedModel, CancellationToken token);
 }
 
 public class VariationClient(
@@ -21,11 +21,12 @@ public class VariationClient(
     HttpClient httpClient)
     : ApiClient(output, config, botPolicy, httpClient), IVariationClient
 {
-    public async Task UpdateVariationsAsync(int flagId, List<VariationModel> updatedModel, CancellationToken token)
+    public async Task<VariationsModel> UpdateVariationsAsync(int flagId, List<VariationModel> updatedModel, CancellationToken token)
     {
         this.Output.Write($"Updating Predefined Variations... ");
-        await this.SendAsync(HttpMethod.Put, $"v1/settings/{flagId}/predefined-variations", new VariationsModel { PredefinedVariations = updatedModel }, token);
+        var result = await this.SendAsync<VariationsModel>(HttpMethod.Put, $"v1/settings/{flagId}/predefined-variations", new VariationsModel { PredefinedVariations = updatedModel }, token);
         this.Output.WriteSuccess();
         this.Output.WriteLine();
+        return result;
     }
 }

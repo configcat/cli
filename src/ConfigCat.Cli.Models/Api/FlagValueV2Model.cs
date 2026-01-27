@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace ConfigCat.Cli.Models.Api;
 
@@ -12,12 +13,18 @@ public class FlagValueV2Model
 
 public class ValueModel
 {
-    public bool? BoolValue { get; set; }
-    public string StringValue { get; set; }
-    public int? IntValue { get; set; }
-    public double? DoubleValue { get; set; }
-    
+    public bool? BoolValue { get; init; }
+    public string StringValue { get; init; }
+    public int? IntValue { get; init; }
+    public double? DoubleValue { get; init; }
+
+
     public override string ToString() => this.StringValue ?? this.BoolValue?.ToString() ?? this.IntValue?.ToString() ?? this.DoubleValue?.ToString() ?? string.Empty;
+    
+    public override bool Equals(object obj) =>
+        obj is ValueModel other && BoolValue == other.BoolValue && StringValue == other.StringValue && IntValue == other.IntValue && Nullable.Equals(DoubleValue, other.DoubleValue);
+
+    public override int GetHashCode() => HashCode.Combine(BoolValue, StringValue, IntValue, DoubleValue);
 }
 
 public class ValueWithPredefinedVariationModel : ValueModel
