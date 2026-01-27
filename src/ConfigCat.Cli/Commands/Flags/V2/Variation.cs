@@ -41,7 +41,7 @@ internal class Variation(
         return ExitCodes.Ok;
     }
     
-    public async Task<int> CreateAsync(int? flagId, string name, string hint, string flagValue, CancellationToken token)
+    public async Task<int> CreateAsync(int? flagId, string name, string hint, string servedValue, CancellationToken token)
     {
         var flag = flagId is null
             ? await workspaceLoader.LoadFlagAsync(token)
@@ -53,10 +53,10 @@ internal class Variation(
         if (hint.IsEmpty())
             hint = await prompt.GetStringAsync("Hint", token);
 
-        if (flagValue.IsEmpty())
-            flagValue = await prompt.GetStringAsync($"Value", token);
+        if (servedValue.IsEmpty())
+            servedValue = await prompt.GetStringAsync($"Served value", token);
         
-        var parsed = flagValue.ToFlagValue(flag.SettingType);
+        var parsed = servedValue.ToFlagValue(flag.SettingType);
 
         var updated = flag.PredefinedVariations.ToList();
         updated.Add(new VariationModel
@@ -71,7 +71,7 @@ internal class Variation(
         return ExitCodes.Ok;
     }
     
-    public async Task<int> UpdateAsync(int? flagId, string predefinedVariationId, string name, string hint, string flagValue, CancellationToken token)
+    public async Task<int> UpdateAsync(int? flagId, string predefinedVariationId, string name, string hint, string servedValue, CancellationToken token)
     {
         var flag = flagId is null
             ? await workspaceLoader.LoadFlagAsync(token)
@@ -91,15 +91,15 @@ internal class Variation(
             throw new ShowHelpException($"Required option --predefined-variation-id is missing.");
         
         if (name.IsEmpty())
-            name = await prompt.GetStringAsync("Name", token, selected?.Name);
+            name = await prompt.GetStringAsync("Name", token, selected.Name);
 
         if (hint.IsEmpty())
-            hint = await prompt.GetStringAsync("Hint", token, selected?.Hint);
+            hint = await prompt.GetStringAsync("Hint", token, selected.Hint);
         
-        if (flagValue.IsEmpty())
-            flagValue = await prompt.GetStringAsync($"Value", token, selected?.Value.ToString());
+        if (servedValue.IsEmpty())
+            servedValue = await prompt.GetStringAsync($"Served value", token, selected.Value.ToString());
 
-        var parsed = flagValue.ToFlagValue(flag.SettingType);
+        var parsed = servedValue.ToFlagValue(flag.SettingType);
 
         selected.Name = name;
         selected.Hint = hint;
