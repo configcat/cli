@@ -770,6 +770,10 @@ Describe "Flag value / Rule Tests V2 Predefined Variations" {
         Invoke-ConfigCat "flag-v2", "var", "up", "-i", $flagV2PredefId3, "-pvi" , $predefId, "-n", "C32", "-H", "C32hint", "-sv", "c32"
         $result = Invoke-ConfigCat "flag-v2", "var", "ls", "-i", $flagV2PredefId3
         $result | Should -Match ([regex]::Escape("$predefId  C32   `"C32hint`"  c32"))
+
+        Invoke-ConfigCat "flag-v2", "var", "rm", "-i", $flagV2PredefId3, "-pvi", $predefId
+        $result = Invoke-ConfigCat "flag-v2", "var", "ls", "-i", $flagV2PredefId3
+        $result | Should -Not -Match ([regex]::Escape("$predefId  C32   `"C32hint`"  c32"))
     }
 }
 
