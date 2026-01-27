@@ -35,7 +35,7 @@ public static class SystemExtensions
             var variation = variations.FirstOrDefault(v => v.PredefinedVariationId == value || v.Name == value);
             return variation is null
                 ? throw new ShowHelpException($"Predefined variation '{value}' not found")
-                : new ValueWithPredefinedVariationModel { PredefinedVariationId = value };
+                : new ValueWithPredefinedVariationModel { PredefinedVariationId = variation.PredefinedVariationId };
         }
 
         var valueModel = value.ToFlagValue(settingType);
