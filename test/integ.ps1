@@ -765,11 +765,11 @@ Describe "Flag value / Rule Tests V2 Predefined Variations" {
     It "Manage variations" {
         $predefId = Invoke-ConfigCat "flag-v2", "var", "cr", "-i", $flagV2PredefId3, "-n", "C3", "-H", "C3hint", "-sv", "c3"
         $result = Invoke-ConfigCat "flag-v2", "var", "ls", "-i", $flagV2PredefId3
-        $result | Should -Match ([regex]::Escape("C3    `"C3hint`"  c3"))
+        $result | Should -Match ([regex]::Escape("$predefId  C3    `"C3hint`"  c3"))
         
         Invoke-ConfigCat "flag-v2", "var", "up", "-i", $flagV2PredefId3, "-pvi" , $predefId, "-n", "C32", "-H", "C32hint", "-sv", "c32"
         $result = Invoke-ConfigCat "flag-v2", "var", "ls", "-i", $flagV2PredefId3
-        $result | Should -Match ([regex]::Escape("C32   `"C32hint`"  c32"))
+        $result | Should -Match ([regex]::Escape("$predefId  C32   `"C32hint`"  c32"))
     }
 }
 
