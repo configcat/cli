@@ -996,7 +996,7 @@ public static class CommandBuilder
                                         new Option<string>(["--comparator", "-c"], "The operator which defines the relation between the comparison attribute and the comparison value")
                                             .AddSuggestions(Constants.UserComparatorTypes.Keys.ToArray()),
                                         new Option<string[]>(["--comparison-value", "-cv"], "The value that the User Object attribute is compared to. Can be a double, string, or value-hint list in the format: `<value>:<hint>`"),
-                                        new Option<string>(["--served-value", "-sv"], "The value associated with the targeting rule. Leave it empty if the targeting rule has percentage options. It must respect the setting type"),
+                                        new Option<string>(["--served-value", "-sv"], "The value associated with the targeting rule. Leave it empty if the targeting rule has percentage options. It must respect the setting type. When the flag has Predefined Variations, it must be either the Variation's ID or name"),
                                         new PercentageOptionArgument(),
                                         ReasonOption
                                     ]
@@ -1016,7 +1016,7 @@ public static class CommandBuilder
                                         new Option<string>(["--comparator", "-c"], "The operator which defines the expected result of the evaluation of the segment")
                                             .AddSuggestions(Constants.SegmentComparatorTypes.Keys.ToArray()),
                                         new Option<string>(["--segment-id", "-si"], "ID of the segment that the condition is based on"),
-                                        new Option<string>(["--served-value", "-sv"], "The value associated with the targeting rule. Leave it empty if the targeting rule has percentage options. It must respect the setting type"),
+                                        new Option<string>(["--served-value", "-sv"], "The value associated with the targeting rule. Leave it empty if the targeting rule has percentage options. It must respect the setting type. When the flag has Predefined Variations, it must be either the Variation's ID or name"),
                                         new PercentageOptionArgument(),
                                         ReasonOption
                                     ]
@@ -1036,8 +1036,8 @@ public static class CommandBuilder
                                         new Option<string>(["--comparator", "-c"], "The operator which defines the relation between the evaluated value of the prerequisite flag and the comparison value")
                                             .AddSuggestions(Constants.PrerequisiteComparatorTypes.Keys.ToArray()),
                                         new Option<int>(["--prerequisite-id", "-pi"], "ID of the prerequisite flag that the condition is based on"),
-                                        new Option<string>(["--prerequisite-value", "-pv"], "The evaluated value of the prerequisite flag is compared to. It must respect the prerequisite flag's setting type"),
-                                        new Option<string>(["--served-value", "-sv"], "The value associated with the targeting rule. Leave it empty if the targeting rule has percentage options. It must respect the setting type"),
+                                        new Option<string>(["--prerequisite-value", "-pv"], "The evaluated value of the prerequisite flag is compared to. It must respect the prerequisite flag's setting type. When the prerequisite flag has Predefined Variations, it either must be the Variation's ID or name"),
+                                        new Option<string>(["--served-value", "-sv"], "The value associated with the targeting rule. Leave it empty if the targeting rule has percentage options. It must respect the setting type. When the flag has Predefined Variations, it must be either the Variation's ID or name"),
                                         new PercentageOptionArgument(),
                                         ReasonOption
                                     ]
@@ -1089,7 +1089,7 @@ public static class CommandBuilder
                                 },
                                 new Option<string>(["--environment-id", "-e"], "ID of the Environment where the rule should be moved"),
                                 new Option<int>(["--rule-position", "-rp"], "The position of the targeting rule"),
-                                new Option<string>(["--served-value", "-sv"], "The value associated with the targeting rule. Leave it empty if the targeting rule has percentage options. It must respect the setting type"),
+                                new Option<string>(["--served-value", "-sv"], "The value associated with the targeting rule. Leave it empty if the targeting rule has percentage options. It must respect the setting type. When the flag has Predefined Variations, it must be either the Variation's ID or name"),
                                 new PercentageOptionArgument(),
                                 ReasonOption
                             ]
@@ -1161,7 +1161,7 @@ public static class CommandBuilder
                                         new Option<string>(["--comparator", "-c"], "The operator which defines the relation between the evaluated value of the prerequisite flag and the comparison value")
                                             .AddSuggestions(Constants.PrerequisiteComparatorTypes.Keys.ToArray()),
                                         new Option<int>(["--prerequisite-id", "-pi"], "ID of the prerequisite flag that the condition is based on"),
-                                        new Option<string>(["--prerequisite-value", "-pv"], "The evaluated value of the prerequisite flag is compared to. It must respect the prerequisite flag's setting type"),
+                                        new Option<string>(["--prerequisite-value", "-pv"], "The evaluated value of the prerequisite flag is compared to. It must respect the prerequisite flag's setting type. When the prerequisite flag has Predefined Variations, it must be either the Variation's ID or name"),
                                         ReasonOption
                                     ]
                                 },
