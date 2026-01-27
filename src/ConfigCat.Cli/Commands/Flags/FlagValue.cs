@@ -1,6 +1,5 @@
 ﻿using ConfigCat.Cli.Services;
 using ConfigCat.Cli.Services.Api;
-using ConfigCat.Cli.Services.Exceptions;
 using ConfigCat.Cli.Services.Json;
 using ConfigCat.Cli.Services.Rendering;
 using System;
@@ -157,8 +156,7 @@ internal class FlagValue(
         if (flagValue.IsEmpty())
             flagValue = await prompt.GetStringAsync($"Value", token, value.Value.ToString());
 
-        if (!flagValue.TryParseFlagValue(value.Setting.SettingType, out var parsed))
-            throw new ShowHelpException($"Flag value '{flagValue}' must respect the type '{value.Setting.SettingType}'.");
+        var parsed = flagValue.ToObjectValue(flag.SettingType);
 
         if (await workspaceLoader.NeedsReasonAsync(environmentId, token) && reason.IsEmpty())
             reason = await prompt.GetStringAsync("Mandatory reason", token);

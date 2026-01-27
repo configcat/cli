@@ -859,8 +859,72 @@ public static class CommandBuilder
             SubCommands = ManageFlagCommands.Concat(
             [
                 BuildFlagValueV2Command(), 
-                BuildV2FlagTargetingCommand()
+                BuildV2FlagTargetingCommand(),
+                BuildVariationCommand(),
             ])
+        };
+
+    private static CommandDescriptor BuildVariationCommand() =>
+        new("variation", "Manage Predefined Variations")
+        {
+            Aliases = ["var"],
+            SubCommands = 
+            [
+                new CommandDescriptor("create", "Create a Predefined Variation", "configcat flag-v2 variation create -i <flag-id> -name On -sv true")
+                {
+                    Handler = CreateHandler<Variation>(nameof(Variation.CreateAsync)),
+                    Aliases = ["cr"],
+                    Options = 
+                    [
+                        new Option<int>(["--flag-id", "-i", "--setting-id"], "ID of the Feature Flag or Setting")
+                        {
+                            Name = "--flag-id"
+                        },
+                        new Option<string>(["--name", "-n"], "Name of the new Predefined Variation"),
+                        new Option<string>(["--hint", "-H"], "Hint of the new Predefined Variation"),
+                        new Option<string>(["--served-value", "-sv"], "The value associated with the Predefined Variation. It must respect the setting type"),
+                    ]
+                },
+                new CommandDescriptor("update", "Update a Predefined Variation", "configcat flag-v2 variation up -pvi <predefined-variation-id> -sv true")
+                {
+                    Handler = CreateHandler<Variation>(nameof(Variation.UpdateAsync)),
+                    Aliases = ["up"],
+                    Options = 
+                    [
+                        new Option<int>(["--flag-id", "-i", "--setting-id"], "ID of the Feature Flag or Setting")
+                        {
+                            Name = "--flag-id"
+                        },
+                        new Option<string>(["--predefined-variation-id", "-pvi"], "ID of the Predefined Variation to update"),
+                        new Option<string>(["--name", "-n"], "Name of the new Predefined Variation"),
+                        new Option<string>(["--hint", "-H"], "Hint of the new Predefined Variation"),
+                        new Option<string>(["--served-value", "-sv"], "The value associated with the Predefined Variation. It must respect the setting type"),
+                    ]
+                },
+                new CommandDescriptor("rm", "Delete a Predefined Variation", "configcat flag-v2 variation rm -pvi <predefined-variation-id>")
+                {
+                    Handler = CreateHandler<Variation>(nameof(Variation.DeleteAsync)),
+                    Options = 
+                    [
+                        new Option<int>(["--flag-id", "-i", "--setting-id"], "ID of the Feature Flag or Setting")
+                        {
+                            Name = "--flag-id"
+                        },
+                        new Option<string>(["--predefined-variation-id", "-pvi"], "ID of the Predefined Variation to update"),
+                    ]
+                },
+                new CommandDescriptor("ls", "List the Predefined Variations of a Feature Flag or Setting", "configcat flag-v2 variation ls -i <flag-id>")
+                {
+                    Handler = CreateHandler<Variation>(nameof(Variation.ListAsync)),
+                    Options = 
+                    [
+                        new Option<int>(["--flag-id", "-i", "--setting-id"], "ID of the Feature Flag or Setting")
+                        {
+                            Name = "--flag-id"
+                        }
+                    ]
+                },
+            ]
         };
 
     private static CommandDescriptor BuildFlagValueV2Command() =>
@@ -1204,6 +1268,7 @@ public static class CommandBuilder
                 new Option<string>(["--hint", "-H"], "Hint of the new Flag or Setting"),
                 new Option<string>(["--init-value", "-iv"], "Initial value for each Environment"),
                 new FlagInitialValuesOption(),
+                new FlagPredefinedVariationOption(),
                 new Option<string>(["--type", "-t"], "Type of the new Flag or Setting")
                     .AddSuggestions(SettingTypes.Collection),
                 new Option<int[]>(["--tag-ids", "-g"], "Tags to attach")
@@ -1317,7 +1382,7 @@ public static class CommandBuilder
         {
             SubCommands =
             [
-                new("convert", "Convert between config JSON versions", "configcat config-json convert v5-to-v6 < config_v5.json")
+                new CommandDescriptor("convert", "Convert between config JSON versions", "configcat config-json convert v5-to-v6 < config_v5.json")
                 {
                     Handler = CreateHandler<ConfigJsonConvert>(nameof(ConfigJsonConvert.ExecuteAsync)),
                     Arguments =
@@ -1334,7 +1399,7 @@ public static class CommandBuilder
                         new Option<bool>(["--pretty", "-p"], "Pretty print the converted JSON.")
                     ],
                 },
-                new("get", "Download a config JSON from the CDN servers.", "configcat config-json get -f v6 PKDVCLf-Hq-h-kCzMp-L7Q/HhOWfwVtZ0mb30i9wi17GQ > config.json")
+                new CommandDescriptor("get", "Download a config JSON from the CDN servers.", "configcat config-json get -f v6 PKDVCLf-Hq-h-kCzMp-L7Q/HhOWfwVtZ0mb30i9wi17GQ > config.json")
                 {
                     Handler = CreateHandler<ConfigJsonGet>(nameof(ConfigJsonGet.ExecuteAsync)),
                     Arguments =

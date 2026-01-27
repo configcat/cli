@@ -16,10 +16,10 @@ public interface IPrompt
     Task<string> GetMaskedStringAsync(string label,
         CancellationToken token,
         string defaultValue = null);
-    
+
     Task<List<List<string>>> GetRepeatedValuesAsync(string label,
         CancellationToken token,
-        List<string> values);
+        List<RepeatedValuesDescriptor> values);
 
     Task<TItem> ChooseFromListAsync<TItem>(string label,
         List<TItem> items,
@@ -32,6 +32,12 @@ public interface IPrompt
         Func<TItem, string> labelSelector,
         CancellationToken token,
         List<TItem> preSelectedItems = null);
+}
+
+public class RepeatedValuesDescriptor
+{
+    public string Label { get; set; }
+    public Func<IPrompt, string, CancellationToken, Task<string>> Reader { get; set; } = (p, l, t) => p.GetStringAsync(l, t);
 }
 
 public class Prompt(IOutput output, CliOptions options) : IPrompt
@@ -74,7 +80,8 @@ public class Prompt(IOutput output, CliOptions options) : IPrompt
         return result.IsEmpty() ? defaultValue : result;
     }
 
-    public async Task<List<List<string>>> GetRepeatedValuesAsync(string label, CancellationToken token, List<string> values)
+    public async Task<List<List<string>>> GetRepeatedValuesAsync(string label, CancellationToken token,
+        List<RepeatedValuesDescriptor> values)
     {
         if (token.IsCancellationRequested ||
             output.IsOutputRedirected ||
@@ -94,17 +101,16 @@ public class Prompt(IOutput output, CliOptions options) : IPrompt
             var valueResult = new List<string>();
             foreach (var value in values)
             {
-                output.Write(value).Write(": ");
-                var read = await output.ReadLineAsync(token);
-                if (read.IsEmpty()) return null;
-                valueResult.Add(read);
-                output.WriteLine();
+                var promptValue = await value.Reader(this, value.Label, token);
+                valueResult.Add(promptValue);
             }
+
             result.Add(valueResult);
         }
+
         return result;
     }
-
+    
     public async Task<TItem> ChooseFromListAsync<TItem>(string label,
         List<TItem> items,
         Func<TItem, string> labelSelector,
@@ -120,16 +126,19 @@ public class Prompt(IOutput output, CliOptions options) : IPrompt
 
         output.Write(label).Write(":").WriteLine();
 
-        output.WriteDarkGray("(Use the ").WriteCyan("UP").WriteDarkGray(" and ").WriteCyan("DOWN").WriteDarkGray(" keys to navigate)")
+        output.WriteDarkGray("(Use the ").WriteCyan("UP").WriteDarkGray(" and ").WriteCyan("DOWN")
+            .WriteDarkGray(" keys to navigate)")
             .WriteLine().WriteLine();
 
         var pages = this.GetPages(items);
-        var pageIndex = selectedValue is null || selectedValue.Equals(default(TItem)) ? 0 : pages.PageIndexOf(selectedValue);
+        var pageIndex = selectedValue is null || selectedValue.Equals(default(TItem))
+            ? 0
+            : pages.PageIndexOf(selectedValue);
         var page = pages[pageIndex];
-        int index = this.PrintChooseSection(page, selectedValue, labelSelector, pageIndex, pages.Count);
-        ConsoleKeyInfo key;
+        var index = this.PrintChooseSection(page, selectedValue, labelSelector, pageIndex, pages.Count);
         try
         {
+            ConsoleKeyInfo key;
             do
             {
                 key = await output.ReadKeyAsync(token, true);
@@ -146,7 +155,8 @@ public class Prompt(IOutput output, CliOptions options) : IPrompt
                         break;
 
                     case ConsoleKey.DownArrow:
-                        if (index >= page.Count - 1 || page[index + 1] is null || page[index + 1].Equals(default(TItem)))
+                        if (index >= page.Count - 1 || page[index + 1] is null ||
+                            page[index + 1].Equals(default(TItem)))
                             continue;
 
                         output.ClearCurrentLine();
@@ -198,7 +208,7 @@ public class Prompt(IOutput output, CliOptions options) : IPrompt
         if (token.IsCancellationRequested ||
             output.IsOutputRedirected ||
             options.IsNonInteractive)
-            return default;
+            return null;
 
         using var _ = output.CreateCursorHider();
 
@@ -219,9 +229,9 @@ public class Prompt(IOutput output, CliOptions options) : IPrompt
         var pages = this.GetPages(items);
         var page = pages[pageIndex];
         this.PrintMultiChooseSection(page, labelSelector, selectedItems, pageIndex, pages.Count);
-        ConsoleKeyInfo key;
         try
         {
+            ConsoleKeyInfo key;
             do
             {
                 key = await output.ReadKeyAsync(token, true);
@@ -239,7 +249,8 @@ public class Prompt(IOutput output, CliOptions options) : IPrompt
                         break;
 
                     case ConsoleKey.DownArrow:
-                        if (index >= page.Count - 1 || page[index + 1] is null || page[index + 1].Equals(default(TItem)))
+                        if (index >= page.Count - 1 || page[index + 1] is null ||
+                            page[index + 1].Equals(default(TItem)))
                             continue;
 
                         output.ClearCurrentLine();
@@ -282,6 +293,7 @@ public class Prompt(IOutput output, CliOptions options) : IPrompt
                             output.ClearCurrentLine();
                             this.PrintSelectedInMulti(item, labelSelector, selectedItems);
                         }
+
                         break;
                 }
             } while (!token.IsCancellationRequested &&
@@ -289,13 +301,15 @@ public class Prompt(IOutput output, CliOptions options) : IPrompt
 
             output.ClearCurrentLine();
             this.PrintNonSelectedInMulti(page[index], labelSelector, selectedItems);
-            output.SetCursorPosition(0, output.CursorTop + page.Count - index + (pages.Count > 1 ? 1 : 0)).ClearCurrentLine().WriteLine();
+            output.SetCursorPosition(0, output.CursorTop + page.Count - index + (pages.Count > 1 ? 1 : 0))
+                .ClearCurrentLine().WriteLine();
 
             return selectedItems;
         }
         catch (OperationCanceledException)
         {
-            output.SetCursorPosition(0, output.CursorTop + page.Count - index + (pages.Count > 1 ? 1 : 0)).ClearCurrentLine();
+            output.SetCursorPosition(0, output.CursorTop + page.Count - index + (pages.Count > 1 ? 1 : 0))
+                .ClearCurrentLine();
             throw;
         }
     }
@@ -389,11 +403,13 @@ public class Prompt(IOutput output, CliOptions options) : IPrompt
     {
         if (isHighlight)
         {
-            output.WriteColor($"| {(showIndicator ? ">" : " ")} {labelSelector(item)}", ConsoleColor.White, ConsoleColor.DarkMagenta);
+            output.WriteColor($"| {(showIndicator ? ">" : " ")} {labelSelector(item)}", ConsoleColor.White,
+                ConsoleColor.DarkMagenta);
             return;
         }
 
-        output.WriteColor("|", ConsoleColor.DarkGray).WriteColor($" > ", ConsoleColor.Magenta).Write(labelSelector(item));
+        output.WriteColor("|", ConsoleColor.DarkGray).WriteColor($" > ", ConsoleColor.Magenta)
+            .Write(labelSelector(item));
     }
 
     private void PrintNonSelected<TItem>(TItem item, Func<TItem, string> labelSelector)
@@ -415,7 +431,8 @@ public class Prompt(IOutput output, CliOptions options) : IPrompt
             this.PrintSelected(item, labelSelector, false);
     }
 
-    private void PrintNonSelectedInMulti<TItem>(TItem item, Func<TItem, string> labelSelector, List<TItem> selectedItems)
+    private void PrintNonSelectedInMulti<TItem>(TItem item, Func<TItem, string> labelSelector,
+        List<TItem> selectedItems)
     {
         if (selectedItems.Contains(item))
             this.PrintSelected(item, labelSelector, true);

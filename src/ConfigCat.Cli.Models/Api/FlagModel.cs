@@ -29,6 +29,8 @@ public class FlagModel
 
     public List<TagModel> Tags { get; set; }
 
+    public List<VariationModel> PredefinedVariations { get; set; }
+
     [JsonIgnore]
     public List<string> Aliases { get; set; } = [];
 
@@ -42,3 +44,19 @@ public class FlagModel
 }
 
 public class DeletedFlagModel : FlagModel { }
+
+public class VariationsModel
+{
+    public List<VariationModel> PredefinedVariations { get; set; }
+}
+
+public class VariationModel
+{
+    public ValueModel Value { get; set; }
+
+    public string Name { get; set; }
+
+    public string Hint { get; set; }
+
+    public string PredefinedVariationId { get; set; }
+}

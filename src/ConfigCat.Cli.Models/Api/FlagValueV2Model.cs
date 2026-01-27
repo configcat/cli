@@ -4,7 +4,7 @@ namespace ConfigCat.Cli.Models.Api;
 
 public class FlagValueV2Model
 {
-    public ValueModel DefaultValue { get; set; }
+    public ValueWithPredefinedVariationModel DefaultValue { get; set; }
     public List<TargetingRuleModel> TargetingRules { get; set; }
     public string PercentageEvaluationAttribute { get; set; }
     public FlagModel Setting { get; set; }
@@ -16,13 +16,20 @@ public class ValueModel
     public string StringValue { get; set; }
     public int? IntValue { get; set; }
     public double? DoubleValue { get; set; }
+    
+    public override string ToString() => this.StringValue ?? this.BoolValue?.ToString() ?? this.IntValue?.ToString() ?? this.DoubleValue?.ToString() ?? string.Empty;
+}
+
+public class ValueWithPredefinedVariationModel : ValueModel
+{
+    public string PredefinedVariationId { get; set; }
 }
 
 public class TargetingRuleModel
 {
     public List<ConditionModel> Conditions { get; set; }
     public List<PercentageOptionModel> PercentageOptions { get; set; }
-    public ValueModel Value { get; set; }
+    public ValueWithPredefinedVariationModel Value { get; set; }
 }
 
 public class ConditionModel
@@ -49,7 +56,7 @@ public class PrerequisiteFlagConditionModel
 {
     public int PrerequisiteSettingId { get; set; }
     public string Comparator { get; set; }
-    public ValueModel PrerequisiteComparisonValue { get; set; }
+    public ValueWithPredefinedVariationModel PrerequisiteComparisonValue { get; set; }
 }
 
 public class ComparisonValueModel
@@ -68,5 +75,5 @@ public class ComparisonValueListModel
 public class PercentageOptionModel
 {
     public int Percentage { get; set; }
-    public ValueModel Value { get; set; }
+    public ValueWithPredefinedVariationModel Value { get; set; }
 }

@@ -1,6 +1,5 @@
 ﻿using ConfigCat.Cli.Services;
 using ConfigCat.Cli.Services.Api;
-using ConfigCat.Cli.Services.Exceptions;
 using ConfigCat.Cli.Services.Json;
 using ConfigCat.Cli.Services.Rendering;
 using System;
@@ -137,7 +136,7 @@ internal class FlagValueV2(
                                     output.WriteDarkGray($" If ")
                                         .WriteCyan($"{preReq?.Key} ")
                                         .WriteYellow($"{comparatorName} ")
-                                        .WriteCyan($"{condition.PrerequisiteFlagCondition.PrerequisiteComparisonValue.ToSingle(preReq?.SettingType)}");
+                                        .WriteCyan($"{condition.PrerequisiteFlagCondition.PrerequisiteComparisonValue.ToSingle(preReq)}");
                                 }
                                 else
                                 {
@@ -146,7 +145,7 @@ internal class FlagValueV2(
                                         .WriteDarkGray($"    && ")
                                         .WriteCyan($"{preReq?.Key} ")
                                         .WriteYellow($"{comparatorName} ")
-                                        .WriteCyan($"{condition.PrerequisiteFlagCondition.PrerequisiteComparisonValue.ToSingle(preReq?.SettingType)}");
+                                        .WriteCyan($"{condition.PrerequisiteFlagCondition.PrerequisiteComparisonValue.ToSingle(preReq)}");
                                 }
                             }   
                         }
@@ -154,7 +153,7 @@ internal class FlagValueV2(
                     
                     if (targeting.Value is not null)
                     {
-                        output.WriteLine().WriteDarkGray($"|    Then: ").WriteMagenta(targeting.Value.ToSingle(flag.SettingType).ToString());
+                        output.WriteLine().WriteDarkGray($"|    Then: ").WriteMagenta(targeting.Value.ToSingle(flag).ToString());
                     } 
                     else if (targeting.PercentageOptions.Count > 0)
                     {
@@ -173,7 +172,7 @@ internal class FlagValueV2(
                                         .WriteDarkGray(" attribute");
                                 }
                                 output.WriteDarkGray(" -> ")
-                                    .WriteMagenta(percentage.Value.ToSingle(flag.SettingType).ToString());
+                                    .WriteMagenta(percentage.Value.ToSingle(flag).ToString());
                             }
                         }
                         else
@@ -190,7 +189,7 @@ internal class FlagValueV2(
                                             .WriteDarkGray(" attribute");
                                     }
                                     output.WriteDarkGray(" -> ")
-                                        .WriteMagenta(percentage.Value.ToSingle(flag.SettingType).ToString());
+                                        .WriteMagenta(percentage.Value.ToSingle(flag).ToString());
                                 }
                                 else
                                 {
@@ -204,7 +203,7 @@ internal class FlagValueV2(
                                             .WriteDarkGray(" attribute");
                                     }
                                     output.WriteDarkGray(" -> ")
-                                        .WriteMagenta(percentage.Value.ToSingle(flag.SettingType).ToString());
+                                        .WriteMagenta(percentage.Value.ToSingle(flag).ToString());
                                 }
                             }
                         }
@@ -220,7 +219,7 @@ internal class FlagValueV2(
             
             output.WriteLine()
                 .WriteDarkGray($"| Default: ")
-                .WriteMagenta(value.DefaultValue.ToSingle(flag.SettingType).ToString())
+                .WriteMagenta(value.DefaultValue.ToSingle(flag).ToString())
                 .WriteLine()
                 .WriteDarkGray(new string('-', separatorLength))
                 .WriteLine();
@@ -241,16 +240,25 @@ internal class FlagValueV2(
         var value = await flagValueClient.GetValueAsync(flag.SettingId, environmentId, token);
 
         if (flagValue.IsEmpty())
-            flagValue = await prompt.GetStringAsync($"Value", token, value.DefaultValue.ToSingle(flag.SettingType).ToString());
+        {
+            if (!flag.PredefinedVariations.IsEmpty())
+            {
+                flagValue = (await prompt.ChooseFromListAsync("Choose variation", flag.PredefinedVariations,
+                    v => v.Name ?? v.Value.ToString(), token)).PredefinedVariationId;
+            }
+            else
+            {
+                flagValue = await prompt.GetStringAsync("Value", token, value.DefaultValue.ToSingle(flag).ToString());
+            }
+        }
 
-        if (!flagValue.TryParseFlagValue(value.Setting.SettingType, out var parsed))
-            throw new ShowHelpException($"Flag value '{flagValue}' must respect the type '{value.Setting.SettingType}'.");
+        var parsed = flagValue.ToFlagValueWithVariation(flag.SettingType, flag.PredefinedVariations);
 
         if (await workspaceLoader.NeedsReasonAsync(environmentId, token) && reason.IsEmpty())
             reason = await prompt.GetStringAsync("Mandatory reason", token);
         
         var jsonPatchDocument = new JsonPatchDocument();
-        jsonPatchDocument.Replace($"/defaultValue/{flag.SettingType.ToValuePropertyName()}", parsed);
+        jsonPatchDocument.Replace($"/defaultValue", parsed);
 
         await flagValueClient.UpdateValueAsync(flag.SettingId, environmentId, reason, jsonPatchDocument.Operations, token);
         return ExitCodes.Ok;

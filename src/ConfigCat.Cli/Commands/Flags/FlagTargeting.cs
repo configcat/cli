@@ -51,9 +51,8 @@ internal class FlagTargeting(
         };
         
         await this.ValidateAddModel(addTargetingRuleModel, environmentId, token);
-
-        if (!addTargetingRuleModel.FlagValue.TryParseFlagValue(flag.SettingType, out var parsed))
-            throw new ShowHelpException($"Flag value '{addTargetingRuleModel.FlagValue}' must respect the type '{flag.SettingType}'.");
+        
+        var parsed = addTargetingRuleModel.FlagValue.ToObjectValue(flag.SettingType);
 
         if (await workspaceLoader.NeedsReasonAsync(environmentId, token) && reason.IsEmpty())
             reason = await prompt.GetStringAsync("Mandatory reason", token);
@@ -108,8 +107,7 @@ internal class FlagTargeting(
         
         await this.ValidateAddModel(addTargetingRuleModel, environmentId, token, existing);
 
-        if (!addTargetingRuleModel.FlagValue.TryParseFlagValue(flag.SettingType, out var parsed))
-            throw new ShowHelpException($"Flag value '{addTargetingRuleModel.FlagValue}' must respect the type '{flag.SettingType}'.");
+        var parsed = addTargetingRuleModel.FlagValue.ToObjectValue(flag.SettingType);
 
         if (await workspaceLoader.NeedsReasonAsync(environmentId, token) && reason.IsEmpty())
             reason = await prompt.GetStringAsync("Mandatory reason", token);

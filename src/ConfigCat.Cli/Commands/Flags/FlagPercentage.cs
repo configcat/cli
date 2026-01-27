@@ -2,7 +2,7 @@
 using ConfigCat.Cli.Services.Api;
 using ConfigCat.Cli.Options;
 using System;
-using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using ConfigCat.Cli.Services.Exceptions;
@@ -38,14 +38,9 @@ internal class FlagPercentage(
         if (value.Setting.SettingType == SettingTypes.Boolean && rules.Length != 2)
             throw new ShowHelpException($"Boolean type can only have 2 percentage rules.");
 
-        var result = new List<PercentageModel>();
-        foreach (var percentageRule in rules)
-        {
-            if (!percentageRule.Value.TryParseFlagValue(value.Setting.SettingType, out var parsed))
-                throw new ShowHelpException($"Flag value '{percentageRule.Value}' must respect the type '{value.Setting.SettingType}'.");
-
-            result.Add(new PercentageModel { Percentage = percentageRule.Percentage, Value = parsed });
-        }
+        var result = rules
+            .Select(percentageRule => new PercentageModel { Percentage = percentageRule.Percentage, Value = percentageRule.Value.ToObjectValue(value.Setting.SettingType) })
+            .ToList();
 
         if (value.Setting.SettingType == SettingTypes.Boolean &&
             ((bool)result[0].Value && (bool)result[1].Value ||

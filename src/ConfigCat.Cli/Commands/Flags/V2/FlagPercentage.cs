@@ -117,10 +117,22 @@ internal class FlagPercentage(IPrompt prompt, IOutput output, IWorkspaceLoader w
             return percentageOptions.Select(po => new PercentageOptionModel
             {
                 Percentage = po.Percentage,
-                Value = po.Value.ToFlagValue(flag.SettingType)
+                Value = po.Value.ToFlagValueWithVariation(flag.SettingType, flag.PredefinedVariations)
             }).ToList();
         
-        var items = await prompt.GetRepeatedValuesAsync("Set percentage options", token, ["Percentage", "Value"]);
+        var items = await prompt.GetRepeatedValuesAsync("Set percentage options", token, [
+            new RepeatedValuesDescriptor { Label = "Percentage" }, flag.PredefinedVariations.IsEmpty()
+                ? new RepeatedValuesDescriptor { Label = "Value"} 
+                : new RepeatedValuesDescriptor
+                {
+                    Label = "Choose variation", 
+                    Reader = async (p, l, t) =>
+                    {
+                        var result =await p.ChooseFromListAsync(l, flag.PredefinedVariations, v => v.Name ?? v.Value.ToString(), t);
+                        return result.PredefinedVariationId;
+                    }
+                }
+        ]);
         if (items is null) throw new ShowHelpException($"Percentage options are required");
         return items.Select(i =>
         {
@@ -128,7 +140,7 @@ internal class FlagPercentage(IPrompt prompt, IOutput output, IWorkspaceLoader w
             return new PercentageOptionModel
             {
                 Percentage = percentage,
-                Value = i[1].ToFlagValue(flag.SettingType),
+                Value = i[1].ToFlagValueWithVariation(flag.SettingType, flag.PredefinedVariations),
             };
         }).ToList();
     }

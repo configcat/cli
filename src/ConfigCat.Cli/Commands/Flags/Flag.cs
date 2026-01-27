@@ -22,7 +22,8 @@ internal class Flag(
     IPrompt prompt,
     IOutput output)
 {
-    public async Task<int> ListAllFlagsAsync(string configId, string tagName, int? tagId, bool json, CancellationToken token)
+    public async Task<int> ListAllFlagsAsync(string configId, string tagName, int? tagId, bool json,
+        CancellationToken token)
     {
         var flags = new List<FlagModel>();
         if (!configId.IsEmpty())
@@ -75,7 +76,7 @@ internal class Flag(
         return ExitCodes.Ok;
     }
 
-    public async Task<int> CreateFlagAsync(string configId, 
+    public async Task<int> CreateFlagAsync(string configId,
         string key,
         string name,
         string hint,
@@ -83,6 +84,7 @@ internal class Flag(
         string initValue,
         int[] tagIds,
         InitialValueOption[] initValuesPerEnvironment,
+        PredefinedVariationOption[] predefinedVariations,
         CancellationToken token)
     {
         var shouldPrompt = configId.IsEmpty();
@@ -103,24 +105,42 @@ internal class Flag(
             type = await prompt.ChooseFromListAsync("Choose type", SettingTypes.Collection.ToList(), t => t, token);
 
         if (shouldPrompt && tagIds.IsEmpty())
-            tagIds = (await workspaceLoader.LoadTagsAsync(token, configId, optional: true)).Select(t => t.TagId).ToArray();
+            tagIds = (await workspaceLoader.LoadTagsAsync(token, configId, optional: true)).Select(t => t.TagId)
+                .ToArray();
 
         if (!SettingTypes.Collection.ToList()
                 .Contains(type, StringComparer.OrdinalIgnoreCase))
-            throw new ShowHelpException($"Type must be one of the following: {string.Join('|', SettingTypes.Collection)}");
+            throw new ShowHelpException(
+                $"Type must be one of the following: {string.Join('|', SettingTypes.Collection)}");
 
-        object parsedInitialValue = null;
-        if (!initValue.IsEmpty() && !initValue.TryParseFlagValue(type, out parsedInitialValue))
-            throw new ShowHelpException($"Initial value '{initValue}' must respect the type '{type}'.");
-        
+        if (shouldPrompt && predefinedVariations.IsEmpty())
+        {
+            var valueType = await prompt.ChooseFromListAsync("What type of values this flag should use?",
+                ["Free-form values", "Predefined variations"], t => t, token);
+            if (valueType == "Predefined variations")
+            {
+                var promptResult = await prompt.GetRepeatedValuesAsync("Add predefined variations", token, [
+                    new RepeatedValuesDescriptor { Label = "Name" }, new RepeatedValuesDescriptor { Label = "Value" }
+                ]);
+                predefinedVariations = promptResult.Select(p => new PredefinedVariationOption
+                    { Name = p[0], Value = p[1] }).ToArray();
+            }
+        }
+
         var createModel = new CreateFlagModel
         {
             Hint = hint,
             Key = key,
             Name = name,
-            TagIds = tagIds,
-            Type = type
+            TagIds = tagIds.ToList(),
+            Type = type,
+            PredefinedVariations = predefinedVariations.IsEmpty()
+                ? null
+                : predefinedVariations.Select(p => new VariationModel
+                    { Name = p.Name, Value = p.Value.ToFlagValue(type) }).ToList(),
         };
+
+        var parsedInitialValue = initValue.IsEmpty() ? null : initValue.ToObjectValue(type);
 
         ConfigModel config = null;
         List<EnvironmentModel> environments = null;
@@ -128,20 +148,35 @@ internal class Flag(
         {
             config = await configClient.GetConfigAsync(configId, token);
             environments = (await environmentClient.GetEnvironmentsAsync(config.Product.ProductId, token)).ToList();
-            var defaultValue = type.GetDefaultValueForType();
             initValuesPerEnvironment = new InitialValueOption[environments.Count];
             output.WriteDarkGray("Please set an initial value for each of your environments.")
                 .WriteLine();
 
-            var index = 0;
-            foreach (var environment in environments)
+            if (!createModel.PredefinedVariations.IsEmpty())
             {
-                var fromPrompt = await prompt.GetStringAsync(environment.Name, token, defaultValue);
-                initValuesPerEnvironment[index++] = new InitialValueOption
-                    { EnvironmentId = environment.EnvironmentId, Value = fromPrompt };
+                var index = 0;
+                foreach (var environment in environments)
+                {
+                    var fromPrompt = (await prompt.ChooseFromListAsync($"Choose variation for {environment.Name}",
+                        createModel.PredefinedVariations,
+                        v => v.Name ?? v.Value.ToString(), token)).Value.ToString();
+                    initValuesPerEnvironment[index++] = new InitialValueOption
+                        { EnvironmentId = environment.EnvironmentId, Value = fromPrompt };
+                }
+            }
+            else
+            {
+                var defaultValue = type.GetDefaultValueForType(createModel.PredefinedVariations);
+                var index = 0;
+                foreach (var environment in environments)
+                {
+                    var fromPrompt = await prompt.GetStringAsync(environment.Name, token, defaultValue);
+                    initValuesPerEnvironment[index++] = new InitialValueOption
+                        { EnvironmentId = environment.EnvironmentId, Value = fromPrompt };
+                }
             }
         }
-        
+
         if (parsedInitialValue is not null || !initValuesPerEnvironment.IsEmpty())
         {
             config ??= await configClient.GetConfigAsync(configId, token);
@@ -150,20 +185,14 @@ internal class Flag(
             {
                 var initial = new InitialValue { EnvironmentId = env.EnvironmentId };
                 var perEnv = initValuesPerEnvironment?.FirstOrDefault(i => i.EnvironmentId == env.EnvironmentId);
-                if (perEnv is not null)
-                {
-                    if (!perEnv.Value.TryParseFlagValue(type, out var parsed))
-                        throw new ShowHelpException($"Initial value '{perEnv.Value}' must respect the type '{type}'.");
-
-                    initial.Value = parsed;
-                }
-                else
-                    initial.Value = parsedInitialValue;
+                initial.Value = perEnv is not null
+                    ? perEnv.Value.ToObjectValue(type)
+                    : parsedInitialValue;
 
                 return initial.Value is null ? null : initial;
             }).Where(i => i is not null).ToList();
         }
-        
+
         var result = await flagClient.CreateFlagAsync(configId, createModel, token);
         output.Write(result.SettingId.ToString());
 
@@ -193,7 +222,9 @@ internal class Flag(
                 updateFlagModel.Hint = await prompt.GetStringAsync("Hint", token, flag.Hint);
 
             if (updateFlagModel.TagIds.IsEmpty())
-                updateFlagModel.TagIds = (await workspaceLoader.LoadTagsAsync(token, flag.ConfigId, flag.Tags, optional: true)).Select(t => t.TagId).ToArray();
+                updateFlagModel.TagIds =
+                    (await workspaceLoader.LoadTagsAsync(token, flag.ConfigId, flag.Tags, optional: true))
+                    .Select(t => t.TagId).ToArray();
         }
 
         var originalTagIds = flag.Tags?.Select(t => t.TagId).ToList() ?? [];
@@ -244,7 +275,8 @@ internal class Flag(
         var flagTagIds = flag.Tags.Select(t => t.TagId).ToList();
 
         if (flagId is null && tagIds.IsEmpty())
-            tagIds = (await workspaceLoader.LoadTagsAsync(token, flag.ConfigId, flag.Tags)).Select(t => t.TagId).ToArray();
+            tagIds = (await workspaceLoader.LoadTagsAsync(token, flag.ConfigId, flag.Tags)).Select(t => t.TagId)
+                .ToArray();
 
         if (tagIds.IsEmpty() ||
             tagIds.SequenceEqual(flagTagIds) ||
@@ -269,7 +301,8 @@ internal class Flag(
             : await flagClient.GetFlagAsync(flagId.Value, token);
 
         if (flagId is null && tagIds.IsEmpty())
-            tagIds = (await prompt.ChooseMultipleFromListAsync("Choose tags to detach", flag.Tags, t => t.Name, token)).Select(t => t.TagId).ToArray();
+            tagIds = (await prompt.ChooseMultipleFromListAsync("Choose tags to detach", flag.Tags, t => t.Name, token))
+                .Select(t => t.TagId).ToArray();
 
         var relevantTags = flag.Tags.Where(t => tagIds.Contains(t.TagId)).ToList();
         if (relevantTags.Count == 0)

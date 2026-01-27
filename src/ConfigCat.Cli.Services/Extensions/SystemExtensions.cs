@@ -27,29 +27,25 @@ public static class SystemExtensions
     public static bool IsEmptyOrEquals(this string value, string other) =>
         string.IsNullOrWhiteSpace(value) || value.Equals(other);
 
-    public static bool TryParseFlagValue(this string value, string settingType, out object parsed)
+    public static ValueWithPredefinedVariationModel ToFlagValueWithVariation(this string value, string settingType,
+        List<VariationModel> variations)
     {
-        parsed = null;
-        switch (settingType)
+        if (!variations.IsEmpty())
         {
-            case SettingTypes.Boolean:
-                if (!bool.TryParse(value, out var boolParsed)) return false;
-                parsed = boolParsed;
-                return true;
-            case SettingTypes.Int:
-                if (!int.TryParse(value, out var intParsed)) return false;
-                parsed = intParsed;
-                return true;
-            case SettingTypes.Double:
-                if (!double.TryParse(value, out var doubleParsed)) return false;
-                parsed = doubleParsed;
-                return true;
-            case SettingTypes.String:
-                parsed = value;
-                return true;
-            default:
-                return false;
+            var variation = variations.FirstOrDefault(v => v.PredefinedVariationId == value || v.Name == value);
+            return variation is null
+                ? throw new ShowHelpException($"Predefined variation '{value}' not found")
+                : new ValueWithPredefinedVariationModel { PredefinedVariationId = value };
         }
+
+        var valueModel = value.ToFlagValue(settingType);
+        return new ValueWithPredefinedVariationModel
+        {
+            BoolValue = valueModel.BoolValue,
+            DoubleValue = valueModel.DoubleValue,
+            IntValue = valueModel.IntValue,
+            StringValue = valueModel.StringValue
+        };
     }
 
     public static ValueModel ToFlagValue(this string value, string settingType)
@@ -65,29 +61,47 @@ public static class SystemExtensions
                     return new ValueModel { IntValue = intParsed };
                 break;
             case SettingTypes.Double:
-                if (double.TryParse(value, out var doubleParsed)) 
+                if (double.TryParse(value, out var doubleParsed))
                     return new ValueModel { DoubleValue = doubleParsed };
                 break;
             case SettingTypes.String:
                 return new ValueModel { StringValue = value };
         }
-        throw new ShowHelpException($"Value '{value}' doesn't conform the setting type '{settingType}'");
+
+        throw new ShowHelpException($"Value '{value}' doesn't conform to the setting type '{settingType}'");
     }
 
-    public static string ToValuePropertyName(this string settingType)
+    public static object ToObjectValue(this string value, string settingType)
     {
-        return settingType switch
+        switch (settingType)
         {
-            SettingTypes.Boolean => "boolValue",
-            SettingTypes.String => "stringValue",
-            SettingTypes.Int => "intValue",
-            SettingTypes.Double => "doubleValue",
-            _ => ""
-        };
+            case SettingTypes.Boolean:
+                if (bool.TryParse(value, out var boolParsed))
+                    return boolParsed;
+                break;
+            case SettingTypes.Int:
+                if (int.TryParse(value, out var intParsed))
+                    return intParsed;
+                break;
+            case SettingTypes.Double:
+                if (double.TryParse(value, out var doubleParsed))
+                    return doubleParsed;
+                break;
+            case SettingTypes.String:
+                return value;
+        }
+
+        throw new ShowHelpException($"Value '{value}' doesn't conform to the setting type '{settingType}'");
     }
 
-    public static string GetDefaultValueForType(this string type) =>
-        type switch
+    public static string GetDefaultValueForType(this string type, List<VariationModel> variations)
+    {
+        if (!variations.IsEmpty())
+        {
+            return variations.First().Value.ToString();
+        }
+
+        return type switch
         {
             SettingTypes.Boolean => "false",
             SettingTypes.Int => "42",
@@ -95,6 +109,7 @@ public static class SystemExtensions
             SettingTypes.String => "initial value",
             _ => ""
         };
+    }
 
     public static string Cut(this string text, int length)
         => text == null ? string.Empty : text.Length > length ? $"{text[..(length - 3)]}..." : text;
@@ -124,7 +139,7 @@ public static class SystemExtensions
                 "arrayDoesNotContainAny" => true,
             _ => false
         };
-    
+
     public static bool IsNumberComparator(this string comparator) =>
         comparator switch
         {
@@ -136,13 +151,13 @@ public static class SystemExtensions
                 "numberGreaterOrEquals" => true,
             _ => false
         };
-    
+
     public static string TrimToFitColumn(this string text)
         => text == null ? "\"\"" : $"\"{text.TrimToLength(30)}\"";
-    
+
     public static string TrimToLength(this string text, int length)
         => text.Length > length ? $"{text[..(length - 2)]}..." : text;
-    
-    public static object FormatIfBool(this object val) 
-        => val is bool b ? b.ToString().ToLowerInvariant() : val; 
+
+    public static object FormatIfBool(this object val)
+        => val is bool b ? b.ToString().ToLowerInvariant() : val;
 }
