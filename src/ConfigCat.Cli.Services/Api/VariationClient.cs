@@ -21,12 +21,8 @@ public class VariationClient(
     HttpClient httpClient)
     : ApiClient(output, config, botPolicy, httpClient), IVariationClient
 {
-    public async Task<VariationsModel> UpdateVariationsAsync(int flagId, List<VariationModel> updatedModel, CancellationToken token)
-    {
-        this.Output.Write($"Updating Predefined Variations... ");
-        var result = await this.SendAsync<VariationsModel>(HttpMethod.Put, $"v1/settings/{flagId}/predefined-variations", new VariationsModel { PredefinedVariations = updatedModel }, token);
-        this.Output.WriteSuccess();
-        this.Output.WriteLine();
-        return result;
-    }
+    public Task<VariationsModel> UpdateVariationsAsync(int flagId, List<VariationModel> updatedModel,
+        CancellationToken token) =>
+        this.SendAsync<VariationsModel>(HttpMethod.Put, $"v1/settings/{flagId}/predefined-variations",
+            new VariationsModel { PredefinedVariations = updatedModel }, token);
 }
