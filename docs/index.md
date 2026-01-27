@@ -112,6 +112,11 @@ This is the complete list of the available commands provided by the CLI.
 | [configcat flag-v2 targeting percentage update](configcat-flag-v2-targeting-percentage-update.md) | Update or add the last percentage-only targeting rule |
 | [configcat flag-v2 targeting percentage clear](configcat-flag-v2-targeting-percentage-clear.md) | Delete the last percentage-only rule |
 | [configcat flag-v2 targeting percentage attribute](configcat-flag-v2-targeting-percentage-attribute.md) | Set the percentage evaluation attribute |
+| [configcat flag-v2 variation](configcat-flag-v2-variation.md) | Manage Predefined Variations |
+| [configcat flag-v2 variation create](configcat-flag-v2-variation-create.md) | Create a Predefined Variation |
+| [configcat flag-v2 variation update](configcat-flag-v2-variation-update.md) | Update a Predefined Variation |
+| [configcat flag-v2 variation rm](configcat-flag-v2-variation-rm.md) | Delete a Predefined Variation |
+| [configcat flag-v2 variation ls](configcat-flag-v2-variation-ls.md) | List the Predefined Variations of a Feature Flag or Setting |
 ### configcat segment
 | Command | Description |
 | ------ | ----------- |

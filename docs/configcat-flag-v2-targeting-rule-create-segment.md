@@ -17,7 +17,7 @@ configcat flag-v2 targeting rule create segment -i <flag-id> -e <environment-id>
 | `--environment-id`, `-e` | ID of the Environment where the rule must be created |
 | `--comparator`, `-c` | The operator which defines the expected result of the evaluation of the segment<br/><br/>*Possible values*: `isIn`, `isNotIn` |
 | `--segment-id`, `-si` | ID of the segment that the condition is based on |
-| `--served-value`, `-sv` | The value associated with the targeting rule. Leave it empty if the targeting rule has percentage options. It must respect the setting type |
+| `--served-value`, `-sv` | The value associated with the targeting rule. Leave it empty if the targeting rule has percentage options. It must respect the setting type. When the flag has Predefined Variations, it must be either the Variation's ID or name |
 | `-po`, `--percentage-options` | Format: `<percentage>:<value>`, e.g., `30:true 70:false` |
 | `--reason`, `-r` | The reason note for the Audit Log if the Product's 'Config changes require a reason' preference is turned on |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |

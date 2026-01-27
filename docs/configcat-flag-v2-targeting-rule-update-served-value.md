@@ -16,7 +16,7 @@ configcat flag-v2 targeting rule usv -i <flag-id> -e <environment-id> -rp 1 -sv 
 | `--flag-id`, `-i`, `--setting-id` | ID of the Feature Flag or Setting |
 | `--environment-id`, `-e` | ID of the Environment where the rule should be moved |
 | `--rule-position`, `-rp` | The position of the targeting rule |
-| `--served-value`, `-sv` | The value associated with the targeting rule. Leave it empty if the targeting rule has percentage options. It must respect the setting type |
+| `--served-value`, `-sv` | The value associated with the targeting rule. Leave it empty if the targeting rule has percentage options. It must respect the setting type. When the flag has Predefined Variations, it must be either the Variation's ID or name |
 | `-po`, `--percentage-options` | Format: `<percentage>:<value>`, e.g., `30:true 70:false` |
 | `--reason`, `-r` | The reason note for the Audit Log if the Product's 'Config changes require a reason' preference is turned on |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |

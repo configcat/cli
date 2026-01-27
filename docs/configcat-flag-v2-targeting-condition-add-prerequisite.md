@@ -18,7 +18,7 @@ configcat flag-v2 targeting condition add prerequisite -i <flag-id> -e <environm
 | `--rule-position`, `-rp` | The position of the targeting rule to which the condition is added |
 | `--comparator`, `-c` | The operator which defines the relation between the evaluated value of the prerequisite flag and the comparison value<br/><br/>*Possible values*: `doesNotEqual`, `equals` |
 | `--prerequisite-id`, `-pi` | ID of the prerequisite flag that the condition is based on |
-| `--prerequisite-value`, `-pv` | The evaluated value of the prerequisite flag is compared to. It must respect the prerequisite flag's setting type |
+| `--prerequisite-value`, `-pv` | The evaluated value of the prerequisite flag is compared to. It must respect the prerequisite flag's setting type. When the prerequisite flag has Predefined Variations, it must be either the Variation's ID or name |
 | `--reason`, `-r` | The reason note for the Audit Log if the Product's 'Config changes require a reason' preference is turned on |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |
 | `--non-interactive`, `-ni` | Turn off progress rendering and interactive features |
