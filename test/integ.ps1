@@ -651,13 +651,15 @@ Describe "Flag value / Rule Tests V2 Predefined Variations" {
     BeforeEach {
         $flagV2PredefId = Invoke-ConfigCat "flag-v2", "create", "-c", $configV2PredefId, "-n", "Bool-Flag", "-k", "bool_flag", "-H", "hint", "-t", "boolean", "-pv", "A1:true", "B1:false", "-iv", "false"
         $flagV2PredefId2 = Invoke-ConfigCat "flag-v2", "create", "-c", $configV2PredefId, "-n", "Bool-Flag", "-k", "bool_flag2", "-H", "hint", "-t", "boolean", "-pv", "A2:true", "B2:false", "-iv", "false"
+        $flagV2PredefId3 = Invoke-ConfigCat "flag-v2", "create", "-c", $configV2PredefId, "-n", "String-Flag", "-k", "string_flag", "-H", "hint", "-t", "string", "-pv", "A3:a3", "B3:b3", "-iv", "b3"
     }
 
     AfterEach {
         Invoke-ConfigCat "flag-v2", "rm", "-i", $flagV2PredefId
         Invoke-ConfigCat "flag-v2", "rm", "-i", $flagV2PredefId2
+        Invoke-ConfigCat "flag-v2", "rm", "-i", $flagV2PredefId3
     }
-
+    
     It "Update Value" {
         Invoke-ConfigCat "flag-v2", "value", "update", "-i", $flagV2PredefId, "-e", $environmentId, "-f", "B1"
         $result = Invoke-ConfigCat "flag-v2", "value", "show", "-i", $flagV2PredefId
@@ -758,6 +760,12 @@ Describe "Flag value / Rule Tests V2 Predefined Variations" {
         $result | Should -Match ([regex]::Escape("1. IF IS IN SEGMENT $segmentName"))
         $result | Should -Match ([regex]::Escape("40% of Custom1 attribute -> A1"))
         $result | Should -Match ([regex]::Escape("60% of Custom1 attribute -> B1"))
+    }
+
+    It "Add variation" {
+        Invoke-ConfigCat "flag-v2", "var", "cr", "-i", $flagV2PredefId3, "-n", "C3", "-H", "C3 hint", "-sv", "c3"
+        $result = Invoke-ConfigCat "flag-v2", "var", "ls", "-i", $flagV2PredefId3
+        $result | Should -Match ([regex]::Escape("C3    `"C3 hint`"  c3"))
     }
 }
 

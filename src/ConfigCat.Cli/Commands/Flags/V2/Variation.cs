@@ -116,7 +116,15 @@ internal class Variation(
             ? await workspaceLoader.LoadFlagAsync(token)
             : await flagClient.GetFlagAsync(flagId.Value, token);
         
-        var selected = await prompt.ChooseFromListAsync("Choose variation", flag.PredefinedVariations.ToList(), e => e.Name ?? e.Value.ToString(), token);
+        VariationModel selected;
+        if (predefinedVariationId.IsEmpty())
+        {
+            selected = await prompt.ChooseFromListAsync("Choose variation", flag.PredefinedVariations, e => e.Name ?? e.Value.ToString(), token);
+        }
+        else
+        {
+            selected = flag.PredefinedVariations.FirstOrDefault(e => e.PredefinedVariationId == predefinedVariationId);
+        }
         if (selected == null)
             throw new ShowHelpException($"Required option --predefined-variation-id is missing.");
         
