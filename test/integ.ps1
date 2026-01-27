@@ -724,7 +724,7 @@ Describe "Flag value / Rule Tests V2 Predefined Variations" {
         $result | Should -Match ([regex]::Escape("1. If ID IS ONE OF [2 items]"))
         $result | Should -Match ([regex]::Escape("&& EMAIL EQUALS test@example.com"))
         $result | Should -Match ([regex]::Escape("&& IS IN SEGMENT $segmentName"))
-        $result | Should -Not -Match ([regex]::Escape("&& bool_flag2 EQUALS A1"))
+        $result | Should -Not -Match ([regex]::Escape("&& bool_flag2 EQUALS A2"))
         Invoke-ConfigCat "flag-v2", "targeting", "c", "rm", "-i", $flagV2PredefId, "-e", $environmentId, "-rp", "1", "-cp", "3"
         $result = Invoke-ConfigCat "flag-v2", "value", "show", "-i", $flagV2PredefId
         $result | Should -Match ([regex]::Escape("1. If ID IS ONE OF [2 items]"))
