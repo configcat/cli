@@ -763,9 +763,9 @@ Describe "Flag value / Rule Tests V2 Predefined Variations" {
     }
 
     It "Add variation" {
-        Invoke-ConfigCat "flag-v2", "var", "cr", "-i", $flagV2PredefId3, "-n", "C3", "-H", "C3 hint", "-sv", "c3"
+        Invoke-ConfigCat "flag-v2", "var", "cr", "-i", $flagV2PredefId3, "-n", "C3", "-H", "C3hint", "-sv", "c3"
         $result = Invoke-ConfigCat "flag-v2", "var", "ls", "-i", $flagV2PredefId3
-        $result | Should -Match ([regex]::Escape("C3    `"C3 hint`"  c3"))
+        $result | Should -Match ([regex]::Escape("C3    `"C3hint`"  c3"))
     }
 }
 
