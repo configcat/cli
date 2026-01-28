@@ -8,7 +8,7 @@ configcat flag-v2 variation update [options]
 ```
 ## Example
 ```
-configcat flag-v2 variation up -pvi <predefined-variation-id> -sv true
+configcat flag-v2 variation up -i <flag-id> -pvi <predefined-variation-id> -sv <served-value>
 ```
 ## Options
 | Option | Description |

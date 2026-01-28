@@ -6,7 +6,7 @@ configcat flag-v2 variation rm [options]
 ```
 ## Example
 ```
-configcat flag-v2 variation rm -pvi <predefined-variation-id>
+configcat flag-v2 variation rm -i <flag-id> -pvi <predefined-variation-id>
 ```
 ## Options
 | Option | Description |

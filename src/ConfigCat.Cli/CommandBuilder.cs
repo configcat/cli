@@ -870,7 +870,7 @@ public static class CommandBuilder
             Aliases = ["var"],
             SubCommands = 
             [
-                new CommandDescriptor("create", "Create a Predefined Variation", "configcat flag-v2 variation create -i <flag-id> -name On -sv true")
+                new CommandDescriptor("create", "Create a Predefined Variation", "configcat flag-v2 variation create -i <flag-id> -name <variation-name> -sv <served-value>")
                 {
                     Handler = CreateHandler<Variation>(nameof(Variation.CreateAsync)),
                     Aliases = ["cr"],
@@ -885,7 +885,7 @@ public static class CommandBuilder
                         new Option<string>(["--served-value", "-sv"], "The value associated with the Predefined Variation. It must respect the setting type"),
                     ]
                 },
-                new CommandDescriptor("update", "Update a Predefined Variation", "configcat flag-v2 variation up -pvi <predefined-variation-id> -sv true")
+                new CommandDescriptor("update", "Update a Predefined Variation", "configcat flag-v2 variation up -i <flag-id> -pvi <predefined-variation-id> -sv <served-value>")
                 {
                     Handler = CreateHandler<Variation>(nameof(Variation.UpdateAsync)),
                     Aliases = ["up"],
@@ -901,7 +901,7 @@ public static class CommandBuilder
                         new Option<string>(["--served-value", "-sv"], "The value associated with the Predefined Variation. It must respect the setting type"),
                     ]
                 },
-                new CommandDescriptor("rm", "Delete a Predefined Variation", "configcat flag-v2 variation rm -pvi <predefined-variation-id>")
+                new CommandDescriptor("rm", "Delete a Predefined Variation", "configcat flag-v2 variation rm -i <flag-id> -pvi <predefined-variation-id>")
                 {
                     Handler = CreateHandler<Variation>(nameof(Variation.DeleteAsync)),
                     Options = 

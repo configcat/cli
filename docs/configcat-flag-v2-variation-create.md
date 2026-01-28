@@ -8,7 +8,7 @@ configcat flag-v2 variation create [options]
 ```
 ## Example
 ```
-configcat flag-v2 variation create -i <flag-id> -name On -sv true
+configcat flag-v2 variation create -i <flag-id> -name <variation-name> -sv <served-value>
 ```
 ## Options
 | Option | Description |
