@@ -7,7 +7,7 @@ namespace ConfigCat.Cli.Services.Exceptions;
 public class HttpStatusException(
     HttpStatusCode statusCode,
     string reason,
-    Dictionary<string, string[]> errorDetails = null,
+    IReadOnlyDictionary<string, string[]> errorDetails = null,
     string message = null,
     Exception innerException = null)
     : Exception(message, innerException)
