@@ -64,7 +64,7 @@ public abstract class ApiClient
         var content = await response.Content.ReadAsStringAsync(token);
         this.Output.Verbose($"Response body: {content}");
 
-        ValidateResponse(response);
+        ValidateResponse(response, content);
 
         try
         {
@@ -96,7 +96,7 @@ public abstract class ApiClient
         var content = await response.Content.ReadAsStringAsync(token);
         this.Output.Verbose($"Response body: {content}");
 
-        ValidateResponse(response);
+        ValidateResponse(response, content);
     }
 
     protected async Task<TResult> SendAsync<TResult>(HttpMethod method, string path, object body, CancellationToken token)
@@ -119,7 +119,7 @@ public abstract class ApiClient
         var content = await response.Content.ReadAsStringAsync(token);
         this.Output.Verbose($"Response body: {content}");
 
-        ValidateResponse(response);
+        ValidateResponse(response, content);
 
         try
         {
@@ -160,10 +160,17 @@ public abstract class ApiClient
         this.Output.Verbose($"{message}, retrying... [{context.CurrentAttempt}. attempt, waiting {context.CurrentDelay}]", ConsoleColor.Yellow);
     }
 
-    private static void ValidateResponse(HttpResponseMessage responseMessage)
+    private static void ValidateResponse(HttpResponseMessage responseMessage, string content)
     {
         if (!responseMessage.IsSuccessStatusCode)
+        {
+            Dictionary<string, string[]> errorDetails;
+            try { errorDetails = JsonSerializer.Deserialize<Dictionary<string, string[]>>(content); }
+            catch { errorDetails = null; }
+
             throw new HttpStatusException(responseMessage.StatusCode,
-                responseMessage.ReasonPhrase);
+                responseMessage.ReasonPhrase,
+                errorDetails);
+        }
     }
 }

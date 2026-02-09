@@ -15,6 +15,7 @@ using System.CommandLine.Invocation;
 using System.CommandLine.IO;
 using System.CommandLine.Parsing;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Net.Http;
 using System.Reflection;
 using System.Security.Cryptography;
@@ -105,7 +106,15 @@ internal static class Program
                         output.WriteError("Terminated.");
                         break;
                     case HttpStatusException statusException:
-                        output.WriteError($"Http request failed: {(int)statusException.StatusCode} {statusException.ReasonPhrase}.");
+                        var errorMessage = $"Http request failed: {(int)statusException.StatusCode} {statusException.ReasonPhrase}.";
+                        if (statusException.ErrorDetails is { } errorDetails)
+                        {
+                            errorMessage += Environment.NewLine
+                                + "Details:" + Environment.NewLine
+                                + string.Join(Environment.NewLine, errorDetails
+                                    .SelectMany(kvp => kvp.Value.Select(msg => $"- [{kvp.Key}] {msg}")));
+                        }
+                        output.WriteError(errorMessage);
                         break;
                     case MaxRetryAttemptsReachedException { OperationResult: HttpResponseMessage response }:
                         output.WriteError($"Http request failed: {(int)response.StatusCode} {response.ReasonPhrase}.");
