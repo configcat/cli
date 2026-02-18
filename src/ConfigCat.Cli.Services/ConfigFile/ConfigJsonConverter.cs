@@ -116,7 +116,7 @@ namespace ConfigCat.Cli.Services.ConfigFile
                 {
                     Conditions =
                     [
-                        new() { UserCondition = ConvertComparisonRule(ruleV5, settingKey) }
+                        new ConditionV6 { UserCondition = ConvertComparisonRule(ruleV5, settingKey) }
                     ],
                     ServedValue = servedValue
                 };

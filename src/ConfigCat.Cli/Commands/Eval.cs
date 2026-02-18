@@ -43,7 +43,7 @@ internal class Eval(IPrompt prompt, IOutput output, CliOptions options)
         
         if (flagKeys.IsEmpty())
             flagKeys = (await prompt.GetRepeatedValuesAsync("Set the feature flag keys that you want to evaluate",
-                token, ["Flag key"])).SelectMany(t => t).ToArray();
+                token, [new RepeatedValuesDescriptor { Label = "Flag key" }])).SelectMany(t => t).ToArray();
 
         var client = CreateConfigCatClient(sdkKey, baseUrl, dataGovernance);
         await client.ForceRefreshAsync(token);

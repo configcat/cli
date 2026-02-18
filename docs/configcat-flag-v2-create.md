@@ -19,6 +19,7 @@ configcat flag create -c <config-id> -n "My awesome flag" -k myAwesomeFlag -t bo
 | `--hint`, `-H` | Hint of the new Flag or Setting |
 | `--init-value`, `-iv` | Initial value for each Environment |
 | `--init-values-per-environment`, `-ive` | Initial value for specific Environments. Format: `<environment-id>:<initial-value>` |
+| `--predefined-variations`, `-pv` | Predefined variations of the Feature Flag or Setting. Format: `<value>` or `<name>:<value>`. |
 | `--type`, `-t` | Type of the new Flag or Setting<br/><br/>*Possible values*: `boolean`, `double`, `int`, `string` |
 | `--tag-ids`, `-g` | Tags to attach |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |

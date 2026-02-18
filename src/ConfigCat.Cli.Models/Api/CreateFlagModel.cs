@@ -15,9 +15,11 @@ public class CreateFlagModel
     public string Type { get; set; }
 
     [JsonPropertyName("tags")]
-    public IEnumerable<int> TagIds { get; set; }
+    public List<int> TagIds { get; set; }
 
-    public IEnumerable<InitialValue> InitialValues { get; set; }
+    public List<InitialValue> InitialValues { get; set; }
+    
+    public List<VariationModel> PredefinedVariations { get; set; }
 }
 
 public class InitialValue

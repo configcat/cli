@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using ConfigCat.Cli.Models.Api;
 using ConfigCat.Cli.Models.Configuration;
 
@@ -7,9 +8,18 @@ namespace ConfigCat.Cli.Services.Extensions;
 
 public static class ModelExtensions
 {
-    public static object ToSingle(this ValueModel model, string settingType)
+    public static object ToSingle(this ValueWithPredefinedVariationModel model, FlagModel flagModel)
     {
-        return settingType switch
+        if (!model.PredefinedVariationId.IsEmpty())
+        {
+            var variation = flagModel.PredefinedVariations.FirstOrDefault(p => p.PredefinedVariationId == model.PredefinedVariationId);
+            if (variation is not null)
+            {
+                return variation.Name ?? variation.Value.ToString();
+            }
+        }
+        
+        return flagModel.SettingType switch
         {
             SettingTypes.Boolean => model.BoolValue,
             SettingTypes.String => model.StringValue,

@@ -17,8 +17,8 @@ configcat flag-v2 targeting rule create prerequisite -i <flag-id> -e <environmen
 | `--environment-id`, `-e` | ID of the Environment where the rule must be created |
 | `--comparator`, `-c` | The operator which defines the relation between the evaluated value of the prerequisite flag and the comparison value<br/><br/>*Possible values*: `doesNotEqual`, `equals` |
 | `--prerequisite-id`, `-pi` | ID of the prerequisite flag that the condition is based on |
-| `--prerequisite-value`, `-pv` | The evaluated value of the prerequisite flag is compared to. It must respect the prerequisite flag's setting type |
-| `--served-value`, `-sv` | The value associated with the targeting rule. Leave it empty if the targeting rule has percentage options. It must respect the setting type |
+| `--prerequisite-value`, `-pv` | The evaluated value of the prerequisite flag is compared to. It must respect the prerequisite flag's setting type. When the prerequisite flag has Predefined Variations, it either must be the Variation's ID or name |
+| `--served-value`, `-sv` | The value associated with the targeting rule. Leave it empty if the targeting rule has percentage options. It must respect the setting type. When the flag has Predefined Variations, it must be either the Variation's ID or name |
 | `-po`, `--percentage-options` | Format: `<percentage>:<value>`, e.g., `30:true 70:false` |
 | `--reason`, `-r` | The reason note for the Audit Log if the Product's 'Config changes require a reason' preference is turned on |
 | `--verbose`, `-v`, `/v` | Print detailed execution information |

@@ -27,3 +27,4 @@ configcat flag-v2 [command]
 | [configcat flag-v2 detach](configcat-flag-v2-detach.md) | Detach Tag(s) from a Feature Flag or Setting |
 | [configcat flag-v2 value](configcat-flag-v2-value.md) | Manage V2 Feature Flag & Setting default values in different Environments |
 | [configcat flag-v2 targeting](configcat-flag-v2-targeting.md) | Manage V2 Feature Flag & Setting targeting options |
+| [configcat flag-v2 variation](configcat-flag-v2-variation.md) | Manage Predefined Variations |
