@@ -2,58 +2,68 @@ name: ConfigCat CLI CI
 
 on:
   schedule:
-    - cron: '0 8 * * 1'
+    - cron: "0 8 * * 1"
   push:
-    branches: [ '*' ]
+    branches: ["*"]
     paths-ignore:
-      - '**.md'
-      - '**.gif'
+      - "**.md"
+      - "**.gif"
 
   pull_request:
-    branches: [ main ]
+    branches: [main]
     paths-ignore:
-      - '**.md'
-      - '**.gif'
+      - "**.md"
+      - "**.gif"
 
   workflow_dispatch:
-  
+
 jobs:
   unit-tests:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v7
-    - name: Setup dotnet
-      uses: actions/setup-dotnet@v5
-      with:
-        dotnet-version: '8.0.x'
-    - name: Unit tests
-      run: dotnet test test/ConfigCat.Cli.Tests/ConfigCat.Cli.Tests.csproj -c Release
+      - uses: actions/checkout@v7
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "8.0.x"
+      - name: Unit tests
+        run: dotnet test test/ConfigCat.Cli.Tests/ConfigCat.Cli.Tests.csproj -c Release
 
   produce-executables:
     runs-on: ubuntu-latest
     needs: unit-tests
     strategy:
       matrix:
-        arch: [win-x64, win-x86, win-arm64, linux-x64, linux-musl-x64, linux-musl-arm64, linux-arm, linux-arm64]
+        arch:
+          [
+            win-x64,
+            win-x86,
+            win-arm64,
+            linux-x64,
+            linux-musl-x64,
+            linux-musl-arm64,
+            linux-arm,
+            linux-arm64,
+          ]
 
     steps:
-    - uses: actions/checkout@v7
-    - name: Setup dotnet
-      uses: actions/setup-dotnet@v5
-      with:
-        dotnet-version: '8.0.x'
-        
-    - name: Publish ${{ matrix.arch }}
-      run: | 
-        dotnet publish src/ConfigCat.Cli/ConfigCat.Cli.csproj -c Release -r ${{ matrix.arch }} --self-contained true -p:PublishSingleFile=true -o publish/${{ matrix.arch }}
-        cp LICENSE publish/${{ matrix.arch }}/LICENSE
-        cp README.md publish/${{ matrix.arch }}/README.md
+      - uses: actions/checkout@v7
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "8.0.x"
 
-    - name: Archive executables
-      uses: actions/upload-artifact@v7
-      with:
-        name: executables-${{ strategy.job-index }}
-        path: publish
+      - name: Publish ${{ matrix.arch }}
+        run: |
+          dotnet publish src/ConfigCat.Cli/ConfigCat.Cli.csproj -c Release -r ${{ matrix.arch }} --self-contained true -p:PublishSingleFile=true -o publish/${{ matrix.arch }}
+          cp LICENSE publish/${{ matrix.arch }}/LICENSE
+          cp README.md publish/${{ matrix.arch }}/README.md
+
+      - name: Archive executables
+        uses: actions/upload-artifact@v7
+        with:
+          name: executables-${{ strategy.job-index }}
+          path: publish
 
   produce-osx-executable:
     runs-on: macos-latest
@@ -63,144 +73,146 @@ jobs:
         arch: [osx-x64, osx-arm64]
 
     steps:
-    - uses: actions/checkout@v7
-    - name: Setup dotnet
-      uses: actions/setup-dotnet@v5
-      with:
-        dotnet-version: '8.0.x'
-        
-    - name: Publish ${{ matrix.arch }}
-      run: | 
-        dotnet publish src/ConfigCat.Cli/ConfigCat.Cli.csproj -c Release -r ${{ matrix.arch }} --self-contained true -p:PublishSingleFile=true -o publish/${{ matrix.arch }}
-        cp LICENSE publish/${{ matrix.arch }}/LICENSE
-        cp README.md publish/${{ matrix.arch }}/README.md
+      - uses: actions/checkout@v7
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "8.0.x"
 
-    - name: Archive executables
-      uses: actions/upload-artifact@v7
-      with:
-        name: executables-osx-${{ strategy.job-index }}
-        path: publish
-      
+      - name: Publish ${{ matrix.arch }}
+        run: |
+          dotnet publish src/ConfigCat.Cli/ConfigCat.Cli.csproj -c Release -r ${{ matrix.arch }} --self-contained true -p:PublishSingleFile=true -o publish/${{ matrix.arch }}
+          cp LICENSE publish/${{ matrix.arch }}/LICENSE
+          cp README.md publish/${{ matrix.arch }}/README.md
+
+      - name: Archive executables
+        uses: actions/upload-artifact@v7
+        with:
+          name: executables-osx-${{ strategy.job-index }}
+          path: publish
+
   linux-snap-tests:
     needs: [produce-executables, produce-osx-executable]
     runs-on: ubuntu-latest
-    
+
     steps:
-    - uses: actions/checkout@v7
+      - uses: actions/checkout@v7
 
-    - name: Download executables
-      uses: actions/download-artifact@v8
-      with:
-        pattern: executables-*
-        merge-multiple: true
+      - name: Download executables
+        uses: actions/download-artifact@v8
+        with:
+          pattern: executables-*
+          merge-multiple: true
 
-    - name: Update version in snapcraft
-      run: sed -i 's/#VERSION_PLACEHOLDER#/0.0.1/g' snap/snapcraft.yaml
+      - name: Update version in snapcraft
+        run: sed -i 's/#VERSION_PLACEHOLDER#/0.0.1/g' snap/snapcraft.yaml
 
-    - name: Build snap
-      uses: snapcore/action-build@v1
-      id: build
+      - name: Build snap
+        uses: snapcore/action-build@v1
+        id: build
+        with:
+          snapcraft-channel: 8.x/stable
 
-    - name: Install snap
-      run: sudo snap install --dangerous ${{ steps.build.outputs.snap }}
+      - name: Install snap
+        run: sudo snap install --dangerous ${{ steps.build.outputs.snap }}
 
-    - name: Execute tests
-      shell: pwsh
-      run: ./test/integ.ps1 configcat ./test
-      env:
-        CONFIGCAT_API_HOST: ${{ secrets.CONFIGCAT_API_HOST }}
-        CONFIGCAT_API_USER: ${{ secrets.CONFIGCAT_API_USER }}
-        CONFIGCAT_API_PASS: ${{ secrets.CONFIGCAT_API_PASS }}
+      - name: Execute tests
+        shell: pwsh
+        run: ./test/integ.ps1 configcat ./test
+        env:
+          CONFIGCAT_API_HOST: ${{ secrets.CONFIGCAT_API_HOST }}
+          CONFIGCAT_API_USER: ${{ secrets.CONFIGCAT_API_USER }}
+          CONFIGCAT_API_PASS: ${{ secrets.CONFIGCAT_API_PASS }}
 
   win-choco-tests:
     needs: [produce-executables, produce-osx-executable]
     runs-on: windows-latest
-    
+
     steps:
-    - uses: actions/checkout@v7
+      - uses: actions/checkout@v7
 
-    - name: Download executables
-      uses: actions/download-artifact@v8
-      with:
-        pattern: executables-*
-        merge-multiple: true
+      - name: Download executables
+        uses: actions/download-artifact@v8
+        with:
+          pattern: executables-*
+          merge-multiple: true
 
-    - name: Update version in nuspec
-      run: ((Get-Content -path choco\configcat.nuspec -Raw) -replace '#VERSION_PLACEHOLDER#','0.0.1') | Set-Content -Path choco\configcat.nuspec
-      shell: powershell
+      - name: Update version in nuspec
+        run: ((Get-Content -path choco\configcat.nuspec -Raw) -replace '#VERSION_PLACEHOLDER#','0.0.1') | Set-Content -Path choco\configcat.nuspec
+        shell: powershell
 
-    - name: Update version in VERIFICATION.txt
-      run: ((Get-Content -path choco\VERIFICATION.txt -Raw) -replace '#VERSION_PLACEHOLDER#','${{ env.VERSION }}') | Set-Content -Path choco\VERIFICATION.txt
-      shell: powershell
+      - name: Update version in VERIFICATION.txt
+        run: ((Get-Content -path choco\VERIFICATION.txt -Raw) -replace '#VERSION_PLACEHOLDER#','${{ env.VERSION }}') | Set-Content -Path choco\VERIFICATION.txt
+        shell: powershell
 
-    - name: Copy LICENSE to choco folder
-      run: Copy-Item LICENSE -destination choco\LICENSE.txt
-      shell: powershell
+      - name: Copy LICENSE to choco folder
+        run: Copy-Item LICENSE -destination choco\LICENSE.txt
+        shell: powershell
 
-    - name: Pack
-      run: choco pack choco\configcat.nuspec --out .\choco
+      - name: Pack
+        run: choco pack choco\configcat.nuspec --out .\choco
 
-    - name: Install local choco package
-      run: choco install configcat --source .\choco
+      - name: Install local choco package
+        run: choco install configcat --source .\choco
 
-    - name: Execute tests
-      shell: pwsh
-      run: ./test/integ.ps1 configcat ./test
-      env:
-        CONFIGCAT_API_HOST: ${{ secrets.CONFIGCAT_API_HOST }}
-        CONFIGCAT_API_USER: ${{ secrets.CONFIGCAT_API_USER }}
-        CONFIGCAT_API_PASS: ${{ secrets.CONFIGCAT_API_PASS }}
+      - name: Execute tests
+        shell: pwsh
+        run: ./test/integ.ps1 configcat ./test
+        env:
+          CONFIGCAT_API_HOST: ${{ secrets.CONFIGCAT_API_HOST }}
+          CONFIGCAT_API_USER: ${{ secrets.CONFIGCAT_API_USER }}
+          CONFIGCAT_API_PASS: ${{ secrets.CONFIGCAT_API_PASS }}
 
   mac-tests:
     needs: [produce-executables, produce-osx-executable]
     runs-on: macos-latest
-    
-    steps:
-    - uses: actions/checkout@v7
-    
-    - name: Download executables
-      uses: actions/download-artifact@v8
-      with:
-        pattern: executables-*
-        merge-multiple: true
 
-    - name: Execute tests
-      shell: pwsh
-      run: |
-        chmod +x ./osx-x64/configcat
-        ./test/integ.ps1 ./osx-x64/configcat ./test
-      env:
-        CONFIGCAT_API_HOST: ${{ secrets.CONFIGCAT_API_HOST }}
-        CONFIGCAT_API_USER: ${{ secrets.CONFIGCAT_API_USER }}
-        CONFIGCAT_API_PASS: ${{ secrets.CONFIGCAT_API_PASS }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Download executables
+        uses: actions/download-artifact@v8
+        with:
+          pattern: executables-*
+          merge-multiple: true
+
+      - name: Execute tests
+        shell: pwsh
+        run: |
+          chmod +x ./osx-x64/configcat
+          ./test/integ.ps1 ./osx-x64/configcat ./test
+        env:
+          CONFIGCAT_API_HOST: ${{ secrets.CONFIGCAT_API_HOST }}
+          CONFIGCAT_API_USER: ${{ secrets.CONFIGCAT_API_USER }}
+          CONFIGCAT_API_PASS: ${{ secrets.CONFIGCAT_API_PASS }}
 
   docker-tests:
     needs: [produce-executables, produce-osx-executable]
     runs-on: ubuntu-latest
-    
+
     steps:
-    - uses: actions/checkout@v7
+      - uses: actions/checkout@v7
 
-    - name: Download executables
-      uses: actions/download-artifact@v8
-      with:
-        pattern: executables-*
-        merge-multiple: true
+      - name: Download executables
+        uses: actions/download-artifact@v8
+        with:
+          pattern: executables-*
+          merge-multiple: true
 
-    - name: Set permissions
-      run: chmod +x ./linux-musl-x64/configcat
+      - name: Set permissions
+        run: chmod +x ./linux-musl-x64/configcat
 
-    - name: Build and push
-      uses: docker/build-push-action@v7
-      with:
-        context: .
-        push: false
-        tags: configcat/cli:dev
+      - name: Build and push
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: false
+          tags: configcat/cli:dev
 
-    - name: Execute tests
-      shell: pwsh
-      run: ./test/integ.ps1 'docker run --rm --env CONFIGCAT_API_HOST=${{ env.CONFIGCAT_API_HOST }} --env CONFIGCAT_API_USER=${{ env.CONFIGCAT_API_USER }} --env CONFIGCAT_API_PASS=${{ env.CONFIGCAT_API_PASS }} -v $(pwd):/repo configcat/cli:dev' /repo/test
-      env:
-        CONFIGCAT_API_HOST: ${{ secrets.CONFIGCAT_API_HOST }}
-        CONFIGCAT_API_USER: ${{ secrets.CONFIGCAT_API_USER }}
-        CONFIGCAT_API_PASS: ${{ secrets.CONFIGCAT_API_PASS }}
+      - name: Execute tests
+        shell: pwsh
+        run: ./test/integ.ps1 'docker run --rm --env CONFIGCAT_API_HOST=${{ env.CONFIGCAT_API_HOST }} --env CONFIGCAT_API_USER=${{ env.CONFIGCAT_API_USER }} --env CONFIGCAT_API_PASS=${{ env.CONFIGCAT_API_PASS }} -v $(pwd):/repo configcat/cli:dev' /repo/test
+        env:
+          CONFIGCAT_API_HOST: ${{ secrets.CONFIGCAT_API_HOST }}
+          CONFIGCAT_API_USER: ${{ secrets.CONFIGCAT_API_USER }}
+          CONFIGCAT_API_PASS: ${{ secrets.CONFIGCAT_API_PASS }}
