@@ -1,4 +1,4 @@
-FROM node:25-alpine
+FROM node:26-alpine
 
 COPY ./linux-musl-x64/configcat /usr/local/bin
 
