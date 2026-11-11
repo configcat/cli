@@ -93,9 +93,6 @@ jobs:
       - name: Build snap
         uses: snapcore/action-build@v1
         id: build
-        with:
-          snapcraft-channel: 8.x/stable
-          snapcraft-args: --use-lxd
 
       - name: Archive snap
         uses: actions/upload-artifact@v7
