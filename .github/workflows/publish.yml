@@ -72,7 +72,7 @@ jobs:
           path: publish
 
   snap:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [produce-executables, produce-osx-executables]
 
     steps:
