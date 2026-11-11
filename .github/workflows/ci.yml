@@ -112,6 +112,7 @@ jobs:
         id: build
         with:
           snapcraft-channel: 8.x/stable
+          snapcraft-args: --use-lxd
 
       - name: Install snap
         run: sudo snap install --dangerous ${{ steps.build.outputs.snap }}
