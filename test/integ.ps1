@@ -792,7 +792,7 @@ Describe "Scan Tests" {
         $result = Invoke-ConfigCat "scan", $scanPath, "-c", $configId, "-r", "cli", "--upload", "--print"
         $result | Should -Match ([regex]::Escape("Repository: cli"))
         $result | Should -Match ([regex]::Escape("Uploading code references... Ok."))
-        $result | Should -Match ([regex]::Escape("Found 3 feature flag / setting reference(s) in 2 file(s). Keys: [flag_to_scan, flag_to_scan_2]"))
+        $result | Should -Match ([regex]::Escape("Found 4 feature flag / setting reference(s) in 2 file(s). Keys: [flag_to_scan, flag_to_scan_2]"))
         $result | Should -Match ([regex]::Escape("'flag_to_scan'"))
         $result | Should -Match ([regex]::Escape("'flag_to_scan_2'"))
         $result | Should -Not -Match ([regex]::Escape("deleted feature flag/setting reference(s) found in"))

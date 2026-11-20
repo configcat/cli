@@ -90,7 +90,7 @@ public class Output(CliOptions options) : IOutput
                 Console.ResetColor();
             }
             else
-                Console.Error.WriteLine(text);
+                Console.Error.WriteLine($"[error]: {text}");
 
             return this;
         }
