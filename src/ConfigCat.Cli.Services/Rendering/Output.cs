@@ -83,7 +83,8 @@ public class Output(CliOptions options) : IOutput
     {
         lock (this.consoleLock)
         {
-            return this.WriteColor($"[error]: {text}", ConsoleColor.Red);
+            this.WriteColor($"[error]: {text}", ConsoleColor.Red);
+            return this.WriteLine();
         }
     }
 
