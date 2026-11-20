@@ -1364,6 +1364,7 @@ public static class CommandBuilder
                 new Option<int>(["--timeout", "-to"], () => 1800, "Scan timeout in seconds (default: 1800, min: 60)"),
                 new Option<bool>(["--print", "-p"], "Print found references to output"),
                 new Option<bool>(["--upload", "-u"], "Upload references to ConfigCat"),
+                new Option<bool>(["--fail-on-deleted-flag-found", "-fd"], "Fail the scan if a deleted flag is found"),
                 new Option<string>(["--repo", "-r"], "Repository name. Mandatory for code reference upload"),
                 new Option<string>(["--branch", "-b"], "Branch name. When the scanned folder is a Git repo, it's determined automatically, otherwise, it must be set manually"),
                 new Option<string>(["--commit-hash", "-cm"], "Commit hash. When the scanned folder is a Git repo, it's determined automatically, otherwise, it must be set manually"),

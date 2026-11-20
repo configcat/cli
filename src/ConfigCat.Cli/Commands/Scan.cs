@@ -38,6 +38,7 @@ internal class Scan(
         int lineCount,
         bool print,
         bool upload,
+        bool failOnDeletedFlagFound,
         string repo,
         string branch,
         string commitHash,
@@ -60,10 +61,12 @@ internal class Scan(
         }
 
         if (excludeFlagKeys is {Length: 1} && excludeFlagKeys[0].Contains(','))
-            excludeFlagKeys = excludeFlagKeys[0].Split(',')
-                .Select(t => t.Trim())
-                .Where(t => !t.IsEmpty())
-                .ToArray();
+            excludeFlagKeys =
+            [
+                .. excludeFlagKeys[0].Split(',')
+                    .Select(t => t.Trim())
+                    .Where(t => !t.IsEmpty())
+            ];
         
         lineCount = lineCount is < 0 or > 10
             ? 4
@@ -76,12 +79,17 @@ internal class Scan(
         var flags = await flagClient.GetFlagsAsync(configId, token);
         if (excludeFlagKeys is {Length: > 0})
             flags = flags.Where(f => !excludeFlagKeys.Contains(f.Key));
-        var deletedFlags = await flagClient.GetDeletedFlagsAsync(configId, token);
-        deletedFlags = deletedFlags
-            .Where(d => flags.All(f => f.Key != d.Key))
-            .Distinct(new FlagModelEqualityComparer());
-        if (excludeFlagKeys is {Length: > 0})
-            deletedFlags = deletedFlags.Where(f => !excludeFlagKeys.Contains(f.Key));
+        
+        IEnumerable<DeletedFlagModel> deletedFlags = [];
+        if (failOnDeletedFlagFound)
+        {
+            deletedFlags = await flagClient.GetDeletedFlagsAsync(configId, token);
+            deletedFlags = deletedFlags
+                .Where(d => flags.All(f => f.Key != d.Key))
+                .Distinct(new FlagModelEqualityComparer());
+            if (excludeFlagKeys is {Length: > 0})
+                deletedFlags = deletedFlags.Where(f => !excludeFlagKeys.Contains(f.Key));
+        }
 
         output.Verbose($"Scanning {directory} with {timeout}s timeout");
         
@@ -94,10 +102,10 @@ internal class Scan(
         var usagePatternsFromEnv = 
             System.Environment.GetEnvironmentVariable(Constants.UsagePatternsEnvironmentVariableName)?.Split(',', StringSplitOptions.RemoveEmptyEntries) ?? [];
         var warningTracker = new List<string>();
-        var flagReferences = await fileScanner.ScanAsync(flags.Concat(deletedFlags).ToArray(), 
-            files.ToArray(), 
-            patternsFromEnv.Concat(aliasPatterns).ToArray(), 
-            usagePatternsFromEnv.Concat(usagePatterns).ToArray(), 
+        var flagReferences = await fileScanner.ScanAsync([.. flags, .. deletedFlags],
+            [.. files],
+            [.. patternsFromEnv, .. aliasPatterns], 
+            [.. usagePatternsFromEnv, .. usagePatterns], 
             lineCount, 
             TimeSpan.FromSeconds(timeout),
             warningTracker, 
@@ -106,9 +114,8 @@ internal class Scan(
         if (!warningTracker.IsEmpty())
             output.WriteYellow(string.Join(System.Environment.NewLine, warningTracker.Select(w => $"[warning]: {w}"))).WriteLine();
         
-        var flagReferenceResults = flagReferences as FlagReferenceResult[] ?? flagReferences.ToArray();
+        var flagReferenceResults = flagReferences as FlagReferenceResult[] ?? [.. flagReferences];
         var aliveFlagReferences = Filter(flagReferenceResults, r => r.FoundFlag is not DeletedFlagModel).ToArray();
-        var deletedFlagReferences = Filter(flagReferenceResults, r => r.FoundFlag is DeletedFlagModel).ToArray();
 
         output.Write("Found ")
             .WriteCyan(aliveFlagReferences.Sum(f => f.References.Count).ToString())
@@ -121,18 +128,28 @@ internal class Scan(
         if (print)
             this.PrintReferences(aliveFlagReferences, token);
 
-        if (deletedFlagReferences.Length > 0)
-            output.WriteWarning(
-                $"{deletedFlagReferences.Sum(f => f.References.Count)} deleted feature flag/setting " +
-                $"reference(s) found in {deletedFlagReferences.Length} file(s). " +
-                $"Keys: [{string.Join(", ", deletedFlagReferences.SelectMany(r => r.References).Select(r => r.FoundFlag.Key).Distinct())}]");
-        else
-            output.WriteGreen("OK. Didn't find any deleted feature flag / setting references.");
-
-        output.WriteLine();
-
-        if (print)
-            this.PrintReferences(deletedFlagReferences, token);
+        if (failOnDeletedFlagFound)
+        {
+            var deletedFlagReferences = Filter(flagReferenceResults, r => r.FoundFlag is DeletedFlagModel).ToArray();
+            if (deletedFlagReferences.Length > 0)
+            {
+                output.WriteError(
+                    $"{deletedFlagReferences.Sum(f => f.References.Count)} deleted feature flag/setting " +
+                    $"reference(s) found in {deletedFlagReferences.Length} file(s). " +
+                    $"Keys: [{string.Join(", ", deletedFlagReferences.SelectMany(r => r.References).Select(r => r.FoundFlag.Key).Distinct())}]");
+            }
+            else
+            {
+                output.WriteGreen("OK. Didn't find any deleted feature flag / setting references.");
+                output.WriteLine();
+            }
+            
+            if (print)
+                this.PrintReferences(deletedFlagReferences, token);
+            
+            if (deletedFlagReferences.Length > 0)
+                return ExitCodes.Error;
+        }
 
         if (!upload) return ExitCodes.Ok;
 

@@ -2,4 +2,6 @@
 
 "flag_to_scan_2"
 
+"flag_to_scan_3"
+
 custom_alias = flags!(flag_to_scan)

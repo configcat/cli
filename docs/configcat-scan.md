@@ -16,6 +16,7 @@ configcat scan ./dir -c <config-id> -l 5 --print
 | `--timeout`, `-to` | Scan timeout in seconds (default: 1800, min: 60) |
 | `--print`, `-p` | Print found references to output |
 | `--upload`, `-u` | Upload references to ConfigCat |
+| `--fail-on-deleted-flag-found`, `-fd` | Fail the scan if a deleted flag is found |
 | `--repo`, `-r` | Repository name. Mandatory for code reference upload |
 | `--branch`, `-b` | Branch name. When the scanned folder is a Git repo, it's determined automatically, otherwise, it must be set manually |
 | `--commit-hash`, `-cm` | Commit hash. When the scanned folder is a Git repo, it's determined automatically, otherwise, it must be set manually |
