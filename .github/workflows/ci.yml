@@ -92,7 +92,7 @@ jobs:
           path: publish
 
   linux-snap-tests:
-    needs: [produce-executables, produce-osx-executable]
+    needs: [produce-executables]
     runs-on: ubuntu-24.04
 
     steps:
@@ -118,16 +118,14 @@ jobs:
 
       - name: Execute tests
         shell: pwsh
-        run: |
-          git status
-          ./test/integ.ps1 configcat ./test
+        run: ./test/integ.ps1 configcat ./test
         env:
           CONFIGCAT_API_HOST: ${{ secrets.CONFIGCAT_API_HOST }}
           CONFIGCAT_API_USER: ${{ secrets.CONFIGCAT_API_USER }}
           CONFIGCAT_API_PASS: ${{ secrets.CONFIGCAT_API_PASS }}
 
   win-choco-tests:
-    needs: [produce-executables, produce-osx-executable]
+    needs: [produce-executables]
     runs-on: windows-latest
 
     steps:
@@ -165,9 +163,16 @@ jobs:
           CONFIGCAT_API_USER: ${{ secrets.CONFIGCAT_API_USER }}
           CONFIGCAT_API_PASS: ${{ secrets.CONFIGCAT_API_PASS }}
 
-  mac-tests:
+  platform-tests-unix:
     needs: [produce-executables, produce-osx-executable]
-    runs-on: macos-latest
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        include:
+        - runner: ubuntu-latest
+          arch: linux-x64
+        - runner: macos-latest
+          arch: osx-x64
 
     steps:
       - uses: actions/checkout@v7
@@ -181,15 +186,36 @@ jobs:
       - name: Execute tests
         shell: pwsh
         run: |
-          chmod +x ./osx-x64/configcat
-          ./test/integ.ps1 ./osx-x64/configcat ./test
+          chmod +x ./${{ matrix.arch }}/configcat
+          ./test/integ.ps1 ./${{ matrix.arch }}/configcat ./test
+        env:
+          CONFIGCAT_API_HOST: ${{ secrets.CONFIGCAT_API_HOST }}
+          CONFIGCAT_API_USER: ${{ secrets.CONFIGCAT_API_USER }}
+          CONFIGCAT_API_PASS: ${{ secrets.CONFIGCAT_API_PASS }}
+  
+  platform-tests-win:
+    needs: [ produce-executables ]
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Download executables
+        uses: actions/download-artifact@v8
+        with:
+          pattern: executables-*
+          merge-multiple: true
+
+      - name: Execute tests
+        shell: pwsh
+        run: .\test\integ.ps1 .\win-x64\configcat.exe .\test
         env:
           CONFIGCAT_API_HOST: ${{ secrets.CONFIGCAT_API_HOST }}
           CONFIGCAT_API_USER: ${{ secrets.CONFIGCAT_API_USER }}
           CONFIGCAT_API_PASS: ${{ secrets.CONFIGCAT_API_PASS }}
 
   docker-tests:
-    needs: [produce-executables, produce-osx-executable]
+    needs: [produce-executables]
     runs-on: ubuntu-latest
 
     steps:
