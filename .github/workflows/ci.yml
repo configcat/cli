@@ -114,7 +114,7 @@ jobs:
           snapcraft-channel: 8.x/stable
 
       - name: Install snap
-        run: sudo snap install --classic --dangerous ${{ steps.build.outputs.snap }}
+        run: sudo snap install --devmode --dangerous ${{ steps.build.outputs.snap }}
 
       - name: Execute tests
         shell: pwsh
