@@ -58,7 +58,6 @@
       <PropertyGroup>
         <PublishTrimmed>true</PublishTrimmed>
         <TrimmerRemoveSymbols>true</TrimmerRemoveSymbols>
-        <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
         <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
         <JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
         <PublishReadyToRun>true</PublishReadyToRun>
