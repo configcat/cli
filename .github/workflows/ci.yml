@@ -113,6 +113,11 @@ jobs:
         with:
           snapcraft-channel: 8.x/stable
 
+      - name: Debug snap
+        run: |
+          pwd
+          snap run --shell <your-snap-name>.<your-app-name> -c "which git; git --version; ls -la"
+
       - name: Install snap
         run: sudo snap install --devmode --dangerous ${{ steps.build.outputs.snap }}
 
