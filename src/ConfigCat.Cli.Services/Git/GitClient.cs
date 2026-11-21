@@ -28,6 +28,7 @@ public class GitClient(IOutput output) : IGitClient
             var startInfo = GetGitProcessStartInfoForPath(directory.FullName);
 
             var repoWorkingDir = await ExecuteAsync(startInfo, "rev-parse --show-toplevel", GitCmdTimeout);
+            output.WriteLine("Executing 'git rev-parse --show-toplevel' in " + directory.FullName);
             if (repoWorkingDir.StdOut.IsEmpty() || !Directory.Exists(repoWorkingDir.StdOut))
             {
                 output.WriteYellow($"{directory.FullName} is not a Git repository. Skipping.").WriteLine();
@@ -37,9 +38,10 @@ public class GitClient(IOutput output) : IGitClient
             output.WriteGreen($"Git repository found at {repoWorkingDir.StdOut}").WriteLine();
             return new DirectoryInfo(repoWorkingDir.StdOut);
         }
-        catch (Exception)
+        catch (Exception e)
         {
             output.WriteYellow("Could not execute the Git CLI, it's probably not installed. Skipping.").WriteLine();
+            output.WriteLine(e.Message);
             return null;
         }
     }
