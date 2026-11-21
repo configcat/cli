@@ -21,6 +21,8 @@ parts:
       - bin/configcat
       - LICENSE
       - README.md
+    stage-packages:
+      - git
     override-build: |
       cd $SNAPCRAFT_PART_BUILD
       chmod +x configcat
