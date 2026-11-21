@@ -40,4 +40,5 @@ apps:
     environment:
       PATH: "$SNAP/usr/bin:$SNAP/bin:$PATH"
       GIT_EXEC_PATH: "$SNAP/usr/lib/git-core"
+      GIT_TEMPLATE_DIR: "$SNAP/usr/share/git-core/templates"
       GIT_SSL_CAINFO: "$SNAP/etc/ssl/certs/ca-certificates.crt"
