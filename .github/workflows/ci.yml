@@ -119,7 +119,7 @@ jobs:
       - name: Debug snap
         run: |
           pwd
-          snap run --shell ${{ steps.build.outputs.snap }} -c "which git; git --version; ls -la"
+          snap run --shell configcat.configcat -c "which git; git --version; ls -la"
 
       - name: Execute tests
         shell: pwsh
