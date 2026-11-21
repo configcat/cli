@@ -114,12 +114,7 @@ jobs:
           snapcraft-channel: 8.x/stable
 
       - name: Install snap
-        run: sudo snap install --devmode --dangerous ${{ steps.build.outputs.snap }}
-
-      - name: Debug snap
-        run: |
-          pwd
-          snap run --shell configcat.configcat -c "which git; git --version; ls -la"
+        run: sudo snap install --dangerous ${{ steps.build.outputs.snap }}
 
       - name: Execute tests
         shell: pwsh
