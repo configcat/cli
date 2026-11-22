@@ -83,16 +83,8 @@ public class Output(CliOptions options) : IOutput
     {
         lock (this.consoleLock)
         {
-            if (!this.IsOutputRedirected)
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.Error.WriteLine($"[error]: {text}");
-                Console.ResetColor();
-            }
-            else
-                Console.Error.WriteLine(text);
-
-            return this;
+            this.WriteColor($"[error]: {text}", ConsoleColor.Red);
+            return this.WriteLine();
         }
     }
 
@@ -100,8 +92,7 @@ public class Output(CliOptions options) : IOutput
     {
         lock (this.consoleLock)
         {
-            this.WriteYellow($"[warning]: {text}");
-            return this;
+            return this.WriteYellow($"[warning]: {text}");
         }
     }
     

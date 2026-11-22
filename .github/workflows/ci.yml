@@ -92,7 +92,7 @@ jobs:
           path: publish
 
   linux-snap-tests:
-    needs: [produce-executables, produce-osx-executable]
+    needs: [produce-executables]
     runs-on: ubuntu-24.04
 
     steps:
@@ -118,14 +118,14 @@ jobs:
 
       - name: Execute tests
         shell: pwsh
-        run: ./test/integ.ps1 configcat ./test
+        run: ./test/integ.ps1 configcat ./test -withoutGit
         env:
           CONFIGCAT_API_HOST: ${{ secrets.CONFIGCAT_API_HOST }}
           CONFIGCAT_API_USER: ${{ secrets.CONFIGCAT_API_USER }}
           CONFIGCAT_API_PASS: ${{ secrets.CONFIGCAT_API_PASS }}
 
   win-choco-tests:
-    needs: [produce-executables, produce-osx-executable]
+    needs: [produce-executables]
     runs-on: windows-latest
 
     steps:
@@ -164,7 +164,7 @@ jobs:
           CONFIGCAT_API_PASS: ${{ secrets.CONFIGCAT_API_PASS }}
 
   mac-tests:
-    needs: [produce-executables, produce-osx-executable]
+    needs: [produce-osx-executable]
     runs-on: macos-latest
 
     steps:
@@ -187,7 +187,7 @@ jobs:
           CONFIGCAT_API_PASS: ${{ secrets.CONFIGCAT_API_PASS }}
 
   docker-tests:
-    needs: [produce-executables, produce-osx-executable]
+    needs: [produce-executables]
     runs-on: ubuntu-latest
 
     steps:
@@ -211,7 +211,7 @@ jobs:
 
       - name: Execute tests
         shell: pwsh
-        run: ./test/integ.ps1 'docker run --rm --env CONFIGCAT_API_HOST=${{ env.CONFIGCAT_API_HOST }} --env CONFIGCAT_API_USER=${{ env.CONFIGCAT_API_USER }} --env CONFIGCAT_API_PASS=${{ env.CONFIGCAT_API_PASS }} -v $(pwd):/repo configcat/cli:dev' /repo/test
+        run: ./test/integ.ps1 'docker run --rm --user "$(id -u):$(id -g)" --env HOME=/tmp --env CONFIGCAT_API_HOST=${{ env.CONFIGCAT_API_HOST }} --env CONFIGCAT_API_USER=${{ env.CONFIGCAT_API_USER }} --env CONFIGCAT_API_PASS=${{ env.CONFIGCAT_API_PASS }} -v $(pwd):/repo configcat/cli:dev' /repo/test
         env:
           CONFIGCAT_API_HOST: ${{ secrets.CONFIGCAT_API_HOST }}
           CONFIGCAT_API_USER: ${{ secrets.CONFIGCAT_API_USER }}

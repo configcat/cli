@@ -1,7 +1,10 @@
 #!/usr/bin/pwsh
 
-$cliPath = $args[0]
-$scanPath = $args[1]
+param(
+    [string]$cliPath = $args[0],
+    [string]$scanPath = $args[1],
+    [switch]$withoutGit = $false
+)
 
 function Invoke-ConfigCat {
 	param(
@@ -291,7 +294,7 @@ Describe "Product preferences tests" {
     AfterAll {
         Invoke-ConfigCat "product", "preferences", "update", "env", "-i", $productId, "-ei", "${environmentId}:false"
     }
-    
+
     It "Update preferences" {
         Invoke-ConfigCat "product", "preferences", "update", "-i", $productId, "-rr", "true", "-kg", "pascalCase", "-vi", "true"
         $prefResult = Invoke-ConfigCat "product", "preferences", "sh", "-i", $productId
@@ -502,12 +505,12 @@ Describe "Flag value / Rule Tests V2" {
         $configV2Id = Invoke-ConfigCat "config", "create", "-p", $productId, "-n", $configV2Name, "-e", "v2"
         Invoke-ConfigCat "config", "ls", "-p", $productId | Should -Match ([regex]::Escape($configV2Name))
     }
-    
+
     AfterAll {
         Invoke-ConfigCat "config", "rm", "-i", $configV2Id
         Invoke-ConfigCat "config", "ls", "-p", $productId | Should -Not -Match ([regex]::Escape($configV2Id))
     }
-    
+
     BeforeEach {
         $flagV2Id = Invoke-ConfigCat "flag-v2", "create", "-c", $configV2Id, "-n", "Bool-Flag", "-k", "bool_flag", "-H", "hint", "-t", "boolean"
         $flagV2Id2 = Invoke-ConfigCat "flag-v2", "create", "-c", $configV2Id, "-n", "Bool-Flag", "-k", "bool_flag2", "-H", "hint", "-t", "boolean"
@@ -533,14 +536,14 @@ Describe "Flag value / Rule Tests V2" {
         $result | Should -Match ([regex]::Escape("2. If EMAIL EQUALS example.com"))
         $result | Should -Match ([regex]::Escape("3. If VERSION IS NOT ONE OF [2 items]"))
     }
-    
+
     It "Create segment targeting rule" {
         Invoke-ConfigCat "flag-v2", "targeting", "rule", "cr", "sg", "-i", $flagV2Id, "-e", $environmentId, "-si", $segmentId, "-c", "isNotIn", "-sv", "true"
         $result = Invoke-ConfigCat "flag-v2", "value", "show", "-i", $flagV2Id
         $result | Should -Match ([regex]::Escape("1. If IS NOT IN SEGMENT CLI-IntegTest-Segment"))
         $result | Should -Match ([regex]::Escape("Then: True"))
     }
-    
+
     It "Create prerequisite targeting rule" {
         Invoke-ConfigCat "flag-v2", "targeting", "rule", "cr", "pr", "-i", $flagV2Id, "-e", $environmentId, "-c", "equals", "-pi", $flagV2Id2, "-pv", "true", "-sv", "true"
         $result = Invoke-ConfigCat "flag-v2", "value", "show", "-i", $flagV2Id
@@ -556,7 +559,7 @@ Describe "Flag value / Rule Tests V2" {
         $result = Invoke-ConfigCat "flag-v2", "value", "show", "-i", $flagV2Id
         $result | Should -Not -Match ([regex]::Escape("1. If ID IS ONE OF [2 items]"))
     }
-    
+
     It "Move targeting rule" {
         Invoke-ConfigCat "flag-v2", "targeting", "rule", "cr", "u", "-i", $flagV2Id, "-e", $environmentId, "-a", "ID", "-c", "isOneOf", "-cv", "id1:user1", "id2:user2", "-sv", "true"
         Invoke-ConfigCat "flag-v2", "targeting", "rule", "cr", "u", "-i", $flagV2Id, "-e", $environmentId, "-a", "EMAIL", "-c", "textEquals", "-cv", "example.com", "-sv", "true"
@@ -659,7 +662,7 @@ Describe "Flag value / Rule Tests V2 Predefined Variations" {
         Invoke-ConfigCat "flag-v2", "rm", "-i", $flagV2PredefId2
         Invoke-ConfigCat "flag-v2", "rm", "-i", $flagV2PredefId3
     }
-    
+
     It "Update Value" {
         Invoke-ConfigCat "flag-v2", "value", "update", "-i", $flagV2PredefId, "-e", $environmentId, "-f", "B1"
         $result = Invoke-ConfigCat "flag-v2", "value", "show", "-i", $flagV2PredefId
@@ -766,7 +769,7 @@ Describe "Flag value / Rule Tests V2 Predefined Variations" {
         $predefId = Invoke-ConfigCat "flag-v2", "var", "cr", "-i", $flagV2PredefId3, "-n", "C3", "-H", "C3hint", "-sv", "c3"
         $result = Invoke-ConfigCat "flag-v2", "var", "ls", "-i", $flagV2PredefId3
         $result | Should -Match ([regex]::Escape("$predefId  C3    `"C3hint`"  c3"))
-        
+
         Invoke-ConfigCat "flag-v2", "var", "up", "-i", $flagV2PredefId3, "-pvi" , $predefId, "-n", "C32", "-H", "C32hint", "-sv", "c32"
         $result = Invoke-ConfigCat "flag-v2", "var", "ls", "-i", $flagV2PredefId3
         $result | Should -Match ([regex]::Escape("$predefId  C32   `"C32hint`"  c32"))
@@ -788,29 +791,45 @@ Describe "Scan Tests" {
         Invoke-ConfigCat "flag", "rm", "-i", $flagIdToScan2
     }
 
-    It "Scan" {
-        $result = Invoke-ConfigCat "scan", $scanPath, "-c", $configId, "-r", "cli", "--upload", "--print"
+    It "Scan upload" {
+        if ($withoutGit) {
+            $result = Invoke-ConfigCat "scan", $scanPath, "-c", $configId, "-r", "cli", "--upload", "--print", "--branch", "main"
+        } else {
+            $result = Invoke-ConfigCat "scan", $scanPath, "-c", $configId, "-r", "cli", "--upload", "--print"
+        }
         $result | Should -Match ([regex]::Escape("Repository: cli"))
         $result | Should -Match ([regex]::Escape("Uploading code references... Ok."))
+        $result | Should -Match ([regex]::Escape("Found 4 feature flag / setting reference(s) in 2 file(s). Keys: [flag_to_scan, flag_to_scan_2]"))
         $result | Should -Match ([regex]::Escape("'flag_to_scan'"))
         $result | Should -Match ([regex]::Escape("'flag_to_scan_2'"))
-        $result | Should -Match ([regex]::Escape("deleted feature flag/setting reference(s) found in"))
+        $result | Should -Not -Match ([regex]::Escape("deleted feature flag/setting reference(s) found in"))
     }
 
     It "Scan exclude" {
         $result = Invoke-ConfigCat "scan", $scanPath, "-c", $configId, "-r", "cli", "-ex", "flag_to_scan", "flag_to_scan_2"
+        $result | Should -Match ([regex]::Escape("feature flag / setting reference(s) in"))
         $result | Should -Not -Match ([regex]::Escape("'flag_to_scan'"))
         $result | Should -Not -Match ([regex]::Escape("'flag_to_scan_2'"))
-        $result | Should -Match ([regex]::Escape("deleted feature flag/setting reference(s) found in"))
+        $result | Should -Not -Match ([regex]::Escape("deleted feature flag/setting reference(s) found in"))
     }
 
     It "Scan exclude comma" {
         $result = Invoke-ConfigCat "scan", $scanPath, "-c", $configId, "-r", "cli", "-ex", "flag_to_scan, flag_to_scan_2"
+        $result | Should -Match ([regex]::Escape("feature flag / setting reference(s) in"))
         $result | Should -Not -Match ([regex]::Escape("'flag_to_scan'"))
         $result | Should -Not -Match ([regex]::Escape("'flag_to_scan_2'"))
-        $result | Should -Match ([regex]::Escape("deleted feature flag/setting reference(s) found in"))
+        $result | Should -Not -Match ([regex]::Escape("deleted feature flag/setting reference(s) found in"))
     }
-    
+
+    It "Scan fail on deleted flag" {
+        $flagIdToScan3 = Invoke-ConfigCat "flag", "create", "-c", $configId, "-n", "Flag-To-Scan-3", "-k", "flag_to_scan_3", "-H", "hint", "-t", "boolean"
+        Invoke-ConfigCat "flag", "rm", "-i", $flagIdToScan3
+        $result = Invoke-ConfigCat "scan", $scanPath, "-c", $configId, "-r", "cli", "--upload", "--print", "-fd"
+        $result | Should -Match ([regex]::Escape("[error]: 1 deleted feature flag/setting reference(s) found in 1 file(s). Keys: [flag_to_scan_3]"))
+        $result | Should -Not -Match ([regex]::Escape("Repository: cli"))
+        $result | Should -Not -Match ([regex]::Escape("Uploading code references... Ok."))
+    }
+
     It "Scan custom pattern" {
         $result = Invoke-ConfigCat "scan", $scanPath, "-c", $configId, "-r", "cli", "-ap", "'(\w+) = flags!(CC_KEY)'", "--print"
         $result | Should -Match ([regex]::Escape("custom_alias"))
@@ -834,7 +853,7 @@ Describe "Eval Tests" {
         $result = Invoke-ConfigCat "eval", "-sk", $sdkKey, "-fk", "flag_to_eval1", "-u", "https://test-cdn-global.configcat.com", "-ua", "id:SOMEID"
         $result | Should -Match ([regex]::Escape("true"))
     }
-    
+
     It "Eval multiple with user attributes" {
         $result = Invoke-ConfigCat "eval", "-sk", $sdkKey, "-fk", "flag_to_eval1", "flag_to_eval2", "-u", "https://test-cdn-global.configcat.com", "-ua", "id:SOMEID", "--map"
         $result | Should -Match ([regex]::Escape("flag_to_eval1=true;flag_to_eval2=false"))

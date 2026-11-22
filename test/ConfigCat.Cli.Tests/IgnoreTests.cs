@@ -27,7 +27,7 @@ public class IgnoreTests
         var (ignoreFiles, files) = FileCollector.GetFilesFromWorkSpace(executingDir, repoDir);
 
         var expectations = expectedIgnoreFiles.Select(f => Path.Combine(Directory.GetCurrentDirectory(), f).WithSlashes())
-            .Concat([Path.Combine(repoDir.FullName, ".gitignore").WithSlashes()]).Order().ToArray();
+            .Concat([Path.Combine(repoDir.FullName, ".gitignore").WithSlashes(), Path.Combine(repoDir.FullName, "test", ".ccignore").WithSlashes()]).Order().ToArray();
 
         var ignoreFileNames = ignoreFiles.Select(f => f.FullName.WithSlashes()).Order();
 

@@ -25,10 +25,12 @@ public class FileCollector(IOutput output) : IFileCollector
         List<IgnorePolicy> policies =
         [
             new GlobalIgnorePolicy(gitRepoDir ?? searchDirectory, ".git", "*.lock", "*lock.json", "*.graphql", "*.md",
-                ".dockerignore")
+                ".dockerignore"),
+
+            .. ignoreFiles
+                .Select(ignoreFile => new IgnoreFile(ignoreFile, gitRepoDir ?? searchDirectory))
+
         ];
-        policies.AddRange(ignoreFiles
-            .Select(ignoreFile => new IgnoreFile(ignoreFile, gitRepoDir ?? searchDirectory)));
 
         foreach (var ignore in policies)
         {
@@ -67,7 +69,7 @@ public class FileCollector(IOutput output) : IFileCollector
         do
         {
             currentDir = currentDir.Parent;
-            ignoreFiles = ignoreFiles.Concat(EnumerateFiles(currentDir, false).Where(f => f.IsIgnoreFile())).ToArray();
+            ignoreFiles = [.. ignoreFiles, .. EnumerateFiles(currentDir, false).Where(f => f.IsIgnoreFile())];
         } while (currentDir != null && !currentDir.SameDirectory(gitRepoDir));
 
         return (ignoreFiles, otherFiles);
