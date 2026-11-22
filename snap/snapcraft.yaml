@@ -25,11 +25,6 @@ parts:
       cd $SNAPCRAFT_PART_BUILD
       chmod +x configcat
       snapcraftctl build
-  git:
-    plugin: nil
-    stage-packages:
-      - git
-      - ca-certificates
       
 apps:
   configcat:
@@ -37,8 +32,3 @@ apps:
     plugs:
       - home
       - network
-    environment:
-      PATH: "$SNAP/usr/bin:$SNAP/bin:$PATH"
-      GIT_EXEC_PATH: "$SNAP/usr/lib/git-core"
-      GIT_TEMPLATE_DIR: "$SNAP/usr/share/git-core/templates"
-      GIT_SSL_CAINFO: "$SNAP/etc/ssl/certs/ca-certificates.crt"
