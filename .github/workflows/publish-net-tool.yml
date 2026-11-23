@@ -1,14 +1,14 @@
 name: ConfigCat CLI Publish as .NET Tool
 
 on:
-  push:
-    tags: ['v[0-9]+.[0-9]+.[0-9]+']
-
   workflow_dispatch:
      
 jobs:
   nuget:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      
     steps:
       - uses: actions/checkout@v7
       - name: Setup dotnet
@@ -20,8 +20,13 @@ jobs:
         run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
 
       - name: Pack
-        run: |
-          dotnet pack src/ConfigCat.Cli/ConfigCat.Cli.csproj -c Release -p:Version=${{ env.VERSION }} -o publish/nuget -p:NetToolPack=true
+        run: dotnet pack src/ConfigCat.Cli/ConfigCat.Cli.csproj -c Release -p:Version=${{ env.VERSION }} -o publish/nuget -p:NetToolPack=true
 
-      - name: Publish to NuGet.org
-        run: dotnet nuget push publish/nuget/configcat-cli.${{ env.VERSION }}.nupkg -k ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+      - name: NuGet login
+        uses: NuGet/login@v1
+        id: login
+        with:
+          user: ${{ secrets.NUGET_USER }}
+          
+      - name: NuGet push
+        run: dotnet nuget push publish/nuget/configcat-cli.${{ env.VERSION }}.nupkg --api-key ${{steps.login.outputs.NUGET_API_KEY}} --source https://api.nuget.org/v3/index.json
