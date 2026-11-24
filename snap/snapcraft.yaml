@@ -17,14 +17,11 @@ parts:
     source: linux-x64/
     organize:
       configcat: bin/
-    stage:
-      - bin/configcat
-      - LICENSE
-      - README.md
-    override-build: |
-      cd $SNAPCRAFT_PART_BUILD
-      chmod +x configcat
-      snapcraftctl build
+    stage-packages:
+      - libsecret-1-0
+      override-build: |
+        craftctl default
+        chmod +x $CRAFT_PART_INSTALL/bin/configcat
       
 apps:
   configcat:

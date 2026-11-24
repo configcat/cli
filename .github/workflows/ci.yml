@@ -112,11 +112,17 @@ jobs:
         id: build
         with:
           snapcraft-channel: 8.x/stable
+          
+      - name: List snap files
+        run: unsquashfs -l ${{ steps.build.outputs.snap }}
 
       - name: Install snap
         run: |
           sudo snap install --dangerous ${{ steps.build.outputs.snap }}
           sudo snap connect configcat:password-manager-service
+          
+      - name: List installed snap files
+        run: snap run --shell configcat -c 'ldd $SNAP/bin/configcat'
 
       - name: Execute tests
         shell: pwsh
