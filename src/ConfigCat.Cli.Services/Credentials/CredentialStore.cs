@@ -37,8 +37,8 @@ public sealed class CredentialStore : ICredentialStore
                 cacheFileName: $"{storeName}.cache",
                 cacheDirectory: cacheDir)
             .WithMacKeyChain(
-                serviceName: $"{ServiceIdentifier}.service",
-                accountName:  $"{ServiceIdentifier}.account")
+                serviceName: $"{ServiceIdentifier}.{storeName}.service",
+                accountName:  $"{ServiceIdentifier}.{storeName}.account")
             .WithLinuxKeyring(
                 schemaName: $"{ServiceIdentifier}.{storeName}cache",
                 collection: MsalCacheHelper.LinuxKeyRingDefaultCollection,

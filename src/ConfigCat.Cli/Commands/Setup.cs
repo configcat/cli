@@ -44,7 +44,7 @@ internal class Setup(
         await configurationStorage.WriteConfigAsync(cliConfig, token);
 
         output.WriteSuccess().WriteLine().Write($"Saving credentials to credential store... ");
-        var credentialStore = credentialsManager.CreateBasicAuthCredentialStore();
+        var credentialStore = credentialsManager.CreateApiCredentialStore();
         credentialStore.Set(new CredentialData { UserName = userName, Password = password });
         cliContext.SetBasicAuth(userName, password);
 
@@ -66,7 +66,7 @@ internal class Setup(
         output.Write("Clearing credentials... ");
         {
             using var spinner = output.CreateSpinner(token);
-            var credentialStore = credentialsManager.CreateBasicAuthCredentialStore();
+            var credentialStore = credentialsManager.CreateApiCredentialStore();
             credentialStore.Clear();
             await configurationStorage.WriteConfigAsync(new CliConfig(), token);
         }

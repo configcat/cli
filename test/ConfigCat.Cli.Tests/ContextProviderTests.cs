@@ -214,7 +214,7 @@ public class ContextProviderTests
         Mock<ICredentialStore> credentialStore)
     {
         var mockManager = new Mock<ICredentialsManager>();
-        mockManager.Setup(x => x.CreateBasicAuthCredentialStore()).Returns(credentialStore.Object);
+        mockManager.Setup(x => x.CreateApiCredentialStore()).Returns(credentialStore.Object);
         return new ContextProvider(
             Mock.Of<IOutput>(),
             storage.Object,

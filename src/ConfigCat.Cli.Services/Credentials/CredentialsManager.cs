@@ -2,13 +2,13 @@
 
 public interface ICredentialsManager
 {
-    ICredentialStore CreateBasicAuthCredentialStore();
+    ICredentialStore CreateApiCredentialStore();
 }
 
 public class CredentialsManager : ICredentialsManager
 {
-    public ICredentialStore CreateBasicAuthCredentialStore()
+    public ICredentialStore CreateApiCredentialStore()
     {
-        return new CredentialStore("basic_auth");
+        return new CredentialStore("apicred");
     }
 }

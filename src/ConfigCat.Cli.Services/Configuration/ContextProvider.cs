@@ -36,7 +36,7 @@ public class ContextProvider(IOutput output, IConfigurationStorage configuration
 
             if (!string.IsNullOrEmpty(legacyUserName) && !string.IsNullOrEmpty(legacyPassword))
             {
-                var credentialStore = credentialsManager.CreateBasicAuthCredentialStore();
+                var credentialStore = credentialsManager.CreateApiCredentialStore();
                 if (string.IsNullOrEmpty(user) && string.IsNullOrEmpty(pass))
                 { 
                     credentialStore.Set(new CredentialData
@@ -65,7 +65,7 @@ public class ContextProvider(IOutput output, IConfigurationStorage configuration
 
         if (string.IsNullOrEmpty(user) && string.IsNullOrEmpty(pass))
         {
-            var credentialStore = credentialsManager.CreateBasicAuthCredentialStore();
+            var credentialStore = credentialsManager.CreateApiCredentialStore();
             var credentials = credentialStore.Get();
             if (credentials is not null &&
                 !string.IsNullOrEmpty(credentials.UserName) &&
