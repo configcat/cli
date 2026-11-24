@@ -19,9 +19,9 @@ parts:
       configcat: bin/
     stage-packages:
       - libsecret-1-0
-      override-build: |
-        craftctl default
-        chmod +x $CRAFT_PART_INSTALL/bin/configcat
+    override-build: |
+      craftctl default
+      chmod +x $CRAFT_PART_INSTALL/bin/configcat
       
 apps:
   configcat:
