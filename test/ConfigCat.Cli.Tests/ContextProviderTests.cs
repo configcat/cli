@@ -213,10 +213,12 @@ public class ContextProviderTests
         Mock<IConfigurationStorage> storage,
         Mock<ICredentialStore> credentialStore)
     {
+        var mockManager = new Mock<ICredentialsManager>();
+        mockManager.Setup(x => x.CreateBasicAuthCredentialStore()).Returns(credentialStore.Object);
         return new ContextProvider(
             Mock.Of<IOutput>(),
             storage.Object,
-            credentialStore.Object);
+            mockManager.Object);
     }
 
     private sealed class EnvironmentVariableScope : IDisposable

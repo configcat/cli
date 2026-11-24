@@ -24,25 +24,25 @@ public sealed class CredentialStore : ICredentialStore
     private readonly string lockFilePath;
     private readonly Storage storage;
     
-    public CredentialStore()
+    public CredentialStore(string storeName)
     {
         var cacheDir = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             AppName);
 
         Directory.CreateDirectory(cacheDir);
-        lockFilePath = Path.Combine(cacheDir, "credential.cache.lockfile");
+        lockFilePath = Path.Combine(cacheDir, $"{storeName}.cache.lockfile");
 
         var builder = new StorageCreationPropertiesBuilder(
-                cacheFileName: "credential.cache",
+                cacheFileName: $"{storeName}.cache",
                 cacheDirectory: cacheDir)
             .WithMacKeyChain(
                 serviceName: $"{ServiceIdentifier}.service",
                 accountName:  $"{ServiceIdentifier}.account")
             .WithLinuxKeyring(
-                schemaName: $"{ServiceIdentifier}.credentialcache",
+                schemaName: $"{ServiceIdentifier}.{storeName}cache",
                 collection: MsalCacheHelper.LinuxKeyRingDefaultCollection,
-                secretLabel: $"{AppName} Stored Credentials",
+                secretLabel: $"{AppName} {storeName} cache",
                 attribute1: new KeyValuePair<string, string>("Version", "1"),
                 attribute2: new KeyValuePair<string, string>("Product", AppName));
 

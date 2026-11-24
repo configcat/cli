@@ -14,7 +14,7 @@ public interface IContextProvider
     Task<CliContext> GetConfigAsync(CancellationToken cancellationToken);
 }
 
-public class ContextProvider(IOutput output, IConfigurationStorage configurationStorage, ICredentialStore credentialStore) : IContextProvider
+public class ContextProvider(IOutput output, IConfigurationStorage configurationStorage, ICredentialsManager credentialsManager) : IContextProvider
 {
     public async Task<CliContext> GetConfigAsync(CancellationToken cancellationToken)
     {
@@ -36,6 +36,7 @@ public class ContextProvider(IOutput output, IConfigurationStorage configuration
 
             if (!string.IsNullOrEmpty(legacyUserName) && !string.IsNullOrEmpty(legacyPassword))
             {
+                var credentialStore = credentialsManager.CreateBasicAuthCredentialStore();
                 if (string.IsNullOrEmpty(user) && string.IsNullOrEmpty(pass))
                 { 
                     credentialStore.Set(new CredentialData
@@ -64,6 +65,7 @@ public class ContextProvider(IOutput output, IConfigurationStorage configuration
 
         if (string.IsNullOrEmpty(user) && string.IsNullOrEmpty(pass))
         {
+            var credentialStore = credentialsManager.CreateBasicAuthCredentialStore();
             var credentials = credentialStore.Get();
             if (credentials is not null &&
                 !string.IsNullOrEmpty(credentials.UserName) &&

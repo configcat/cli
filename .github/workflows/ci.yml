@@ -114,7 +114,9 @@ jobs:
           snapcraft-channel: 8.x/stable
 
       - name: Install snap
-        run: sudo snap install --dangerous ${{ steps.build.outputs.snap }}
+        run: |
+          sudo snap install --dangerous ${{ steps.build.outputs.snap }}
+          sudo snap connect configcat:password-manager-service
 
       - name: Execute tests
         shell: pwsh

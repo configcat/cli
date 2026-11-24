@@ -15,7 +15,7 @@ internal class Setup(
     IPrompt prompt,
     IMeClient meClient,
     IConfigurationStorage configurationStorage,
-    ICredentialStore credentialStore,
+    ICredentialsManager credentialsManager,
     IOutput output,
     CliContext cliContext)
 {
@@ -44,7 +44,7 @@ internal class Setup(
         await configurationStorage.WriteConfigAsync(cliConfig, token);
 
         output.WriteSuccess().WriteLine().Write($"Saving credentials to credential store... ");
-        
+        var credentialStore = credentialsManager.CreateBasicAuthCredentialStore();
         credentialStore.Set(new CredentialData { UserName = userName, Password = password });
         cliContext.SetBasicAuth(userName, password);
 
@@ -58,6 +58,27 @@ internal class Setup(
             .WriteGreen("Setup complete.")
             .WriteLine().WriteLine();
 
+        return ExitCodes.Ok;
+    }
+    
+    public async Task<int> LogoutAsync(CancellationToken token)
+    {
+        output.Write("Clearing credentials... ");
+        {
+            using var spinner = output.CreateSpinner(token);
+            var credentialStore = credentialsManager.CreateBasicAuthCredentialStore();
+            credentialStore.Clear();
+            await configurationStorage.WriteConfigAsync(new CliConfig(), token);
+        }
+        output.WriteSuccess().WriteLine();
+        
+        return ExitCodes.Ok;
+    }
+    
+    public async Task<int> MeAsync(CancellationToken token)
+    {
+        var me = await meClient.GetMeAsync(token);
+        output.WriteLine($"{me.FullName} ({me.Email})");
         return ExitCodes.Ok;
     }
 }

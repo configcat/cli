@@ -20,6 +20,7 @@ using System.Net.Http;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
+using ConfigCat.Cli.Services.Credentials;
 using Trybot;
 using Trybot.Retry.Exceptions;
 using Trybot.Timeout.Exceptions;
@@ -34,6 +35,7 @@ internal static class Program
 
         container.RegisterAssemblyContaining<ApiClient>(
             serviceTypeSelector: Rules.ServiceRegistrationFilters.Interfaces,
+            selector: type => type != typeof(CredentialStore),
             registerSelf: false);
 
         RegisterWithDynamicMemberAccess(typeof(IBotPolicy<>), typeof(BotPolicy<>), container);

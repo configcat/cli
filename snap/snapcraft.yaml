@@ -32,3 +32,4 @@ apps:
     plugs:
       - home
       - network
+      - password-manager-service
