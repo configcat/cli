@@ -16,10 +16,10 @@ public interface IOrganizationClient
 
 public class OrganizationClient(
     IOutput output,
-    CliConfig config,
+    CliContext context,
     IBotPolicy<HttpResponseMessage> botPolicy,
     HttpClient httpClient)
-    : ApiClient(output, config, botPolicy, httpClient), IOrganizationClient
+    : ApiClient(output, context, botPolicy, httpClient), IOrganizationClient
 {
     public Task<IEnumerable<OrganizationModel>> GetOrganizationsAsync(CancellationToken token) =>
         this.GetAsync<IEnumerable<OrganizationModel>>(HttpMethod.Get, "v1/organizations", token);

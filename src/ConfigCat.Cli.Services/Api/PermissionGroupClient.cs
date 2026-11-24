@@ -24,10 +24,10 @@ public interface IPermissionGroupClient
 
 public class PermissionGroupClient(
     IOutput output,
-    CliConfig config,
+    CliContext context,
     IBotPolicy<HttpResponseMessage> botPolicy,
     HttpClient httpClient)
-    : ApiClient(output, config, botPolicy, httpClient), IPermissionGroupClient
+    : ApiClient(output, context, botPolicy, httpClient), IPermissionGroupClient
 {
     public Task<IEnumerable<PermissionGroupModel>> GetPermissionGroupsAsync(string productId, CancellationToken token) =>
         this.GetAsync<IEnumerable<PermissionGroupModel>>(HttpMethod.Get, $"v1/products/{productId}/permissions", token);

@@ -54,8 +54,8 @@ internal static class Program
                 var commandName = context.ParseResult.CommandResult.Command.Name;
                 switch (commandName)
                 {
-                    case "setup" or "eval" or "whoisthebestcat":
-                        container.RegisterInstance(new CliConfig());
+                    case "setup" or "logout" or "eval" or "whoisthebestcat":
+                        container.RegisterInstance(new CliContext());
                         break;
                     case not null when context.ParseResult.CommandResult.Parent is CommandResult { Command.Name: "config-json" }:
                         if (commandName == "convert")
@@ -66,9 +66,9 @@ internal static class Program
                         }
                         break;
                     default:
-                        var configurationProvider = container.Resolve<IConfigurationProvider>();
-                        var config = await configurationProvider.GetConfigAsync(context.GetCancellationToken());
-                        container.RegisterInstance(config);
+                        var contextProvider = container.Resolve<IContextProvider>();
+                        var cliContext = await contextProvider.GetConfigAsync(context.GetCancellationToken());
+                        container.RegisterInstance(cliContext);
                         break;
                 }
                 await next(context);

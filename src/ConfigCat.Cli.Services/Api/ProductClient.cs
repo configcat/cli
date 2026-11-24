@@ -28,10 +28,10 @@ public interface IProductClient
 
 public class ProductClient(
     IOutput output,
-    CliConfig config,
+    CliContext context,
     IBotPolicy<HttpResponseMessage> botPolicy,
     HttpClient httpClient)
-    : ApiClient(output, config, botPolicy, httpClient), IProductClient
+    : ApiClient(output, context, botPolicy, httpClient), IProductClient
 {
     public Task<IEnumerable<ProductModel>> GetProductsAsync(CancellationToken token) =>
         this.GetAsync<IEnumerable<ProductModel>>(HttpMethod.Get, "v1/products", token);

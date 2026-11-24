@@ -25,10 +25,10 @@ public interface IWebhookClient
 
 public class WebhookClient(
     IOutput output,
-    CliConfig config,
+    CliContext context,
     IBotPolicy<HttpResponseMessage> botPolicy,
     HttpClient httpClient)
-    : ApiClient(output, config, botPolicy, httpClient), IWebhookClient
+    : ApiClient(output, context, botPolicy, httpClient), IWebhookClient
 {
     public Task<IEnumerable<WebhookModel>> GetWebhooksAsync(string productId, CancellationToken token) =>
         this.GetAsync<IEnumerable<WebhookModel>>(HttpMethod.Get, $"v1/products/{productId}/webhooks", token);

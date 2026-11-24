@@ -17,10 +17,10 @@ public interface ICodeReferenceClient
 
 public class CodeReferenceClient(
     IOutput output,
-    CliConfig config,
+    CliContext context,
     IBotPolicy<HttpResponseMessage> botPolicy,
     HttpClient httpClient)
-    : ApiClient(output, config, botPolicy, httpClient), ICodeReferenceClient
+    : ApiClient(output, context, botPolicy, httpClient), ICodeReferenceClient
 {
     public async Task UploadAsync(CodeReferenceRequest request, CancellationToken token)
     {

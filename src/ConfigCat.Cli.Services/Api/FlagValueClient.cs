@@ -22,10 +22,10 @@ public interface IFlagValueClient
 
 public class FlagValueClient(
     IOutput output,
-    CliConfig config,
+    CliContext context,
     IBotPolicy<HttpResponseMessage> botPolicy,
     HttpClient httpClient)
-    : ApiClient(output, config, botPolicy, httpClient), IFlagValueClient
+    : ApiClient(output, context, botPolicy, httpClient), IFlagValueClient
 {
     public Task<FlagValueModel> GetValueAsync(int settingId, string environmentId, CancellationToken token) =>
         this.GetAsync<FlagValueModel>(HttpMethod.Get, $"v1/environments/{environmentId}/settings/{settingId}/value", token);

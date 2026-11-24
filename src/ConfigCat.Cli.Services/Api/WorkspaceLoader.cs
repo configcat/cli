@@ -49,7 +49,7 @@ public class WorkspaceLoader(
     IPermissionGroupClient permissionGroupClient,
     IPrompt prompt,
     IOutput output,
-    CliConfig cliConfig)
+    CliContext cliContext)
     : IWorkspaceLoader
 {
     public async Task<OrganizationModel> LoadOrganizationAsync(CancellationToken token)
@@ -273,8 +273,8 @@ public class WorkspaceLoader(
     {
         var configs = (await configClient.GetConfigsAsync(productId, token)).ToList();
 
-        if (cliConfig.Workspace?.Config.IsEmpty() ?? true) return configs;
-        var config = configs.FirstOrDefault(c => c.ConfigId == cliConfig.Workspace.Config);
+        if (cliContext.Workspace?.Config.IsEmpty() ?? true) return configs;
+        var config = configs.FirstOrDefault(c => c.ConfigId == cliContext.Workspace.Config);
         if (config is null) return configs;
         output.Verbose($"Using config '{config.Name}' from workspace.");
         return [config];
@@ -288,8 +288,8 @@ public class WorkspaceLoader(
         if (products.Count == 0)
             throw CreateInformalException("product", "product create");
 
-        if (cliConfig.Workspace?.Product.IsEmpty() ?? true) return products;
-        var product = products.FirstOrDefault(p => p.ProductId == cliConfig.Workspace.Product);
+        if (cliContext.Workspace?.Product.IsEmpty() ?? true) return products;
+        var product = products.FirstOrDefault(p => p.ProductId == cliContext.Workspace.Product);
         if (product is null) return products;
         output.Verbose($"Using product '{product.Name}' from workspace.");
         return [product];

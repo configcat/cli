@@ -15,10 +15,10 @@ public interface IMeClient
 
 public class MeClient(
     IOutput output,
-    CliConfig config,
+    CliContext context,
     IBotPolicy<HttpResponseMessage> botPolicy,
     HttpClient httpClient)
-    : ApiClient(output, config, botPolicy, httpClient), IMeClient
+    : ApiClient(output, context, botPolicy, httpClient), IMeClient
 {
     public Task<MeModel> GetMeAsync(CancellationToken token) =>
         this.GetAsync<MeModel>(HttpMethod.Get, "v1/me", token);

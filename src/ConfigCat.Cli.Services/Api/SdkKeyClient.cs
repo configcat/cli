@@ -15,10 +15,10 @@ public interface ISdkKeyClient
 
 public class SdkKeyClient(
     IOutput output,
-    CliConfig config,
+    CliContext context,
     IBotPolicy<HttpResponseMessage> botPolicy,
     HttpClient httpClient)
-    : ApiClient(output, config, botPolicy, httpClient), ISdkKeyClient
+    : ApiClient(output, context, botPolicy, httpClient), ISdkKeyClient
 {
     public Task<SdkKeyModel> GetSdkKeyAsync(string configId, string environmentId, CancellationToken token) =>
         this.GetAsync<SdkKeyModel>(HttpMethod.Get, $"v1/configs/{configId}/environments/{environmentId}", token);

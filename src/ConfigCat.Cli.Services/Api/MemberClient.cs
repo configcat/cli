@@ -30,10 +30,10 @@ public interface IMemberClient
 
 public class MemberClient(
     IOutput output,
-    CliConfig config,
+    CliContext context,
     IBotPolicy<HttpResponseMessage> botPolicy,
     HttpClient httpClient)
-    : ApiClient(output, config, botPolicy, httpClient), IMemberClient
+    : ApiClient(output, context, botPolicy, httpClient), IMemberClient
 {
     public Task<IEnumerable<InvitationModel>> GetOrganizationInvitationsAsync(string organizationId, CancellationToken token) =>
         this.GetAsync<IEnumerable<InvitationModel>>(HttpMethod.Get, $"v1/organizations/{organizationId}/invitations", token);

@@ -24,10 +24,10 @@ public interface IConfigClient
 
 public class ConfigClient(
     IOutput output,
-    CliConfig config,
+    CliContext context,
     IBotPolicy<HttpResponseMessage> botPolicy,
     HttpClient httpClient)
-    : ApiClient(output, config, botPolicy, httpClient), IConfigClient
+    : ApiClient(output, context, botPolicy, httpClient), IConfigClient
 {
     public Task<IEnumerable<ConfigModel>> GetConfigsAsync(string productId, CancellationToken token) =>
         this.GetAsync<IEnumerable<ConfigModel>>(HttpMethod.Get, $"v1/products/{productId}/configs", token);

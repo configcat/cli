@@ -27,10 +27,10 @@ public interface IFlagClient
 
 public class FlagClient(
     IOutput output,
-    CliConfig config,
+    CliContext context,
     IBotPolicy<HttpResponseMessage> botPolicy,
     HttpClient httpClient)
-    : ApiClient(output, config, botPolicy, httpClient), IFlagClient
+    : ApiClient(output, context, botPolicy, httpClient), IFlagClient
 {
     public Task<IEnumerable<FlagModel>> GetFlagsAsync(string configId, CancellationToken token) =>
         this.GetAsync<IEnumerable<FlagModel>>(HttpMethod.Get, $"v1/configs/{configId}/settings", token);

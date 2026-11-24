@@ -24,10 +24,10 @@ public interface IEnvironmentClient
 
 public class EnvironmentClient(
     IOutput output,
-    CliConfig config,
+    CliContext context,
     IBotPolicy<HttpResponseMessage> botPolicy,
     HttpClient httpClient)
-    : ApiClient(output, config, botPolicy, httpClient), IEnvironmentClient
+    : ApiClient(output, context, botPolicy, httpClient), IEnvironmentClient
 {
     public Task<IEnumerable<EnvironmentModel>> GetEnvironmentsAsync(string productId, CancellationToken token) =>
         this.GetAsync<IEnumerable<EnvironmentModel>>(HttpMethod.Get, $"v1/products/{productId}/environments", token);

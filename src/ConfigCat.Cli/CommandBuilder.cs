@@ -38,6 +38,10 @@ public static class CommandBuilder
         {
             SubCommands =
             [
+                new CommandDescriptor("logout", "Clear user credentials", "configcat logout")
+                {
+                    Handler = CreateHandler<Logout>(nameof(Logout.InvokeAsync))
+                },
                 BuildSetupCommand(),
                 BuildListAllCommand(),
                 BuildProductCommand(),

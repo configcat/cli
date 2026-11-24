@@ -24,10 +24,10 @@ public interface ITagClient
 
 public class TagClient(
     IOutput output,
-    CliConfig config,
+    CliContext context,
     IBotPolicy<HttpResponseMessage> botPolicy,
     HttpClient httpClient)
-    : ApiClient(output, config, botPolicy, httpClient), ITagClient
+    : ApiClient(output, context, botPolicy, httpClient), ITagClient
 {
     public Task<IEnumerable<TagModel>> GetTagsAsync(string productId, CancellationToken token) =>
         this.GetAsync<IEnumerable<TagModel>>(HttpMethod.Get, $"v1/products/{productId}/tags", token);

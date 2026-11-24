@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <PackageReference Include="Ignore" Version="0.2.1" />
+    <PackageReference Include="Microsoft.Identity.Client.Extensions.Msal" Version="4.92.0" />
     <PackageReference Include="Trybot" Version="2.4.4" />
   </ItemGroup>
 
