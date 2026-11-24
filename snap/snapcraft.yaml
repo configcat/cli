@@ -21,7 +21,7 @@ parts:
       - libsecret-1-0
     override-build: |
       craftctl default
-      chmod +x $CRAFT_PART_INSTALL/bin/configcat
+      chmod +x $CRAFT_PART_INSTALL/configcat
       
 apps:
   configcat:
