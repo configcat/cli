@@ -113,18 +113,25 @@ jobs:
         with:
           snapcraft-channel: 8.x/stable
           
+      - name: List snap files
+        run: unsquashfs -l ${{ steps.build.outputs.snap }}
+          
       - name: Install snap
         run: |
           sudo apt-get update
-          sudo apt-get install -y gnome-keyring dbus-x11
+          sudo apt-get install -y gnome-keyring dbus-x11 dbus-user-session
+          sudo loginctl enable-linger $USER
           sudo snap install --dangerous ${{ steps.build.outputs.snap }}
           sudo snap connect configcat:password-manager-service
           
       - name: Execute tests
         run: |
-          dbus-run-session -- bash -c '
-            echo "test-password" | gnome-keyring-daemon --unlock --components=secrets
-            pwsh -Command "./test/integ.ps1 configcat ./test -withoutGit"
+          export XDG_RUNTIME_DIR="/run/user/$(id -u)"
+          systemd-run --user --scope --collect bash -c '
+            dbus-run-session -- bash -c '\''
+              echo "test-password" | gnome-keyring-daemon --unlock --components=secrets
+              pwsh -Command "./test/integ.ps1 configcat ./test -withoutGit"
+            '\''
           '
         env:
           CONFIGCAT_API_HOST: ${{ secrets.CONFIGCAT_API_HOST }}
