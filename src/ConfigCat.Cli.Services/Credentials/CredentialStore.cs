@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using ConfigCat.Cli.Models.Credentials;
+using ConfigCat.Cli.Services.Exceptions;
 using Microsoft.Identity.Client.Extensions.Msal;
 
 namespace ConfigCat.Cli.Services.Credentials;
@@ -26,27 +27,35 @@ public sealed class CredentialStore : ICredentialStore
     
     public CredentialStore(string storeName)
     {
-        var cacheDir = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            AppName);
+        try
+        {
+            var cacheDir = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                AppName);
 
-        Directory.CreateDirectory(cacheDir);
-        lockFilePath = Path.Combine(cacheDir, $"{storeName}.cache.lockfile");
+            Directory.CreateDirectory(cacheDir);
+            lockFilePath = Path.Combine(cacheDir, $"{storeName}.cache.lockfile");
 
-        var builder = new StorageCreationPropertiesBuilder(
-                cacheFileName: $"{storeName}.cache",
-                cacheDirectory: cacheDir)
-            .WithMacKeyChain(
-                serviceName: $"{ServiceIdentifier}.{storeName}.service",
-                accountName:  $"{ServiceIdentifier}.{storeName}.account")
-            .WithLinuxKeyring(
-                schemaName: $"{ServiceIdentifier}.{storeName}cache",
-                collection: MsalCacheHelper.LinuxKeyRingDefaultCollection,
-                secretLabel: $"{AppName} {storeName} cache",
-                attribute1: new KeyValuePair<string, string>("Version", "1"),
-                attribute2: new KeyValuePair<string, string>("Product", AppName));
+            var builder = new StorageCreationPropertiesBuilder(
+                    cacheFileName: $"{storeName}.cache",
+                    cacheDirectory: cacheDir)
+                .WithMacKeyChain(
+                    serviceName: $"{ServiceIdentifier}.{storeName}.service",
+                    accountName:  $"{ServiceIdentifier}.{storeName}.account")
+                .WithLinuxKeyring(
+                    schemaName: $"{ServiceIdentifier}.{storeName}cache",
+                    collection: MsalCacheHelper.LinuxKeyRingDefaultCollection,
+                    secretLabel: $"{AppName} {storeName} cache",
+                    attribute1: new KeyValuePair<string, string>("Version", "1"),
+                    attribute2: new KeyValuePair<string, string>("Product", AppName));
 
-        storage = Storage.Create(builder.Build());
+            storage = Storage.Create(builder.Build());
+            storage.VerifyPersistence();
+        }
+        catch (Exception e)
+        {
+            throw new SecureStorageUnavailableException(innerException: e);
+        }
     }
     
     public CredentialData? Get()

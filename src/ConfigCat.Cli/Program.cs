@@ -121,11 +121,14 @@ internal static class Program
                     case MaxRetryAttemptsReachedException { OperationResult: HttpResponseMessage response }:
                         output.WriteError($"Http request failed: {(int)response.StatusCode} {response.ReasonPhrase}.");
                         break;
-                    case MaxRetryAttemptsReachedException { InnerException: { } } retryException:
+                    case MaxRetryAttemptsReachedException { InnerException: not null } retryException:
                         output.WriteError(hasVerboseOption ? retryException.InnerException.ToString() : retryException.InnerException.Message);
                         break;
                     case MaxRetryAttemptsReachedException retryException:
                         output.WriteError(hasVerboseOption ? retryException.ToString() : retryException.Message);
+                        break;
+                    case SecureStorageUnavailableException secureStorageUnavailableException:
+                        output.WriteError(hasVerboseOption ? secureStorageUnavailableException.ToString() : secureStorageUnavailableException.Message);
                         break;
                     case OperationTimeoutException:
                         output.WriteError("Operation timed out.");

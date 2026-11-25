@@ -43,7 +43,7 @@ internal class Setup(
         cliContext.ApiHost = apiHost;
         await configurationStorage.WriteConfigAsync(cliConfig, token);
 
-        output.WriteSuccess().WriteLine().Write($"Saving credentials to credential store... ");
+        output.WriteSuccess().WriteLine().Write("Saving credentials to credential store... ");
         var credentialStore = credentialsManager.CreateApiCredentialStore();
         credentialStore.Set(new CredentialData { UserName = userName, Password = password });
         cliContext.SetBasicAuth(userName, password);
