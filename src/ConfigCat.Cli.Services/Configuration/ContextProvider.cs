@@ -28,7 +28,8 @@ public class ContextProvider(IOutput output, IConfigurationStorage configuration
 
 #pragma warning disable CS0612 // Type or member is obsolete
         // Migrate legacy credentials from config file to credential store
-        if (config?.Auth is not null &&
+        if (string.IsNullOrEmpty(user) && string.IsNullOrEmpty(pass) &&
+            config?.Auth is not null &&
             (!string.IsNullOrEmpty(config.Auth.UserName) || !string.IsNullOrEmpty(config.Auth.Password)))
         {
             var legacyUserName = config.Auth.UserName;
@@ -37,24 +38,14 @@ public class ContextProvider(IOutput output, IConfigurationStorage configuration
             if (!string.IsNullOrEmpty(legacyUserName) && !string.IsNullOrEmpty(legacyPassword))
             {
                 var credentialStore = credentialsManager.CreateApiCredentialStore();
-                if (string.IsNullOrEmpty(user) && string.IsNullOrEmpty(pass))
-                { 
-                    credentialStore.Set(new CredentialData
-                    {
-                        UserName = legacyUserName,
-                        Password = legacyPassword
-                    });
-                    user = legacyUserName;
-                    pass = legacyPassword;
-                }
-                else if (!string.IsNullOrEmpty(user) || !string.IsNullOrEmpty(pass))
+                credentialStore.Set(new CredentialData
                 {
-                    credentialStore.Set(new CredentialData
-                    {
-                        UserName = legacyUserName,
-                        Password = legacyPassword
-                    });
-                }
+                    UserName = legacyUserName,
+                    Password = legacyPassword
+                });
+                user = legacyUserName;
+                pass = legacyPassword;
+                credentialSource = "credential store";
             }
 
             config.Auth.UserName = null;

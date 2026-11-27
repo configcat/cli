@@ -49,7 +49,7 @@ public class ContextProviderTests
     }
 
     [Fact]
-    public async Task ClearsLegacyCredentials_WhenEnvironmentCredentialsAreSet()
+    public async Task SkipsMigration_WhenEnvironmentCredentialsAreSet()
     {
         using var environment = new EnvironmentVariableScope(
             Constants.ApiHostEnvironmentVariableName, null,
@@ -59,8 +59,8 @@ public class ContextProviderTests
         var config = CreateConfig("legacy-user", "legacy-pass");
         var storage = new Mock<IConfigurationStorage>();
         storage.Setup(x => x.ReadConfigOrDefaultAsync(It.IsAny<CancellationToken>())).ReturnsAsync(config);
-        var credentialStore = new Mock<ICredentialStore>();
-        var provider = CreateProvider(storage, credentialStore);
+        var manager = new Mock<ICredentialsManager>(MockBehavior.Strict);
+        var provider = new ContextProvider(Mock.Of<IOutput>(), storage.Object, manager.Object);
 
         var context = await provider.GetConfigAsync(CancellationToken.None);
         var expectedContext = new CliContext();
@@ -69,11 +69,11 @@ public class ContextProviderTests
         Assert.Equal(expectedContext.AuthenticationHeader.Scheme, context.AuthenticationHeader.Scheme);
         Assert.Equal(expectedContext.AuthenticationHeader.Parameter, context.AuthenticationHeader.Parameter);
 #pragma warning disable CS0612
-        Assert.Null(config.Auth.UserName);
-        Assert.Null(config.Auth.Password);
+        Assert.Equal("legacy-user", config.Auth.UserName);
+        Assert.Equal("legacy-pass", config.Auth.Password);
 #pragma warning restore CS0612
-        credentialStore.Verify(x => x.Set(It.IsAny<CredentialData>()), Times.Once);
-        storage.Verify(x => x.WriteConfigAsync(config, It.IsAny<CancellationToken>()), Times.Once);
+        manager.Verify(x => x.CreateApiCredentialStore(), Times.Never);
+        storage.Verify(x => x.WriteConfigAsync(It.IsAny<CliConfig>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -169,28 +169,30 @@ public class ContextProviderTests
             provider.GetConfigAsync(CancellationToken.None));
     }
 
-    [Fact]
-    public async Task PreservesLegacyPair_WhenOnlyOneEnvironmentCredentialIsSet()
+    [Theory]
+    [InlineData("env-user", null)]
+    [InlineData(null, "env-pass")]
+    public async Task SkipsMigration_WhenOnlyOneEnvironmentCredentialIsSet(string? userName, string? password)
     {
         using var environment = new EnvironmentVariableScope(
             Constants.ApiHostEnvironmentVariableName, null,
-            Constants.ApiUserNameEnvironmentVariableName, "env-user",
-            Constants.ApiPasswordEnvironmentVariableName, null);
+            Constants.ApiUserNameEnvironmentVariableName, userName,
+            Constants.ApiPasswordEnvironmentVariableName, password);
 
         var config = CreateConfig("legacy-user", "legacy-pass");
         var storage = new Mock<IConfigurationStorage>();
         storage.Setup(x => x.ReadConfigOrDefaultAsync(It.IsAny<CancellationToken>())).ReturnsAsync(config);
-        var credentialStore = new Mock<ICredentialStore>();
-        var provider = CreateProvider(storage, credentialStore);
+        var manager = new Mock<ICredentialsManager>(MockBehavior.Strict);
+        var provider = new ContextProvider(Mock.Of<IOutput>(), storage.Object, manager.Object);
 
         await Assert.ThrowsAsync<ShowHelpException>(() =>
             provider.GetConfigAsync(CancellationToken.None));
 
-        credentialStore.Verify(x => x.Set(It.Is<CredentialData>(c =>
-            c.UserName == "legacy-user" && c.Password == "legacy-pass")), Times.Once);
+        manager.Verify(x => x.CreateApiCredentialStore(), Times.Never);
+        storage.Verify(x => x.WriteConfigAsync(It.IsAny<CliConfig>(), It.IsAny<CancellationToken>()), Times.Never);
 #pragma warning disable CS0612
-        Assert.Null(config.Auth.UserName);
-        Assert.Null(config.Auth.Password);
+        Assert.Equal("legacy-user", config.Auth.UserName);
+        Assert.Equal("legacy-pass", config.Auth.Password);
 #pragma warning restore CS0612
     }
 
