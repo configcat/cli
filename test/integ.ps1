@@ -3,7 +3,8 @@
 param(
     [string]$cliPath = $args[0],
     [string]$scanPath = $args[1],
-    [switch]$withoutGit = $false
+    [switch]$withoutGit = $false,
+    [switch]$withoutSetup = $false
 )
 
 function Invoke-ConfigCat {
@@ -56,9 +57,12 @@ AfterAll {
     Invoke-ConfigCat "product", "ls" | Should -Not -Match ([regex]::Escape($productId))
 }
 
-Describe "Setup Tests" {
-    It "Setup" {
-       Invoke-ConfigCat "setup", "-H", $Env:CONFIGCAT_API_HOST, "-u", $Env:CONFIGCAT_API_USER, "-p", $Env:CONFIGCAT_API_PASS | Should -Match ([regex]::Escape("Setup complete."))
+if (!$withoutSetup)
+{
+    Describe "Setup Tests" {
+        It "Setup" {
+            Invoke-ConfigCat "setup", "-H", $Env:CONFIGCAT_API_HOST, "-u", $Env:CONFIGCAT_API_USER, "-p", $Env:CONFIGCAT_API_PASS | Should -Match ([regex]::Escape("Setup complete."))
+        }
     }
 }
 

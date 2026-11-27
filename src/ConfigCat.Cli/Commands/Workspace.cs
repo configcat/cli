@@ -16,7 +16,7 @@ internal class Workspace(
     IWorkspaceLoader workspaceLoader,
     IProductClient productClient,
     IConfigClient configClient,
-    CliConfig cliConfig)
+    CliContext cliContext)
 {
     public async Task<int> SetAsync(string productId, string configId, CancellationToken token)
     {
@@ -26,13 +26,24 @@ internal class Workspace(
         if (configId.IsEmpty())
             configId = (await workspaceLoader.LoadConfigAsync(productId, token)).ConfigId;
 
-        cliConfig.Workspace = new Models.Configuration.Workspace
+        var workspace = new Models.Configuration.Workspace
         {
             Config = configId,
             Product = productId
         };
+        cliContext.Workspace = workspace;
+
+        var config = new CliConfig
+        {
+            Auth = new Auth
+            {
+                ApiHost = cliContext.ApiHost
+            },
+            Workspace = workspace
+        };
+        
         output.Write($"Updating configuration... ");
-        await configurationStorage.WriteConfigAsync(cliConfig, token);
+        await configurationStorage.WriteConfigAsync(config, token);
         output.WriteSuccess().WriteLine();
 
         return ExitCodes.Ok;
@@ -40,9 +51,16 @@ internal class Workspace(
     
     public async Task<int> UnSetAsync(CancellationToken token)
     {
-        cliConfig.Workspace = new Models.Configuration.Workspace();
+        cliContext.Workspace = new Models.Configuration.Workspace();
         output.Write($"Updating configuration... ");
-        await configurationStorage.WriteConfigAsync(cliConfig, token);
+        await configurationStorage.WriteConfigAsync(new CliConfig
+        {
+            Auth = new Auth
+            {
+                ApiHost = cliContext.ApiHost
+            },
+            Workspace = new Models.Configuration.Workspace()
+        }, token);
         output.WriteSuccess().WriteLine();
 
         return ExitCodes.Ok;
@@ -50,14 +68,14 @@ internal class Workspace(
     
     public async Task<int> ShowAsync(CancellationToken token)
     {
-        if (cliConfig.Workspace.IsEmpty())
+        if (cliContext.Workspace.IsEmpty())
         {
             output.WriteLine("Workspace is empty.");
         }
         else
         {
-            var product = await productClient.GetProductAsync(cliConfig.Workspace.Product, token);
-            var config = await configClient.GetConfigAsync(cliConfig.Workspace.Config, token);
+            var product = await productClient.GetProductAsync(cliContext.Workspace.Product, token);
+            var config = await configClient.GetConfigAsync(cliContext.Workspace.Config, token);
             output.RenderTable([new
             {
                 Product = product.Name,

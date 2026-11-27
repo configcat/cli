@@ -20,17 +20,17 @@ public abstract class ApiClient
 
     protected IOutput Output { get; }
 
-    private readonly CliConfig config;
+    private readonly CliContext context;
     private readonly IBotPolicy<HttpResponseMessage> botPolicy;
     private readonly HttpClient httpClient;
 
     protected ApiClient(IOutput output,
-        CliConfig config,
+        CliContext context,
         IBotPolicy<HttpResponseMessage> botPolicy,
         HttpClient httpClient)
     {
         this.Output = output;
-        this.config = config;
+        this.context = context;
         this.botPolicy = botPolicy;
         this.httpClient = httpClient;
 
@@ -144,10 +144,8 @@ public abstract class ApiClient
 
     private HttpRequestMessage CreateRequest(HttpMethod method, string path)
     {
-        var configAuth = this.config.Auth;
-        var request = new HttpRequestMessage(method, new Uri(new Uri($"https://{configAuth.ApiHost}"), path));
-        request.Headers.Authorization = new AuthenticationHeaderValue("Basic",
-            Convert.ToBase64String(Encoding.ASCII.GetBytes($"{configAuth.UserName}:{configAuth.Password}")));
+        var request = new HttpRequestMessage(method, new Uri(new Uri($"https://{this.context.ApiHost}"), path));
+        request.Headers.Authorization = this.context.AuthenticationHeader;
         return request;
     }
 

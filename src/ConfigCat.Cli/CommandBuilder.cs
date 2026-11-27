@@ -38,7 +38,7 @@ public static class CommandBuilder
         {
             SubCommands =
             [
-                BuildSetupCommand(),
+                ..BuildSetupCommands(),
                 BuildListAllCommand(),
                 BuildProductCommand(),
                 BuildConfigCommand(),
@@ -59,17 +59,27 @@ public static class CommandBuilder
             ]
         };
 
-    private static CommandDescriptor BuildSetupCommand() =>
-        new("setup", $"Setup the CLI with Public Management API host and credentials", "configcat setup -H api.configcat.com -u <user-name> -p <password>")
-        {
-            Options =
-            [
-                new Option<string>(["--api-host", "-H"], $"The Management API host, also used from {Constants.ApiHostEnvironmentVariableName}. (default '{Constants.DefaultApiHost}')"),
-                new Option<string>(["--username", "-u"], $"The Management API basic authentication username, also used from {Constants.ApiUserNameEnvironmentVariableName}"),
-                new Option<string>(["--password", "-p"], $"The Management API basic authentication password, also used from {Constants.ApiPasswordEnvironmentVariableName}")
-            ],
-            Handler = CreateHandler<Setup>(nameof(Setup.InvokeAsync))
-        };
+    private static CommandDescriptor[] BuildSetupCommands() =>
+        [
+            new("setup", $"Setup the CLI with Public Management API host and credentials", "configcat setup -H api.configcat.com -u <user-name> -p <password>")
+            {
+                Options =
+                [
+                    new Option<string>(["--api-host", "-H"], $"The Management API host, also used from {Constants.ApiHostEnvironmentVariableName}. (default '{Constants.DefaultApiHost}')"),
+                    new Option<string>(["--username", "-u"], $"The Management API basic authentication username, also used from {Constants.ApiUserNameEnvironmentVariableName}"),
+                    new Option<string>(["--password", "-p"], $"The Management API basic authentication password, also used from {Constants.ApiPasswordEnvironmentVariableName}")
+                ],
+                Handler = CreateHandler<Setup>(nameof(Setup.InvokeAsync))
+            },
+            new ("logout", "Clear active user credentials", "configcat logout")
+            {
+                Handler = CreateHandler<Setup>(nameof(Setup.LogoutAsync))
+            },
+            new ("me", "Print active user information", "configcat me")
+            {
+                Handler = CreateHandler<Setup>(nameof(Setup.MeAsync))
+            },
+        ];
 
     private static CommandDescriptor BuildListAllCommand() =>
         new("ls", "List all Product, Config, and Environment IDs", "configcat ls")

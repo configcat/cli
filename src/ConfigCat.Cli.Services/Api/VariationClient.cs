@@ -16,10 +16,10 @@ public interface IVariationClient
 
 public class VariationClient(
     IOutput output,
-    CliConfig config,
+    CliContext context,
     IBotPolicy<HttpResponseMessage> botPolicy,
     HttpClient httpClient)
-    : ApiClient(output, config, botPolicy, httpClient), IVariationClient
+    : ApiClient(output, context, botPolicy, httpClient), IVariationClient
 {
     public Task<VariationsModel> UpdateVariationsAsync(int flagId, List<VariationModel> updatedModel,
         CancellationToken token) =>

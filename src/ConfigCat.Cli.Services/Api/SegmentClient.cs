@@ -24,10 +24,10 @@ public interface ISegmentClient
 
 public class SegmentClient(
     IOutput output,
-    CliConfig config,
+    CliContext context,
     IBotPolicy<HttpResponseMessage> botPolicy,
     HttpClient httpClient)
-    : ApiClient(output, config, botPolicy, httpClient), ISegmentClient
+    : ApiClient(output, context, botPolicy, httpClient), ISegmentClient
 {
     public Task<IEnumerable<SegmentModel>> GetSegmentsAsync(string productId, CancellationToken token) =>
         this.GetAsync<IEnumerable<SegmentModel>>(HttpMethod.Get, $"v1/products/{productId}/segments", token);

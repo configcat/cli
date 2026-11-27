@@ -20,6 +20,7 @@ using System.Net.Http;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
+using ConfigCat.Cli.Services.Credentials;
 using Trybot;
 using Trybot.Retry.Exceptions;
 using Trybot.Timeout.Exceptions;
@@ -34,6 +35,7 @@ internal static class Program
 
         container.RegisterAssemblyContaining<ApiClient>(
             serviceTypeSelector: Rules.ServiceRegistrationFilters.Interfaces,
+            selector: type => type != typeof(CredentialStore),
             registerSelf: false);
 
         RegisterWithDynamicMemberAccess(typeof(IBotPolicy<>), typeof(BotPolicy<>), container);
@@ -54,8 +56,8 @@ internal static class Program
                 var commandName = context.ParseResult.CommandResult.Command.Name;
                 switch (commandName)
                 {
-                    case "setup" or "eval" or "whoisthebestcat":
-                        container.RegisterInstance(new CliConfig());
+                    case "setup" or "logout" or "eval" or "whoisthebestcat":
+                        container.RegisterInstance(new CliContext());
                         break;
                     case not null when context.ParseResult.CommandResult.Parent is CommandResult { Command.Name: "config-json" }:
                         if (commandName == "convert")
@@ -66,9 +68,9 @@ internal static class Program
                         }
                         break;
                     default:
-                        var configurationProvider = container.Resolve<IConfigurationProvider>();
-                        var config = await configurationProvider.GetConfigAsync(context.GetCancellationToken());
-                        container.RegisterInstance(config);
+                        var contextProvider = container.Resolve<IContextProvider>();
+                        var cliContext = await contextProvider.GetConfigAsync(context.GetCancellationToken());
+                        container.RegisterInstance(cliContext);
                         break;
                 }
                 await next(context);
@@ -119,11 +121,14 @@ internal static class Program
                     case MaxRetryAttemptsReachedException { OperationResult: HttpResponseMessage response }:
                         output.WriteError($"Http request failed: {(int)response.StatusCode} {response.ReasonPhrase}.");
                         break;
-                    case MaxRetryAttemptsReachedException { InnerException: { } } retryException:
+                    case MaxRetryAttemptsReachedException { InnerException: not null } retryException:
                         output.WriteError(hasVerboseOption ? retryException.InnerException.ToString() : retryException.InnerException.Message);
                         break;
                     case MaxRetryAttemptsReachedException retryException:
                         output.WriteError(hasVerboseOption ? retryException.ToString() : retryException.Message);
+                        break;
+                    case SecureStorageUnavailableException secureStorageUnavailableException:
+                        output.WriteError(hasVerboseOption ? secureStorageUnavailableException.ToString() : secureStorageUnavailableException.Message);
                         break;
                     case OperationTimeoutException:
                         output.WriteError("Operation timed out.");
