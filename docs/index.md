@@ -15,6 +15,14 @@ This is the complete list of the available commands provided by the CLI.
 | Command | Description |
 | ------ | ----------- |
 | [configcat setup](configcat-setup.md) | Setup the CLI with Public Management API host and credentials |
+### configcat logout
+| Command | Description |
+| ------ | ----------- |
+| [configcat logout](configcat-logout.md) | Clear active user credentials |
+### configcat me
+| Command | Description |
+| ------ | ----------- |
+| [configcat me](configcat-me.md) | Print active user information |
 ### configcat ls
 | Command | Description |
 | ------ | ----------- |
